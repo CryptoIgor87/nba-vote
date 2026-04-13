@@ -49,10 +49,10 @@ export default function LandingPage() {
           </div>
 
           {/* Title */}
-          <h1 className="font-display font-extrabold tracking-tight leading-[0.85] mb-6">
-            <span className="text-foreground text-3xl sm:text-5xl md:text-6xl">NBA PLAY OFF</span>
+          <h1 className="font-display font-extrabold leading-[0.85] mb-6">
+            <span className="text-foreground text-3xl sm:text-5xl md:text-6xl tracking-tight">NBA PLAY OFF</span>
             <br />
-            <span className="bg-gradient-to-r from-accent to-amber-400 bg-clip-text text-transparent text-5xl sm:text-7xl md:text-9xl">PREDICTIONS</span>
+            <span className="bg-gradient-to-r from-accent to-amber-400 bg-clip-text text-transparent text-4xl sm:text-6xl md:text-7xl tracking-tight">PREDICTIONS</span>
           </h1>
 
           <p className="text-lg sm:text-xl text-muted max-w-lg mx-auto mb-10 leading-relaxed font-light">

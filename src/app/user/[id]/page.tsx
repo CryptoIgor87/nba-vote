@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
-  ArrowLeft, Trophy, Crown, Check, X, Flame, Award,
+  ArrowLeft, Trophy, Crown, Check, X, Flame, Award, Plus, Minus,
   Crosshair, TrendingUp, Target, BarChart3, Pencil,
 } from "lucide-react";
 import { getTeamLogoUrl, formatGameDate, getRoundLabel } from "@/lib/utils";
@@ -170,38 +170,7 @@ export default function UserPage() {
 
       {/* Achievements */}
       {achievements.length > 0 && (
-        <div className="bg-card border border-border rounded-xl p-4 mb-4">
-          <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
-            <Award size={16} className="text-accent" />
-            Достижения
-            <span className="text-xs text-muted font-normal">
-              {achievements.filter((a) => a.unlocked).length}/{achievements.length}
-            </span>
-          </h2>
-          {Object.entries(
-            achievements.reduce<Record<string, Achievement[]>>((acc, a) => {
-              (acc[a.category] = acc[a.category] || []).push(a);
-              return acc;
-            }, {})
-          ).map(([cat, items]) => (
-            <div key={cat} className="mb-4 last:mb-0">
-              <p className="text-[10px] text-muted uppercase tracking-wider font-bold mb-2">
-                {CATEGORY_LABELS[cat] || cat}
-              </p>
-              <div className="flex flex-wrap gap-4">
-                {items.map((a) => (
-                  <div key={a.id} className="relative group/tip">
-                    <AchievementBadge achievement={a} size="md" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-card border border-border rounded-lg shadow-xl text-xs whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-20">
-                      <p className="font-semibold">{a.title}</p>
-                      <p className="text-muted">{a.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <AchievementsSection achievements={achievements} />
       )}
 
       {/* Bonuses earned */}
@@ -441,6 +410,60 @@ function BonusRow({
         {detail && <span className="text-muted ml-1 text-xs">({detail})</span>}
       </div>
       <span className="text-success font-bold shrink-0">+{points}</span>
+    </div>
+  );
+}
+
+function AchievementsSection({ achievements }: { achievements: Achievement[] }) {
+  const [open, setOpen] = useState(false);
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
+
+  return (
+    <div className="bg-card border border-border rounded-xl mb-4 overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+      >
+        <h2 className="text-sm font-semibold flex items-center gap-2">
+          <Award size={16} className="text-accent" />
+          Достижения
+          <span className="text-xs text-muted font-normal">
+            {unlockedCount}/{achievements.length}
+          </span>
+        </h2>
+        {open ? (
+          <Minus size={16} className="text-muted" />
+        ) : (
+          <Plus size={16} className="text-muted" />
+        )}
+      </button>
+      {open && (
+        <div className="px-4 pb-4">
+          {Object.entries(
+            achievements.reduce<Record<string, Achievement[]>>((acc, a) => {
+              (acc[a.category] = acc[a.category] || []).push(a);
+              return acc;
+            }, {})
+          ).map(([cat, items]) => (
+            <div key={cat} className="mb-4 last:mb-0">
+              <p className="text-[10px] text-muted uppercase tracking-wider font-bold mb-2">
+                {CATEGORY_LABELS[cat] || cat}
+              </p>
+              <div className="flex flex-wrap gap-4">
+                {items.map((a) => (
+                  <div key={a.id} className="relative group/tip">
+                    <AchievementBadge achievement={a} size="md" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-card border border-border rounded-lg shadow-xl text-xs whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-20">
+                      <p className="font-semibold">{a.title}</p>
+                      <p className="text-muted">{a.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
