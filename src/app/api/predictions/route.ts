@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
+import { rateLimit, dbError } from "@/lib/api-utils";
 
 export async function GET() {
   const session = await auth();

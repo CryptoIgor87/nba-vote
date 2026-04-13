@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { recalculateScores } from "@/lib/scoring";
+import { verifySecret } from "@/lib/api-utils";
 
 export async function GET(req: NextRequest) {
-  const secret = req.nextUrl.searchParams.get("secret");
-  if (secret !== process.env.CRON_SECRET) {
+  if (!verifySecret(req.nextUrl.searchParams.get("secret"), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -12,9 +12,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Score calculation error:", error);
-    return NextResponse.json(
-      { error: "Calculation failed", details: String(error) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Calculation failed" }, { status: 500 });
   }
 }

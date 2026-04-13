@@ -37,7 +37,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { player_name, team_id } = await req.json();
+  const body = await req.json();
+  const player_name = String(body.player_name || "").replace(/<[^>]*>/g, "").trim().slice(0, 100);
+  const team_id = body.team_id;
   if (!player_name) {
     return NextResponse.json({ error: "Missing player_name" }, { status: 400 });
   }

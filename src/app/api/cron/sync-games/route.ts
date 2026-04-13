@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { fetchPlayoffGames } from "@/lib/balldontlie";
+import { verifySecret } from "@/lib/api-utils";
 
 export async function GET(req: NextRequest) {
   const secret = req.nextUrl.searchParams.get("secret");
-  if (secret !== process.env.CRON_SECRET) {
+  if (!verifySecret(secret, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    // Fetch all playoff games for the season
     const startDate = new Date("2025-04-01");
     const endDate = new Date("2025-07-01");
-
     const formatDate = (d: Date) => d.toISOString().split("T")[0];
 
     const games = await fetchPlayoffGames(
@@ -51,21 +50,16 @@ export async function GET(req: NextRequest) {
       if (!error) synced++;
     }
 
-    // Update series based on finished games
     await updateSeriesFromGames();
 
     return NextResponse.json({ synced, total: games.length });
   } catch (error) {
     console.error("Sync error:", error);
-    return NextResponse.json(
-      { error: "Sync failed", details: String(error) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Sync failed" }, { status: 500 });
   }
 }
 
 async function updateSeriesFromGames() {
-  // Get all series with their games
   const { data: series } = await supabase
     .from("nba_series")
     .select("*")

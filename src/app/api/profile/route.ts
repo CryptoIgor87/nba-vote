@@ -101,7 +101,7 @@ export async function PUT(req: NextRequest) {
   const body = await req.json();
   let { display_name } = body;
   if (display_name) {
-    display_name = String(display_name).trim().slice(0, 50);
+    display_name = String(display_name).replace(/<[^>]*>/g, "").trim().slice(0, 50);
   }
 
   const { data, error } = await supabase
