@@ -22,12 +22,6 @@ export default function GameCard({
   seriesBonuses,
   onSave,
 }: Props) {
-  const [homeScore, setHomeScore] = useState(
-    prediction?.predicted_home_score?.toString() ?? ""
-  );
-  const [awayScore, setAwayScore] = useState(
-    prediction?.predicted_away_score?.toString() ?? ""
-  );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -35,15 +29,20 @@ export default function GameCard({
   const isFinished = game.status === "finished";
   const isUpcoming = game.status === "upcoming";
 
-  const handleSave = async () => {
-    const h = parseInt(homeScore);
-    const a = parseInt(awayScore);
-    if (isNaN(h) || isNaN(a) || h < 0 || a < 0 || h === a) {
-      alert("Введите корректный счёт (не может быть ничьей)");
-      return;
-    }
+  // Determine predicted winner from prediction scores
+  const predictedWinnerId = prediction
+    ? prediction.predicted_home_score > prediction.predicted_away_score
+      ? game.home_team_id
+      : game.away_team_id
+    : null;
+
+  const handlePickWinner = async (winnerId: number) => {
+    if (locked || !isUpcoming || saving) return;
+    // Save as 1-0 or 0-1 (winner gets 1)
+    const homeScore = winnerId === game.home_team_id ? 1 : 0;
+    const awayScore = winnerId === game.away_team_id ? 1 : 0;
     setSaving(true);
-    const ok = await onSave(game.id, h, a);
+    const ok = await onSave(game.id, homeScore, awayScore);
     setSaving(false);
     if (ok) {
       setSaved(true);
@@ -89,6 +88,13 @@ export default function GameCard({
 
   const totalPoints = pointsBreakdown.reduce((s, p) => s + p.points, 0);
 
+  const actualWinnerId =
+    isFinished && game.home_score != null && game.away_score != null
+      ? game.home_score > game.away_score
+        ? game.home_team_id
+        : game.away_team_id
+      : null;
+
   return (
     <div
       className={`bg-card border rounded-2xl overflow-hidden ${
@@ -124,26 +130,29 @@ export default function GameCard({
             <Trophy size={11} />+{totalPoints}
           </span>
         )}
+        {saved && (
+          <span className="ml-2 inline-flex items-center gap-1 text-xs text-success font-bold">
+            <Check size={11} /> Сохранено
+          </span>
+        )}
       </div>
 
       <div className="p-4">
-        {/* Teams and scores */}
+        {/* Teams */}
         <div className="flex items-center justify-between gap-2">
           {/* Home team */}
-          <div className="flex flex-col items-center gap-1 flex-1">
-            {game.home_team && (
-              <img
-                src={getTeamLogoUrl(game.home_team_id)}
-                alt={game.home_team.abbreviation}
-                className="w-14 h-14 object-contain"
-              />
-            )}
-            <span className="text-sm font-bold">
-              {game.home_team?.abbreviation || game.home_team_id}
-            </span>
-          </div>
+          <TeamButton
+            teamId={game.home_team_id}
+            abbreviation={game.home_team?.abbreviation || "?"}
+            isSelected={predictedWinnerId === game.home_team_id}
+            isWinner={actualWinnerId === game.home_team_id}
+            isLoser={actualWinnerId != null && actualWinnerId !== game.home_team_id}
+            isFinished={isFinished}
+            canSelect={isUpcoming && !locked && !saving}
+            onClick={() => handlePickWinner(game.home_team_id)}
+          />
 
-          {/* Score / Input */}
+          {/* Center: score or VS */}
           <div className="flex flex-col items-center gap-1 shrink-0">
             {isFinished ? (
               <div className="flex items-center gap-3 text-2xl font-black">
@@ -167,127 +176,110 @@ export default function GameCard({
                   {game.away_score}
                 </span>
               </div>
-            ) : isUpcoming && !locked ? (
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  max="200"
-                  value={homeScore}
-                  onChange={(e) => setHomeScore(e.target.value)}
-                  className="w-14 h-11 text-center bg-background border-2 border-border rounded-xl text-base font-bold focus:outline-none focus:border-accent"
-                  placeholder="0"
-                />
-                <span className="text-muted text-lg font-bold">:</span>
-                <input
-                  type="number"
-                  min="0"
-                  max="200"
-                  value={awayScore}
-                  onChange={(e) => setAwayScore(e.target.value)}
-                  className="w-14 h-11 text-center bg-background border-2 border-border rounded-xl text-base font-bold focus:outline-none focus:border-accent"
-                  placeholder="0"
-                />
-              </div>
             ) : (
-              <div className="text-muted text-lg font-bold">VS</div>
+              <span className="text-muted text-lg font-bold">VS</span>
             )}
           </div>
 
           {/* Away team */}
-          <div className="flex flex-col items-center gap-1 flex-1">
-            {game.away_team && (
-              <img
-                src={getTeamLogoUrl(game.away_team_id)}
-                alt={game.away_team.abbreviation}
-                className="w-14 h-14 object-contain"
-              />
-            )}
-            <span className="text-sm font-bold">
-              {game.away_team?.abbreviation || game.away_team_id}
-            </span>
-          </div>
+          <TeamButton
+            teamId={game.away_team_id}
+            abbreviation={game.away_team?.abbreviation || "?"}
+            isSelected={predictedWinnerId === game.away_team_id}
+            isWinner={actualWinnerId === game.away_team_id}
+            isLoser={actualWinnerId != null && actualWinnerId !== game.away_team_id}
+            isFinished={isFinished}
+            canSelect={isUpcoming && !locked && !saving}
+            onClick={() => handlePickWinner(game.away_team_id)}
+          />
         </div>
 
-        {/* Save button */}
-        {isUpcoming && !locked && (
-          <div className="mt-4 flex justify-center">
-            <button
-              onClick={handleSave}
-              disabled={saving || !homeScore || !awayScore}
-              className="px-6 py-2 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
-            >
-              {saved ? (
-                <>
-                  <Check size={14} /> Сохранено
-                </>
-              ) : saving ? (
-                "Сохраняю..."
-              ) : prediction ? (
-                "Обновить"
-              ) : (
-                "Сохранить"
-              )}
-            </button>
-          </div>
-        )}
-
-        {/* Prediction result for finished games */}
-        {isFinished && prediction && (
-          <div className="mt-3 border-t border-border pt-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted">Ваш прогноз:</span>
-              <span className="text-sm font-bold">
-                {prediction.predicted_home_score} :{" "}
-                {prediction.predicted_away_score}
-              </span>
-            </div>
-
-            {pointsBreakdown.length > 0 && (
-              <div className="space-y-1">
-                {pointsBreakdown.map((p, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between text-xs"
+        {/* Points breakdown for finished games */}
+        {isFinished && prediction && pointsBreakdown.length > 0 && (
+          <div className="mt-3 border-t border-border pt-3 space-y-1">
+            {pointsBreakdown.map((p, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between text-xs"
+              >
+                <span className="flex items-center gap-1">
+                  {p.positive ? (
+                    <Check size={12} className="text-success" />
+                  ) : (
+                    <X size={12} className="text-danger" />
+                  )}
+                  <span
+                    className={p.positive ? "text-foreground" : "text-muted"}
                   >
-                    <span className="flex items-center gap-1">
-                      {p.positive ? (
-                        <Check size={12} className="text-success" />
-                      ) : (
-                        <X size={12} className="text-danger" />
-                      )}
-                      <span
-                        className={
-                          p.positive ? "text-foreground" : "text-muted"
-                        }
-                      >
-                        {p.label}
-                      </span>
-                    </span>
-                    <span
-                      className={
-                        p.positive
-                          ? "text-success font-semibold"
-                          : "text-muted"
-                      }
-                    >
-                      {p.positive ? `+${p.points}` : "0"}
-                    </span>
-                  </div>
-                ))}
+                    {p.label}
+                  </span>
+                </span>
+                <span
+                  className={
+                    p.positive ? "text-success font-semibold" : "text-muted"
+                  }
+                >
+                  {p.positive ? `+${p.points}` : "0"}
+                </span>
               </div>
-            )}
-          </div>
-        )}
-
-        {/* Show prediction for locked but not finished */}
-        {!isFinished && locked && prediction && (
-          <div className="mt-3 border-t border-border pt-2 text-sm text-muted text-center font-medium">
-            Ваш прогноз: {prediction.predicted_home_score} :{" "}
-            {prediction.predicted_away_score}
+            ))}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function TeamButton({
+  teamId,
+  abbreviation,
+  isSelected,
+  isWinner,
+  isLoser,
+  isFinished,
+  canSelect,
+  onClick,
+}: {
+  teamId: number;
+  abbreviation: string;
+  isSelected: boolean;
+  isWinner: boolean;
+  isLoser: boolean;
+  isFinished: boolean;
+  canSelect: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={!canSelect}
+      className={`flex flex-col items-center gap-1.5 flex-1 py-3 rounded-xl border-2 transition-all ${
+        canSelect ? "cursor-pointer" : "cursor-default"
+      } ${
+        isSelected && !isFinished
+          ? "border-accent bg-accent/10 shadow-sm"
+          : isSelected && isFinished && isWinner
+          ? "border-success bg-success/10"
+          : isSelected && isFinished && !isWinner
+          ? "border-danger bg-danger/10"
+          : isFinished && isWinner
+          ? "border-success/30"
+          : isFinished && isLoser
+          ? "border-border opacity-40"
+          : canSelect
+          ? "border-border hover:border-accent/40"
+          : "border-border"
+      }`}
+    >
+      <img
+        src={getTeamLogoUrl(teamId)}
+        alt={abbreviation}
+        className="w-14 h-14 object-contain"
+      />
+      <span className="text-sm font-bold">{abbreviation}</span>
+      {isSelected && !isFinished && (
+        <Check size={14} className="text-accent" />
+      )}
+    </button>
   );
 }

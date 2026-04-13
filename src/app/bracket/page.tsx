@@ -158,10 +158,6 @@ function MatchupCard({ series }: { series: SeriesWithTeams }) {
   const { home_team, away_team, home_wins, away_wins, winner_id, status } =
     series;
 
-  if (!home_team || !away_team) {
-    return <EmptySlot />;
-  }
-
   const isFinished = status === "finished";
 
   return (
@@ -170,19 +166,27 @@ function MatchupCard({ series }: { series: SeriesWithTeams }) {
         isFinished ? "border-success/30" : "border-border"
       }`}
     >
-      <TeamRow
-        team={home_team}
-        wins={home_wins}
-        isWinner={winner_id === home_team.id}
-        isLoser={isFinished && winner_id !== home_team.id}
-      />
+      {home_team ? (
+        <TeamRow
+          team={home_team}
+          wins={home_wins}
+          isWinner={winner_id === home_team.id}
+          isLoser={isFinished && winner_id !== home_team.id}
+        />
+      ) : (
+        <TbdRow />
+      )}
       <div className="border-t border-border" />
-      <TeamRow
-        team={away_team}
-        wins={away_wins}
-        isWinner={winner_id === away_team.id}
-        isLoser={isFinished && winner_id !== away_team.id}
-      />
+      {away_team ? (
+        <TeamRow
+          team={away_team}
+          wins={away_wins}
+          isWinner={winner_id === away_team.id}
+          isLoser={isFinished && winner_id !== away_team.id}
+        />
+      ) : (
+        <TbdRow />
+      )}
     </div>
   );
 }
@@ -223,6 +227,16 @@ function TeamRow({
       >
         {wins}
       </span>
+    </div>
+  );
+}
+
+function TbdRow() {
+  return (
+    <div className="flex items-center gap-2 px-3 py-2 opacity-40">
+      <div className="w-7 h-7 rounded-full bg-surface border border-dashed border-border flex items-center justify-center text-xs text-muted">?</div>
+      <span className="text-sm font-bold text-muted flex-1">Play-In</span>
+      <span className="text-sm font-bold w-5 text-center text-muted">-</span>
     </div>
   );
 }
