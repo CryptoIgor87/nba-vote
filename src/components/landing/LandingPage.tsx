@@ -2,14 +2,8 @@
 
 import Link from "next/link";
 import {
-  Trophy,
-  Target,
-  BarChart3,
-  Flame,
-  Crosshair,
-  TrendingUp,
-  Users,
-  ArrowRight,
+  Trophy, Target, BarChart3, Flame, Crosshair,
+  TrendingUp, Users, ArrowRight, Zap, Shield,
 } from "lucide-react";
 
 const PLAYOFF_TEAMS = [
@@ -33,134 +27,132 @@ export default function LandingPage() {
   return (
     <div className="-mt-6 -mx-4">
       {/* Hero */}
-      <section className="relative py-16 sm:py-24 px-6 text-center">
-        {/* Big team logos background */}
-        <div className="absolute inset-0 overflow-hidden opacity-[0.07] pointer-events-none">
-          <div className="absolute -top-10 -left-10">
-            <img src={logo(14)} alt="" className="w-48 h-48" />
-          </div>
-          <div className="absolute top-5 right-10">
-            <img src={logo(2)} alt="" className="w-40 h-40" />
-          </div>
-          <div className="absolute bottom-0 left-1/4">
-            <img src={logo(21)} alt="" className="w-44 h-44" />
-          </div>
-          <div className="absolute -bottom-5 -right-5">
-            <img src={logo(20)} alt="" className="w-52 h-52" />
-          </div>
-          <div className="absolute top-1/2 left-10 -translate-y-1/2">
-            <img src={logo(8)} alt="" className="w-36 h-36" />
-          </div>
-          <div className="absolute top-1/3 right-1/4">
-            <img src={logo(9)} alt="" className="w-32 h-32" />
-          </div>
+      <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-6 overflow-hidden">
+        {/* Background team logos */}
+        <div className="absolute inset-0 pointer-events-none">
+          <img src={logo(14)} alt="" className="absolute top-[5%] left-[5%] w-32 h-32 sm:w-48 sm:h-48 opacity-[0.04]" />
+          <img src={logo(2)} alt="" className="absolute top-[8%] right-[8%] w-28 h-28 sm:w-40 sm:h-40 opacity-[0.04]" />
+          <img src={logo(21)} alt="" className="absolute bottom-[15%] left-[15%] w-36 h-36 sm:w-52 sm:h-52 opacity-[0.04]" />
+          <img src={logo(20)} alt="" className="absolute bottom-[8%] right-[5%] w-40 h-40 sm:w-56 sm:h-56 opacity-[0.04]" />
+          <img src={logo(8)} alt="" className="absolute top-[40%] left-[2%] w-24 h-24 sm:w-36 sm:h-36 opacity-[0.03]" />
+          <img src={logo(9)} alt="" className="absolute top-[30%] right-[3%] w-20 h-20 sm:w-32 sm:h-32 opacity-[0.03]" />
+          {/* Gradient overlays */}
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
         </div>
 
-        <div className="relative max-w-2xl mx-auto">
-          {/* Logo */}
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-accent rounded-3xl mb-6 shadow-xl shadow-accent/20">
-            <span className="text-white font-black text-3xl">NBA</span>
+        <div className="relative text-center max-w-3xl">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-accent/10 border border-accent/20 rounded-full mb-8">
+            <Zap size={14} className="text-accent" />
+            <span className="text-xs font-semibold text-accent uppercase tracking-wider">Плей-офф 2026</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-black leading-tight mb-3 tracking-tight">
-            Predictions
+          {/* Title */}
+          <h1 className="font-display text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight leading-[0.9] mb-6">
+            <span className="text-foreground">NBA</span>
+            <br />
+            <span className="bg-gradient-to-r from-accent to-amber-400 bg-clip-text text-transparent">PREDICTIONS</span>
           </h1>
-          <p className="text-lg sm:text-xl text-muted max-w-lg mx-auto mb-8 leading-relaxed">
-            Делай прогнозы на плей-офф NBA 2026 вместе с друзьями.
+
+          <p className="text-lg sm:text-xl text-muted max-w-lg mx-auto mb-10 leading-relaxed font-light">
+            Делай прогнозы на плей-офф NBA вместе с друзьями.
             Соревнуйся, набирай баллы, стань лучшим.
           </p>
 
           {/* CTA */}
           <Link
             href="/auth/signin"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-accent hover:bg-accent-hover text-white rounded-2xl text-lg font-bold transition-all shadow-xl shadow-accent/20 hover:shadow-accent/40 hover:scale-105"
+            className="group inline-flex items-center gap-2 px-8 py-4 bg-accent hover:bg-accent-hover text-white rounded-xl text-lg font-bold font-display uppercase tracking-wide transition-all shadow-2xl shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02]"
           >
             Начать играть
-            <ArrowRight size={20} />
+            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
-        {/* Team logos row */}
-        <div className="flex items-center justify-center gap-3 sm:gap-5 mt-14 flex-wrap">
-          {PLAYOFF_TEAMS.map((t) => (
-            <img
-              key={t.id}
-              src={logo(t.id)}
-              alt={t.abbr}
-              className="w-12 h-12 sm:w-16 sm:h-16 object-contain hover:scale-125 transition-transform"
-            />
-          ))}
+        {/* Team logos ticker */}
+        <div className="relative mt-16 w-full max-w-4xl">
+          <div className="flex items-center justify-center gap-4 sm:gap-6 flex-wrap">
+            {PLAYOFF_TEAMS.map((t) => (
+              <img
+                key={t.id}
+                src={logo(t.id)}
+                alt={t.abbr}
+                className="w-10 h-10 sm:w-14 sm:h-14 object-contain opacity-40 hover:opacity-100 hover:scale-110 transition-all duration-300"
+              />
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="h-px bg-border" />
-
       {/* How it works */}
-      <section className="max-w-4xl mx-auto px-6 py-16">
-        <h2 className="text-2xl font-bold text-center mb-10">Как это работает</h2>
+      <section className="max-w-5xl mx-auto px-6 py-20">
+        <div className="text-center mb-12">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold uppercase tracking-wide mb-2">Как это работает</h2>
+          <p className="text-muted">Три простых шага</p>
+        </div>
         <div className="grid sm:grid-cols-3 gap-6">
-          <StepCard
-            step={1}
-            icon={Users}
-            title="Зарегистрируйся"
-            desc="Войди через Google или Яндекс за 5 секунд"
-          />
-          <StepCard
-            step={2}
-            icon={Target}
-            title="Делай прогнозы"
-            desc="Выбирай победителя каждого матча нажатием на логотип"
-          />
-          <StepCard
-            step={3}
-            icon={Trophy}
-            title="Набирай баллы"
-            desc="Получай очки за правильные прогнозы и борись за первое место"
-          />
+          <StepCard step={1} icon={Users} title="Регистрация" desc="Войди через Google или Яндекс. Занимает 5 секунд." />
+          <StepCard step={2} icon={Target} title="Прогнозы" desc="Выбирай победителя каждого матча плей-офф нажатием на логотип." />
+          <StepCard step={3} icon={Trophy} title="Рейтинг" desc="Набирай баллы за верные прогнозы и борись за первое место." />
         </div>
       </section>
 
       {/* Scoring */}
-      <section className="bg-card border-y border-border">
-        <div className="max-w-4xl mx-auto px-6 py-16">
-          <h2 className="text-2xl font-bold text-center mb-2">Система баллов</h2>
-          <p className="text-center text-muted text-sm mb-10">
-            Чем точнее прогнозы - тем больше очков
-          </p>
+      <section className="border-y border-border bg-surface/50">
+        <div className="max-w-5xl mx-auto px-6 py-20">
+          <div className="text-center mb-12">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold uppercase tracking-wide mb-2">Система баллов</h2>
+            <p className="text-muted">Чем точнее - тем больше</p>
+          </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            <ScoreCard icon={Target} title="Победитель матча" points="+1" desc="За каждый правильно угаданный матч" />
-            <ScoreCard icon={Trophy} title="Победитель серии" points="+2 / +6" desc="+2 за победителя, +6 за точный счёт серии (4-1, 4-2...)" />
-            <ScoreCard icon={TrendingUp} title="Апсет" points="+3" desc="Предсказал победу андердога в серии" />
-            <ScoreCard icon={Crosshair} title="Снайпер" points="+3" desc="Угадал все матчи серии без единой ошибки" />
-            <ScoreCard icon={Flame} title="Стрик" points="+1 / +3 / +5" desc="3, 5 или 7 правильных прогнозов подряд" />
-            <ScoreCard icon={Trophy} title="Чемпион NBA" points="+10" desc="Угадай победителя всего турнира до старта" highlight />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <ScoreCard icon={Target} title="Победитель матча" points="+1" desc="Угадал кто выиграет" />
+            <ScoreCard icon={Trophy} title="Серия" points="+2 / +6" desc="Победитель серии / точный счёт" />
+            <ScoreCard icon={TrendingUp} title="Апсет" points="+3" desc="Предсказал победу андердога" />
+            <ScoreCard icon={Crosshair} title="Снайпер" points="+3" desc="Все матчи серии без ошибок" />
+            <ScoreCard icon={Flame} title="Стрик" points="+1/+3/+5" desc="3, 5 или 7 подряд" />
+            <ScoreCard icon={Shield} title="Чемпион" points="+10" desc="Угадай победителя NBA" highlight />
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="max-w-4xl mx-auto px-6 py-16">
+      <section className="max-w-5xl mx-auto px-6 py-20">
         <div className="grid sm:grid-cols-2 gap-6">
-          <FeatureCard icon={BarChart3} title="Лидерборд" desc="Рейтинг обновляется автоматически. Смотри кто впереди и чьи прогнозы точнее." />
-          <FeatureCard icon={Target} title="Статистика" desc="Точность прогнозов, лучший стрик, разбивка баллов, заработанные бонусы." />
+          <div className="bg-card border border-border rounded-2xl p-8 card-glow">
+            <BarChart3 size={28} className="text-accent mb-4" />
+            <h3 className="font-display text-xl font-bold uppercase mb-2">Лидерборд</h3>
+            <p className="text-sm text-muted leading-relaxed">
+              Рейтинг обновляется автоматически. Лента достижений, бонусы, стрики. Смотри кто впереди.
+            </p>
+          </div>
+          <div className="bg-card border border-border rounded-2xl p-8 card-glow">
+            <Target size={28} className="text-accent mb-4" />
+            <h3 className="font-display text-xl font-bold uppercase mb-2">Статистика</h3>
+            <p className="text-sm text-muted leading-relaxed">
+              Детальный профиль: точность, стрики, разбивка баллов, заработанные бонусы.
+            </p>
+          </div>
         </div>
       </section>
 
       {/* Final CTA */}
-      <section className="bg-accent">
-        <div className="max-w-4xl mx-auto px-6 py-16 text-center">
-          <h2 className="text-3xl font-bold text-white mb-3">Play-In стартует уже завтра</h2>
-          <p className="text-white/80 mb-8 text-lg">
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20" />
+        <div className="relative max-w-4xl mx-auto px-6 py-20 text-center">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold uppercase tracking-wide text-foreground mb-3">
+            Play-In стартует завтра
+          </h2>
+          <p className="text-muted mb-8 text-lg">
             Успей сделать прогнозы до начала первых матчей
           </p>
           <Link
             href="/auth/signin"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-accent rounded-2xl text-lg font-bold transition-all hover:bg-white/90 hover:scale-105 shadow-xl"
+            className="group inline-flex items-center gap-2 px-8 py-4 bg-accent hover:bg-accent-hover text-white rounded-xl text-lg font-bold font-display uppercase tracking-wide transition-all shadow-2xl shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02]"
           >
             Присоединиться
-            <ArrowRight size={20} />
+            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </section>
@@ -170,12 +162,12 @@ export default function LandingPage() {
 
 function StepCard({ step, icon: Icon, title, desc }: { step: number; icon: React.ComponentType<{ size?: number; className?: string }>; title: string; desc: string }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 text-center">
-      <div className="inline-flex items-center justify-center w-12 h-12 bg-accent/10 rounded-xl mb-4">
-        <Icon size={24} className="text-accent" />
+    <div className="bg-card border border-border rounded-2xl p-6 text-center card-glow">
+      <div className="inline-flex items-center justify-center w-14 h-14 bg-accent/10 rounded-2xl mb-4">
+        <Icon size={26} className="text-accent" />
       </div>
-      <div className="text-xs text-accent font-bold mb-2">Шаг {step}</div>
-      <h3 className="font-bold mb-1">{title}</h3>
+      <div className="font-display text-xs text-accent font-bold uppercase tracking-widest mb-2">Шаг {step}</div>
+      <h3 className="font-display text-lg font-bold uppercase mb-1">{title}</h3>
       <p className="text-sm text-muted">{desc}</p>
     </div>
   );
@@ -183,25 +175,17 @@ function StepCard({ step, icon: Icon, title, desc }: { step: number; icon: React
 
 function ScoreCard({ icon: Icon, title, points, desc, highlight }: { icon: React.ComponentType<{ size?: number; className?: string }>; title: string; points: string; desc: string; highlight?: boolean }) {
   return (
-    <div className={`flex items-start gap-4 p-4 rounded-xl border ${highlight ? "bg-accent/5 border-accent/30" : "bg-background border-border"}`}>
-      <div className="shrink-0 mt-0.5"><Icon size={20} className="text-accent" /></div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <span className="font-semibold text-sm">{title}</span>
-          <span className="text-accent font-bold text-sm whitespace-nowrap">{points}</span>
-        </div>
-        <p className="text-xs text-muted mt-0.5">{desc}</p>
+    <div className={`flex items-start gap-4 p-5 rounded-xl border ${highlight ? "bg-accent/5 border-accent/30 card-glow" : "bg-card border-border card-glow"}`}>
+      <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center shrink-0">
+        <Icon size={20} className="text-accent" />
       </div>
-    </div>
-  );
-}
-
-function FeatureCard({ icon: Icon, title, desc }: { icon: React.ComponentType<{ size?: number; className?: string }>; title: string; desc: string }) {
-  return (
-    <div className="bg-card border border-border rounded-2xl p-6">
-      <Icon size={24} className="text-accent mb-3" />
-      <h3 className="font-bold mb-1">{title}</h3>
-      <p className="text-sm text-muted">{desc}</p>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-0.5">
+          <span className="font-display font-bold text-sm uppercase">{title}</span>
+          <span className="text-accent font-display font-bold text-sm">{points}</span>
+        </div>
+        <p className="text-xs text-muted">{desc}</p>
+      </div>
     </div>
   );
 }

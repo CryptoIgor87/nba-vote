@@ -17,8 +17,8 @@ import {
 import { useState } from "react";
 
 const navItems = [
-  { href: "/bracket", label: "Сетка", icon: Trophy },
   { href: "/predictions", label: "Прогнозы", icon: Target },
+  { href: "/bracket", label: "Сетка", icon: Trophy },
   { href: "/leaderboard", label: "Рейтинг", icon: BarChart3 },
   { href: "/rules", label: "Правила", icon: BookOpen },
 ];
@@ -29,52 +29,48 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const isAdmin = (session?.user as { role?: string })?.role === "ADMIN";
 
-  // Don't show header on signin page
-  if (pathname === "/auth/signin") return null;
+  if (pathname === "/auth/signin" || pathname === "/") return null;
 
   return (
-    <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
+    <header className="bg-card/80 backdrop-blur-xl border-b border-border sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           {/* Logo */}
-          <Link
-            href="/bracket"
-            className="flex items-center gap-2"
-          >
-            <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center">
-              <span className="text-white font-black text-sm">NBA</span>
+          <Link href="/predictions" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center shadow-lg shadow-accent/20">
+              <span className="text-white font-black text-[10px] font-display tracking-wider">NBA</span>
             </div>
-            <span className="text-foreground font-bold text-lg tracking-tight hidden sm:block">
+            <span className="text-foreground font-display font-bold text-lg tracking-wide uppercase hidden sm:block">
               Predictions
             </span>
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-0.5">
             {navItems.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all ${
                   pathname === href
-                    ? "bg-accent-light text-accent shadow-sm"
+                    ? "bg-accent/15 text-accent"
                     : "text-muted hover:text-foreground hover:bg-surface"
                 }`}
               >
-                <Icon size={16} />
+                <Icon size={15} />
                 {label}
               </Link>
             ))}
             {isAdmin && (
               <Link
                 href="/admin/settings"
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
                   pathname === "/admin/settings"
-                    ? "bg-accent-light text-accent"
+                    ? "bg-accent/15 text-accent"
                     : "text-muted hover:text-foreground hover:bg-surface"
                 }`}
               >
-                <Settings size={16} />
+                <Settings size={15} />
               </Link>
             )}
           </nav>
@@ -83,53 +79,52 @@ export default function Header() {
           <div className="hidden md:flex items-center gap-1">
             <Link
               href="/profile"
-              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted hover:text-foreground hover:bg-surface transition-all"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted hover:text-foreground hover:bg-surface transition-all"
             >
               {session?.user?.image ? (
                 <img
                   src={session.user.image}
                   alt=""
-                  className="w-7 h-7 rounded-full border border-border"
+                  className="w-6 h-6 rounded-full ring-1 ring-border"
                 />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-surface flex items-center justify-center">
-                  <User size={14} />
+                <div className="w-6 h-6 rounded-full bg-surface flex items-center justify-center ring-1 ring-border">
+                  <User size={12} />
                 </div>
               )}
-              <span className="max-w-24 truncate font-medium">
+              <span className="max-w-20 truncate font-medium">
                 {session?.user?.name || "Профиль"}
               </span>
             </Link>
             <button
               onClick={() => signOut()}
-              className="p-2 rounded-xl text-muted hover:text-danger hover:bg-danger-light transition-all"
+              className="p-2 rounded-lg text-muted hover:text-danger transition-all"
               title="Выйти"
             >
-              <LogOut size={16} />
+              <LogOut size={15} />
             </button>
           </div>
 
-          {/* Mobile menu toggle */}
+          {/* Mobile */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-2 text-muted hover:text-foreground rounded-xl hover:bg-surface"
+            className="md:hidden p-2 text-muted hover:text-foreground rounded-lg"
           >
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
-        {/* Mobile nav */}
         {menuOpen && (
-          <nav className="md:hidden py-3 border-t border-border space-y-1 animate-in slide-in-from-top-2">
+          <nav className="md:hidden py-3 border-t border-border space-y-0.5">
             {navItems.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
                 onClick={() => setMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                   pathname === href
-                    ? "bg-accent-light text-accent"
-                    : "text-muted hover:text-foreground hover:bg-surface"
+                    ? "bg-accent/15 text-accent"
+                    : "text-muted hover:text-foreground"
                 }`}
               >
                 <Icon size={18} />
@@ -140,13 +135,13 @@ export default function Header() {
               <Link
                 href="/admin/settings"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-muted hover:text-foreground hover:bg-surface"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-muted hover:text-foreground"
               >
                 <Settings size={18} />
                 Настройки
               </Link>
             )}
-            <div className="border-t border-border pt-3 mt-3 flex items-center justify-between px-4">
+            <div className="border-t border-border pt-2 mt-2 flex items-center justify-between px-3">
               <Link
                 href="/profile"
                 onClick={() => setMenuOpen(false)}
