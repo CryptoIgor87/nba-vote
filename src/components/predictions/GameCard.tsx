@@ -125,17 +125,21 @@ export default function GameCard({
             </div>
           ) : null;
         })()}
-        {game.game_number && (
-          <span className="ml-2 text-sm text-accent font-semibold">
-            Игра {game.game_number}
-          </span>
-        )}
-        {!isFinished && !locked && (
-          <Countdown
-            deadline={new Date(
-              new Date(game.game_date).getTime() - 30 * 60 * 1000
-            ).toISOString()}
-          />
+        {(game.game_number || (!isFinished && !locked)) && (
+          <div className="flex items-center justify-center gap-3 mt-1">
+            {game.game_number && (
+              <span className="text-sm text-accent font-semibold">
+                Игра {game.game_number}
+              </span>
+            )}
+            {!isFinished && !locked && (
+              <Countdown
+                deadline={new Date(
+                  new Date(game.game_date).getTime() - 30 * 60 * 1000
+                ).toISOString()}
+              />
+            )}
+          </div>
         )}
         {locked && !isFinished && (
           <span className="inline-flex items-center gap-1 text-xs text-muted">
