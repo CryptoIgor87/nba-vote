@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import GameCard from "@/components/predictions/GameCard";
 import WinnerPicker from "@/components/predictions/WinnerPicker";
+import MvpPicker from "@/components/predictions/MvpPicker";
 import { getRoundLabel } from "@/lib/utils";
 import type { NbaGame, NbaPrediction, NbaTeam } from "@/lib/types";
 
@@ -88,8 +89,9 @@ export default function PredictionsPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Мои прогнозы</h1>
 
-      {/* Tournament winner prediction */}
+      {/* Tournament winner + MVP predictions */}
       <WinnerPicker teams={teams} />
+      <MvpPicker />
 
       {/* Round tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">

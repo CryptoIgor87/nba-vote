@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
             game.home_team_score > 0 ? game.home_team_score : null,
           away_score:
             game.visitor_team_score > 0 ? game.visitor_team_score : null,
-          game_date: game.datetime || game.date,
+          game_date: (game as unknown as { datetime?: string }).datetime || game.date,
           is_playoff: game.postseason,
           round: game.postseason ? "first_round" : null,
         },

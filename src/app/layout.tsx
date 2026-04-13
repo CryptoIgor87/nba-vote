@@ -12,6 +12,9 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "NBA Predictions",
   description: "Прогнозы на плей-офф NBA с друзьями",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
