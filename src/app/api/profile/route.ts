@@ -34,7 +34,25 @@ export async function PUT(req: NextRequest) {
     const updates: Record<string, string> = {};
 
     if (file && file.size > 0) {
-      const ext = file.name.split(".").pop();
+      // Validate file
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+      if (!allowedTypes.includes(file.type)) {
+        return NextResponse.json(
+          { error: "Допустимые форматы: JPEG, PNG, WebP, GIF" },
+          { status: 400 }
+        );
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        return NextResponse.json(
+          { error: "Максимальный размер файла: 2MB" },
+          { status: 400 }
+        );
+      }
+      const extMap: Record<string, string> = {
+        "image/jpeg": "jpg", "image/png": "png",
+        "image/webp": "webp", "image/gif": "gif",
+      };
+      const ext = extMap[file.type] || "jpg";
       const fileName = `${session.user.id}.${ext}`;
       const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -81,7 +99,10 @@ export async function PUT(req: NextRequest) {
 
   // JSON update
   const body = await req.json();
-  const { display_name } = body;
+  let { display_name } = body;
+  if (display_name) {
+    display_name = String(display_name).trim().slice(0, 50);
+  }
 
   const { data, error } = await supabase
     .from("nba_users")

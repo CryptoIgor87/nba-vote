@@ -30,9 +30,15 @@ export async function POST(req: NextRequest) {
   if (
     game_id == null ||
     predicted_home_score == null ||
-    predicted_away_score == null
+    predicted_away_score == null ||
+    !Number.isInteger(predicted_home_score) ||
+    !Number.isInteger(predicted_away_score) ||
+    predicted_home_score < 0 ||
+    predicted_away_score < 0 ||
+    predicted_home_score > 300 ||
+    predicted_away_score > 300
   ) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
   // Check game exists and not locked
