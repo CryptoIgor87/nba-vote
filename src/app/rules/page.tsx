@@ -1,0 +1,121 @@
+import { Trophy, Target, Award, Crown } from "lucide-react";
+
+export default function RulesPage() {
+  return (
+    <div className="max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Правила</h1>
+
+      <div className="space-y-6">
+        {/* How it works */}
+        <section className="bg-card border border-border rounded-xl p-5">
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Target size={20} className="text-accent" />
+            Как это работает
+          </h2>
+          <ul className="space-y-2 text-sm text-foreground/80">
+            <li>1. Зарегистрируйтесь через Google или Яндекс</li>
+            <li>2. Перед каждым матчем введите свой прогноз — точный счёт</li>
+            <li>3. Приём прогнозов закрывается за 30 минут до начала матча</li>
+            <li>
+              4. После завершения матча система автоматически начисляет баллы
+            </li>
+            <li>5. Следите за своим рейтингом в таблице лидеров</li>
+          </ul>
+        </section>
+
+        {/* Play-In */}
+        <section className="bg-card border border-border rounded-xl p-5">
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Award size={20} className="text-accent" />
+            Play-In турнир
+          </h2>
+          <p className="text-sm text-foreground/80 mb-2">
+            Play-In — это отдельные матчи (не серии). Начисление баллов:
+          </p>
+          <div className="bg-background rounded-lg p-3">
+            <div className="flex justify-between text-sm">
+              <span>Угадал победителя матча</span>
+              <span className="text-accent font-bold">+1 балл</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Playoffs */}
+        <section className="bg-card border border-border rounded-xl p-5">
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Trophy size={20} className="text-accent" />
+            Плей-офф (серии до 4 побед)
+          </h2>
+          <p className="text-sm text-foreground/80 mb-3">
+            В плей-офф вы делаете прогноз на каждый матч серии. Баллы
+            начисляются за:
+          </p>
+          <div className="space-y-2">
+            <div className="bg-background rounded-lg p-3">
+              <div className="flex justify-between text-sm">
+                <span>Угадал победителя матча</span>
+                <span className="text-accent font-bold">+1 балл</span>
+              </div>
+              <p className="text-xs text-muted mt-1">
+                За каждый матч, где вы правильно предсказали кто победит
+              </p>
+            </div>
+
+            <div className="bg-background rounded-lg p-3">
+              <div className="flex justify-between text-sm">
+                <span>Угадал победителя серии</span>
+                <span className="text-accent font-bold">+2 балла</span>
+              </div>
+              <p className="text-xs text-muted mt-1">
+                Бонус после завершения серии, если в ваших прогнозах правильная
+                команда побеждала чаще
+              </p>
+            </div>
+
+            <div className="bg-background rounded-lg p-3 border border-accent/20">
+              <div className="flex justify-between text-sm">
+                <span>
+                  Угадал победителя серии + точный счёт серии
+                </span>
+                <span className="text-accent font-bold">+4 балла</span>
+              </div>
+              <p className="text-xs text-muted mt-1">
+                Вместо +2. Например: предсказали что команда победит 4-2, и
+                серия закончилась именно 4-2
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Tournament winner */}
+        <section className="bg-card border border-accent/30 rounded-xl p-5">
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Crown size={20} className="text-accent" />
+            Победитель турнира
+          </h2>
+          <div className="bg-background rounded-lg p-3">
+            <div className="flex justify-between text-sm">
+              <span>Угадал чемпиона NBA</span>
+              <span className="text-accent font-bold">+10 баллов</span>
+            </div>
+            <p className="text-xs text-muted mt-1">
+              Одноразовая ставка до начала первых матчей. Выбираете команду
+              которая, по вашему мнению, выиграет весь турнир.
+            </p>
+          </div>
+        </section>
+
+        {/* Example */}
+        <section className="bg-card border border-border rounded-xl p-5">
+          <h2 className="text-lg font-semibold mb-3">Пример</h2>
+          <p className="text-sm text-foreground/80">
+            Серия между Celtics и Heat закончилась 4-2. Вы угадали
+            победителя в 5 из 6 матчей (+5), правильно предсказали что Celtics
+            выиграют серию 4-2 (+4 бонус). Итого: <strong>9 баллов</strong> за
+            серию.
+          </p>
+        </section>
+      </div>
+    </div>
+  );
+}
