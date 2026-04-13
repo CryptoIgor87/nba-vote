@@ -26,7 +26,10 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/admin/settings");
-      if (res.ok) setSettings(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        setSettings(data.filter((s: NbaSetting) => s.key !== "points_finals_mvp"));
+      }
       setLoading(false);
     }
     load();

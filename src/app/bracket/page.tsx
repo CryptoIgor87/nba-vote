@@ -50,11 +50,11 @@ export default function BracketPage() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Плей-офф NBA 2025-26</h1>
 
-      {/* Play-In */}
+      {/* Play-In compact */}
       {playInGames.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-accent mb-4">Play-In</h2>
-          <div className="grid sm:grid-cols-2 gap-3">
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-accent mb-2">Play-In</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {playInGames.map((g) => (
               <PlayInCard key={g.id} game={g} />
             ))}
@@ -62,280 +62,206 @@ export default function BracketPage() {
         </div>
       )}
 
-      {/* Conference brackets */}
-      {["West", "East"].map((conf) => (
-        <div key={conf} className="mb-10">
-          <h2 className="text-lg font-semibold text-accent mb-4">
-            {conf === "West" ? "Запад" : "Восток"}
-          </h2>
+      {/* Full bracket: West left, Finals center, East right */}
+      <div className="overflow-x-auto pb-4">
+        <div className="flex gap-0 min-w-[900px] items-stretch">
+          {/* WEST */}
+          <ConferenceBracket
+            label="Запад"
+            firstRound={getSeries("West", "first_round")}
+            semis={getSeries("West", "conference_semis")}
+            confFinals={getSeries("West", "conference_finals")}
+          />
 
-          <div className="overflow-x-auto">
-            <div className="flex items-stretch gap-0 min-w-[700px]">
-              {/* Round 1 */}
-              <div className="flex flex-col justify-around flex-1 gap-3">
-                <div className="text-xs text-muted font-semibold text-center mb-1">
-                  1-й раунд
-                </div>
-                {/* Top half: #1 (1v8) and #2 (4v5) */}
-                <MatchupCard series={getSeries(conf, "first_round")[0]} />
-                <MatchupCard series={getSeries(conf, "first_round")[1]} />
-                {/* Bottom half: #3 (3v6) and #4 (2v7) */}
-                <div className="h-4" />
-                <MatchupCard series={getSeries(conf, "first_round")[2]} />
-                <MatchupCard series={getSeries(conf, "first_round")[3]} />
-              </div>
-
-              {/* Connector */}
-              <div className="flex flex-col justify-around w-6 shrink-0">
-                <Connector />
-                <div className="h-4" />
-                <Connector />
-              </div>
-
-              {/* Semis */}
-              <div className="flex flex-col justify-around flex-1 gap-3">
-                <div className="text-xs text-muted font-semibold text-center mb-1">
-                  Полуфинал
-                </div>
-                <div className="flex-1 flex items-center">
-                  {getSeries(conf, "conference_semis")[0] ? (
-                    <MatchupCard series={getSeries(conf, "conference_semis")[0]} />
-                  ) : (
-                    <EmptySlot />
-                  )}
-                </div>
-                <div className="h-4" />
-                <div className="flex-1 flex items-center">
-                  {getSeries(conf, "conference_semis")[1] ? (
-                    <MatchupCard series={getSeries(conf, "conference_semis")[1]} />
-                  ) : (
-                    <EmptySlot />
-                  )}
-                </div>
-              </div>
-
-              {/* Connector */}
-              <div className="flex flex-col justify-center w-6 shrink-0">
-                <Connector />
-              </div>
-
-              {/* Conference Finals */}
-              <div className="flex flex-col justify-center flex-1">
-                <div className="text-xs text-muted font-semibold text-center mb-1">
-                  Финал конф.
-                </div>
-                {getSeries(conf, "conference_finals")[0] ? (
-                  <MatchupCard series={getSeries(conf, "conference_finals")[0]} />
-                ) : (
-                  <EmptySlot />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-
-      {/* Finals */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold text-accent mb-4 text-center">
-          Финал NBA
-        </h2>
-        <div className="flex justify-center">
-          <div className="w-full max-w-sm">
+          {/* FINALS */}
+          <div className="flex flex-col justify-center px-2 shrink-0">
+            <div className="text-[10px] text-accent font-bold text-center mb-1 uppercase">Финал</div>
             {finalsSeries.length > 0 ? (
               <MatchupCard series={finalsSeries[0]} />
             ) : (
               <EmptySlot />
             )}
           </div>
+
+          {/* EAST (reversed) */}
+          <ConferenceBracket
+            label="Восток"
+            firstRound={getSeries("East", "first_round")}
+            semis={getSeries("East", "conference_semis")}
+            confFinals={getSeries("East", "conference_finals")}
+            reverse
+          />
         </div>
       </div>
+    </div>
+  );
+}
+
+function ConferenceBracket({
+  label,
+  firstRound,
+  semis,
+  confFinals,
+  reverse,
+}: {
+  label: string;
+  firstRound: SeriesWithTeams[];
+  semis: SeriesWithTeams[];
+  confFinals: SeriesWithTeams[];
+  reverse?: boolean;
+}) {
+  const r1 = (
+    <div className="flex flex-col justify-around gap-2 w-[140px] shrink-0">
+      <div className="text-[10px] text-muted font-bold uppercase text-center">1 раунд</div>
+      {firstRound[0] && <MatchupCard series={firstRound[0]} compact />}
+      {firstRound[1] && <MatchupCard series={firstRound[1]} compact />}
+      <div className="h-2" />
+      {firstRound[2] && <MatchupCard series={firstRound[2]} compact />}
+      {firstRound[3] && <MatchupCard series={firstRound[3]} compact />}
+    </div>
+  );
+
+  const conn1 = (
+    <div className="flex flex-col justify-around w-4 shrink-0">
+      <Connector />
+      <div className="h-2" />
+      <Connector />
+    </div>
+  );
+
+  const sf = (
+    <div className="flex flex-col justify-around gap-2 w-[140px] shrink-0">
+      <div className="text-[10px] text-muted font-bold uppercase text-center">Полуфинал</div>
+      <div className="flex-1 flex items-center">
+        {semis[0] ? <MatchupCard series={semis[0]} compact /> : <EmptySlot />}
+      </div>
+      <div className="h-2" />
+      <div className="flex-1 flex items-center">
+        {semis[1] ? <MatchupCard series={semis[1]} compact /> : <EmptySlot />}
+      </div>
+    </div>
+  );
+
+  const conn2 = (
+    <div className="flex flex-col justify-center w-4 shrink-0">
+      <Connector />
+    </div>
+  );
+
+  const cf = (
+    <div className="flex flex-col justify-center w-[140px] shrink-0">
+      <div className="text-[10px] text-muted font-bold uppercase text-center mb-1">Финал конф.</div>
+      {confFinals[0] ? <MatchupCard series={confFinals[0]} compact /> : <EmptySlot />}
+    </div>
+  );
+
+  const parts = reverse
+    ? [cf, conn2, sf, conn1, r1]
+    : [r1, conn1, sf, conn2, cf];
+
+  return (
+    <div className="flex-1">
+      <div className="text-xs font-bold text-accent mb-2 text-center">{label}</div>
+      <div className="flex items-stretch">{parts}</div>
     </div>
   );
 }
 
 function Connector() {
   return (
-    <div className="flex flex-col items-center h-full justify-center py-4">
-      <div className="w-full border-t-2 border-border" />
-      <div className="h-full border-l-2 border-border" />
-      <div className="w-full border-t-2 border-border" />
+    <div className="flex flex-col items-center h-full justify-center py-3">
+      <div className="w-full border-t border-border" />
+      <div className="h-full border-l border-border min-h-[30px]" />
+      <div className="w-full border-t border-border" />
     </div>
   );
 }
 
-function MatchupCard({ series }: { series?: SeriesWithTeams }) {
+function MatchupCard({ series, compact }: { series?: SeriesWithTeams; compact?: boolean }) {
   if (!series) return <EmptySlot />;
 
-  const { home_team, away_team, home_wins, away_wins, winner_id, status } =
-    series;
-
+  const { home_team, away_team, home_wins, away_wins, winner_id, status } = series;
   const isFinished = status === "finished";
 
   return (
     <div
-      className={`bg-card border rounded-xl overflow-hidden w-full ${
+      className={`bg-card border rounded-lg overflow-hidden w-full ${
         isFinished ? "border-success/30" : "border-border"
       }`}
     >
       {home_team ? (
-        <TeamRow
-          team={home_team}
-          wins={home_wins}
-          isWinner={winner_id === home_team.id}
-          isLoser={isFinished && winner_id !== home_team.id}
-        />
+        <TeamRow team={home_team} wins={home_wins} isWinner={winner_id === home_team.id} isLoser={isFinished && winner_id !== home_team.id} compact={compact} />
       ) : (
-        <TbdRow />
+        <TbdRow compact={compact} />
       )}
       <div className="border-t border-border" />
       {away_team ? (
-        <TeamRow
-          team={away_team}
-          wins={away_wins}
-          isWinner={winner_id === away_team.id}
-          isLoser={isFinished && winner_id !== away_team.id}
-        />
+        <TeamRow team={away_team} wins={away_wins} isWinner={winner_id === away_team.id} isLoser={isFinished && winner_id !== away_team.id} compact={compact} />
       ) : (
-        <TbdRow />
+        <TbdRow compact={compact} />
       )}
     </div>
   );
 }
 
 function TeamRow({
-  team,
-  wins,
-  isWinner,
-  isLoser,
+  team, wins, isWinner, isLoser, compact,
 }: {
-  team: NbaTeam;
-  wins: number;
-  isWinner: boolean;
-  isLoser: boolean;
+  team: NbaTeam; wins: number; isWinner: boolean; isLoser: boolean; compact?: boolean;
 }) {
   return (
-    <div
-      className={`flex items-center gap-2 px-3 py-2 ${
-        isWinner ? "bg-success/10" : isLoser ? "opacity-40" : ""
-      }`}
-    >
-      <img
-        src={getTeamLogoUrl(team.id)}
-        alt={team.abbreviation}
-        className="w-7 h-7 object-contain"
-      />
-      <span
-        className={`text-sm font-bold flex-1 ${
-          isWinner ? "text-success" : ""
-        }`}
-      >
+    <div className={`flex items-center gap-1.5 ${compact ? "px-2 py-1" : "px-3 py-2"} ${isWinner ? "bg-success/10" : isLoser ? "opacity-40" : ""}`}>
+      <img src={getTeamLogoUrl(team.id)} alt={team.abbreviation} className={`${compact ? "w-5 h-5" : "w-7 h-7"} object-contain`} />
+      <span className={`${compact ? "text-xs" : "text-sm"} font-bold flex-1 ${isWinner ? "text-success" : ""}`}>
         {team.abbreviation}
       </span>
-      <span
-        className={`text-sm font-bold w-5 text-center ${
-          isWinner ? "text-success" : "text-muted"
-        }`}
-      >
+      <span className={`${compact ? "text-xs" : "text-sm"} font-bold w-4 text-center ${isWinner ? "text-success" : "text-muted"}`}>
         {wins}
       </span>
     </div>
   );
 }
 
-function TbdRow() {
+function TbdRow({ compact }: { compact?: boolean }) {
   return (
-    <div className="flex items-center gap-2 px-3 py-2 opacity-40">
-      <div className="w-7 h-7 rounded-full bg-surface border border-dashed border-border flex items-center justify-center text-xs text-muted">
-        ?
-      </div>
-      <span className="text-sm font-bold text-muted flex-1">Play-In</span>
-      <span className="text-sm font-bold w-5 text-center text-muted">-</span>
+    <div className={`flex items-center gap-1.5 ${compact ? "px-2 py-1" : "px-3 py-2"} opacity-40`}>
+      <div className={`${compact ? "w-5 h-5 text-[8px]" : "w-7 h-7 text-xs"} rounded-full bg-surface border border-dashed border-border flex items-center justify-center text-muted`}>?</div>
+      <span className={`${compact ? "text-xs" : "text-sm"} font-bold text-muted flex-1`}>TBD</span>
+      <span className={`${compact ? "text-xs" : "text-sm"} font-bold w-4 text-center text-muted`}>-</span>
     </div>
   );
 }
 
 function EmptySlot() {
   return (
-    <div className="bg-card border border-dashed border-border rounded-xl px-3 py-4 w-full opacity-40">
-      <p className="text-xs text-muted text-center">TBD</p>
+    <div className="bg-card border border-dashed border-border rounded-lg px-2 py-3 w-full opacity-40">
+      <p className="text-[10px] text-muted text-center">TBD</p>
     </div>
   );
 }
 
-function PlayInCard({
-  game,
-}: {
-  game: {
-    id: number;
-    game_date: string;
-    home_team_id: number;
-    away_team_id: number;
-    status: string;
-    home_score: number | null;
-    away_score: number | null;
-    home_team?: NbaTeam;
-    away_team?: NbaTeam;
-  };
+function PlayInCard({ game }: {
+  game: { id: number; game_date: string; home_team_id: number; away_team_id: number; status: string; home_score: number | null; away_score: number | null; home_team?: NbaTeam; away_team?: NbaTeam };
 }) {
   const isFinished = game.status === "finished";
   const homeWins = isFinished && game.home_score! > game.away_score!;
+  const date = new Date(game.game_date).toLocaleDateString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
-      <div className="text-center py-1.5 bg-surface text-xs text-muted font-medium">
-        {new Date(game.game_date).toLocaleDateString("ru-RU", {
-          day: "numeric",
-          month: "short",
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-      </div>
-      <div className="flex items-center justify-between px-3 py-2.5">
-        <div className="flex items-center gap-2">
-          <img
-            src={getTeamLogoUrl(game.home_team_id)}
-            alt=""
-            className="w-7 h-7"
-          />
-          <span
-            className={`text-sm font-bold ${
-              isFinished && homeWins
-                ? "text-success"
-                : isFinished
-                ? "text-muted"
-                : ""
-            }`}
-          >
-            {game.home_team?.abbreviation || "?"}
-          </span>
-        </div>
-        {isFinished ? (
-          <span className="text-sm font-bold">
-            {game.home_score} - {game.away_score}
-          </span>
-        ) : (
-          <span className="text-xs text-muted">VS</span>
-        )}
-        <div className="flex items-center gap-2">
-          <span
-            className={`text-sm font-bold ${
-              isFinished && !homeWins
-                ? "text-success"
-                : isFinished
-                ? "text-muted"
-                : ""
-            }`}
-          >
-            {game.away_team?.abbreviation || "?"}
-          </span>
-          <img
-            src={getTeamLogoUrl(game.away_team_id)}
-            alt=""
-            className="w-7 h-7"
-          />
-        </div>
-      </div>
+    <div className="bg-card border border-border rounded-lg px-2 py-1.5 flex items-center gap-1.5 text-xs">
+      <img src={getTeamLogoUrl(game.home_team_id)} alt="" className="w-5 h-5 shrink-0" />
+      <span className={`font-bold ${isFinished && homeWins ? "text-success" : isFinished ? "text-muted" : ""}`}>
+        {game.home_team?.abbreviation || "?"}
+      </span>
+      {isFinished ? (
+        <span className="text-muted font-bold mx-0.5">{game.home_score}-{game.away_score}</span>
+      ) : (
+        <span className="text-muted mx-0.5">{date}</span>
+      )}
+      <span className={`font-bold ${isFinished && !homeWins ? "text-success" : isFinished ? "text-muted" : ""}`}>
+        {game.away_team?.abbreviation || "?"}
+      </span>
+      <img src={getTeamLogoUrl(game.away_team_id)} alt="" className="w-5 h-5 shrink-0" />
     </div>
   );
 }
