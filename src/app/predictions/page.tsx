@@ -146,7 +146,11 @@ export default function PredictionsPage() {
     .sort((a, b) => {
       const aGame = games.filter((g) => g.series_id === a.id).sort((x, y) => x.game_date.localeCompare(y.game_date))[0];
       const bGame = games.filter((g) => g.series_id === b.id).sort((x, y) => x.game_date.localeCompare(y.game_date))[0];
-      return (aGame?.game_date || "z").localeCompare(bGame?.game_date || "z");
+      // For series without games yet, use the earliest first-round game as fallback
+      const fallback = games.filter((g) => g.round === "first_round").sort((x, y) => x.game_date.localeCompare(y.game_date))[0]?.game_date || "z";
+      const aDate = aGame?.game_date || fallback;
+      const bDate = bGame?.game_date || fallback;
+      return aDate.localeCompare(bDate);
     });
 
   return (

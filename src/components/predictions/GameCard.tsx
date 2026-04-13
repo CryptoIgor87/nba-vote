@@ -85,7 +85,7 @@ export default function GameCard({
       <div className="flex items-stretch">
         {/* Left: match info */}
         <div
-          className={`w-28 sm:w-36 shrink-0 flex flex-col items-center justify-center px-2 py-3 text-center ${
+          className={`w-28 sm:w-36 shrink-0 flex flex-col items-center justify-center px-2 py-3 text-center court-pattern ${
             isFinished ? "bg-surface" : "bg-accent/10"
           }`}
         >
