@@ -77,10 +77,20 @@ export default function WinnerPicker({ teams }: { teams: NbaTeam[] }) {
               </span>
             </div>
           </div>
-          {winnerPrediction.points_earned > 0 && (
+          {winnerPrediction.points_earned > 0 ? (
             <span className="text-success font-bold text-lg">
               +{winnerPrediction.points_earned}
             </span>
+          ) : (
+            <button
+              onClick={() => {
+                setWinnerPrediction(null);
+                setIsOpen(true);
+              }}
+              className="text-xs text-muted hover:text-accent transition-colors"
+            >
+              Изменить
+            </button>
           )}
         </div>
       </div>

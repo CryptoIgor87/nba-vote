@@ -42,23 +42,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing team_id" }, { status: 400 });
   }
 
-  // Check if already exists
-  const { data: existing } = await supabase
-    .from("nba_winner_predictions")
-    .select("id")
-    .eq("user_id", session.user.id)
-    .single();
-
-  if (existing) {
-    return NextResponse.json(
-      { error: "Вы уже сделали прогноз на победителя" },
-      { status: 400 }
-    );
-  }
-
+  // Upsert — allow changing until first game starts
   const { data, error } = await supabase
     .from("nba_winner_predictions")
-    .insert({ user_id: session.user.id, team_id })
+    .upsert(
+      { user_id: session.user.id, team_id },
+      { onConflict: "user_id" }
+    )
     .select()
     .single();
 

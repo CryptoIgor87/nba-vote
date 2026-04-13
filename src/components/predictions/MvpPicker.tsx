@@ -80,10 +80,20 @@ export default function MvpPicker() {
               </span>
             </div>
           </div>
-          {mvpPrediction.points_earned > 0 && (
+          {mvpPrediction.points_earned > 0 ? (
             <span className="text-success font-bold text-lg">
               +{mvpPrediction.points_earned}
             </span>
+          ) : (
+            <button
+              onClick={() => {
+                setMvpPrediction(null);
+                setIsOpen(true);
+              }}
+              className="text-xs text-muted hover:text-accent transition-colors"
+            >
+              Изменить
+            </button>
           )}
         </div>
       </div>
