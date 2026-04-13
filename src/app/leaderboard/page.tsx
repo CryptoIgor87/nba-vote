@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Trophy, Crown, Star } from "lucide-react";
 import { getTeamLogoUrl } from "@/lib/utils";
 import type { LeaderboardEntry, NbaTeam } from "@/lib/types";
@@ -75,9 +76,10 @@ export default function LeaderboardPage() {
             const wpTeam = wp ? teamsMap.get(wp.team_id) : null;
 
             return (
-              <div
+              <Link
+                href={`/user/${entry.user_id}`}
                 key={entry.user_id}
-                className={`p-4 rounded-xl border transition-colors ${
+                className={`block p-4 rounded-xl border transition-colors hover:border-accent/40 ${
                   rank <= 3
                     ? "bg-card border-accent/30"
                     : "bg-card border-border"
@@ -149,7 +151,7 @@ export default function LeaderboardPage() {
                     <p className="text-xs text-muted">баллов</p>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
