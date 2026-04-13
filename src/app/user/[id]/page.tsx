@@ -5,11 +5,22 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
-  ArrowLeft, Trophy, Crown, Check, X, Flame,
+  ArrowLeft, Trophy, Crown, Check, X, Flame, Award,
   Crosshair, TrendingUp, Target, BarChart3, Pencil,
 } from "lucide-react";
 import { getTeamLogoUrl, formatGameDate, getRoundLabel } from "@/lib/utils";
+import { CATEGORY_LABELS } from "@/lib/achievement-icons";
+import AchievementBadge from "@/components/achievements/AchievementBadge";
 import type { NbaGame, NbaPrediction, NbaTeam } from "@/lib/types";
+
+interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  unlocked: boolean;
+  unlocked_at: string | null;
+}
 
 interface UserProfileData {
   user: {
@@ -59,15 +70,18 @@ export default function UserPage() {
   const { data: session } = useSession();
   const isOwnProfile = session?.user?.id === id;
   const [data, setData] = useState<UserProfileData | null>(null);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/user/${id}/predictions`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        setData(d);
-        setLoading(false);
-      });
+    Promise.all([
+      fetch(`/api/user/${id}/predictions`).then((r) => (r.ok ? r.json() : null)),
+      fetch(`/api/achievements?user_id=${id}`).then((r) => (r.ok ? r.json() : [])),
+    ]).then(([d, a]) => {
+      setData(d);
+      setAchievements(a);
+      setLoading(false);
+    });
   }, [id]);
 
   if (loading) {
@@ -153,6 +167,42 @@ export default function UserPage() {
           </div>
         </div>
       </div>
+
+      {/* Achievements */}
+      {achievements.length > 0 && (
+        <div className="bg-card border border-border rounded-xl p-4 mb-4">
+          <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
+            <Award size={16} className="text-accent" />
+            Достижения
+            <span className="text-xs text-muted font-normal">
+              {achievements.filter((a) => a.unlocked).length}/{achievements.length}
+            </span>
+          </h2>
+          {Object.entries(
+            achievements.reduce<Record<string, Achievement[]>>((acc, a) => {
+              (acc[a.category] = acc[a.category] || []).push(a);
+              return acc;
+            }, {})
+          ).map(([cat, items]) => (
+            <div key={cat} className="mb-4 last:mb-0">
+              <p className="text-[10px] text-muted uppercase tracking-wider font-bold mb-2">
+                {CATEGORY_LABELS[cat] || cat}
+              </p>
+              <div className="flex flex-wrap gap-4">
+                {items.map((a) => (
+                  <div key={a.id} className="relative group/tip">
+                    <AchievementBadge achievement={a} size="md" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-card border border-border rounded-lg shadow-xl text-xs whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none z-20">
+                      <p className="font-semibold">{a.title}</p>
+                      <p className="text-muted">{a.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Bonuses earned */}
       {((seriesBonuses && seriesBonuses.length > 0) ||

@@ -240,9 +240,11 @@ function TeamBtn({
       <span className={`text-xs font-bold ${isWinner ? "text-success" : ""}`}>
         {abbr}
       </span>
-      {isSelected && !isFinished && (
-        <Check size={12} className="text-accent" />
-      )}
+      <div className="h-3">
+        {isSelected && !isFinished && (
+          <Check size={12} className="text-accent" />
+        )}
+      </div>
     </button>
   );
 }

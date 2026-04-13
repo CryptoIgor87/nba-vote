@@ -267,6 +267,9 @@ export async function recalculateScores() {
 
   // 6. Generate events
   await generateEvents();
+
+  // 7. Check achievements
+  await checkAchievements();
 }
 
 async function rebuildLeaderboard() {
@@ -447,5 +450,126 @@ async function generateEvents() {
       const emoji = place === 1 ? "crown" : "trophy";
       await addEvent(entry.user_id, `place_${place}`, `${name} занимает ${placeText} в рейтинге!`, emoji);
     }
+  }
+}
+
+async function checkAchievements() {
+  const { data: users } = await supabase.from("nba_users").select("id");
+  if (!users) return;
+
+  async function unlock(userId: string, achievementId: string) {
+    await supabase.from("nba_user_achievements").upsert(
+      { user_id: userId, achievement_id: achievementId },
+      { onConflict: "user_id,achievement_id" }
+    );
+  }
+
+  const { data: finishedGames } = await supabase
+    .from("nba_games")
+    .select("*")
+    .eq("status", "finished")
+    .order("game_date", { ascending: true });
+
+  const { data: leaderboard } = await supabase
+    .from("nba_leaderboard")
+    .select("user_id, total_points")
+    .order("total_points", { ascending: false });
+
+  for (const user of users) {
+    const { data: preds } = await supabase
+      .from("nba_predictions")
+      .select("game_id, points_earned")
+      .eq("user_id", user.id);
+
+    const totalPreds = preds?.length ?? 0;
+    const correctPreds = preds?.filter((p) => p.points_earned > 0).length ?? 0;
+
+    // Predictions count
+    if (totalPreds >= 1) await unlock(user.id, "rookie");
+    if (totalPreds >= 10) await unlock(user.id, "regular");
+    if (totalPreds >= 30) await unlock(user.id, "dedicated");
+
+    // Correct predictions
+    if (correctPreds >= 1) await unlock(user.id, "first_blood");
+    if (correctPreds >= 10) await unlock(user.id, "sharpshooter");
+    if (correctPreds >= 25) await unlock(user.id, "oracle");
+
+    // Accuracy
+    if (totalPreds >= 10) {
+      const accuracy = correctPreds / totalPreds;
+      if (accuracy >= 0.75) await unlock(user.id, "prophet");
+      if (totalPreds >= 15 && accuracy >= 0.85) await unlock(user.id, "nostradamus");
+    }
+
+    // Streaks
+    let maxStreak = 0;
+    let currentStreak = 0;
+    const predsWithGames = (preds || [])
+      .map((p) => {
+        const g = finishedGames?.find((g) => g.id === p.game_id);
+        return g ? { date: g.game_date, correct: p.points_earned > 0 } : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => a!.date.localeCompare(b!.date));
+
+    for (const p of predsWithGames) {
+      if (p!.correct) { currentStreak++; maxStreak = Math.max(maxStreak, currentStreak); }
+      else currentStreak = 0;
+    }
+
+    if (maxStreak >= 3) await unlock(user.id, "hot_hand");
+    if (maxStreak >= 5) await unlock(user.id, "on_fire");
+    if (maxStreak >= 7) await unlock(user.id, "unstoppable");
+    if (maxStreak >= 10) await unlock(user.id, "legendary");
+
+    // Series bonuses
+    const { data: seriesBonuses } = await supabase
+      .from("nba_series_bonuses")
+      .select("bonus_type")
+      .eq("user_id", user.id);
+
+    if (seriesBonuses?.some((b) => b.bonus_type === "series_winner" || b.bonus_type === "series_exact")) {
+      await unlock(user.id, "series_master");
+    }
+    if (seriesBonuses?.some((b) => b.bonus_type === "series_exact")) {
+      await unlock(user.id, "exact_science");
+    }
+
+    // Sniper / Upset bonuses
+    const { data: bonuses } = await supabase
+      .from("nba_bonuses")
+      .select("bonus_type")
+      .eq("user_id", user.id);
+
+    if (bonuses?.some((b) => b.bonus_type === "sniper")) await unlock(user.id, "sniper");
+
+    const upsetCount = bonuses?.filter((b) => b.bonus_type === "upset").length ?? 0;
+    if (upsetCount >= 1) await unlock(user.id, "upset_king");
+    if (upsetCount >= 2) await unlock(user.id, "double_upset");
+
+    // Leaderboard position
+    if (leaderboard) {
+      const rank = leaderboard.findIndex((l) => l.user_id === user.id);
+      const points = leaderboard[rank]?.total_points ?? 0;
+      if (rank >= 0 && rank < 3 && points > 0) await unlock(user.id, "podium");
+      if (rank === 0 && points > 0) await unlock(user.id, "champion");
+      if (points >= 20) await unlock(user.id, "point_hunter");
+      if (points >= 50) await unlock(user.id, "half_century");
+    }
+
+    // Chat messages
+    const { count: msgCount } = await supabase
+      .from("nba_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    if ((msgCount ?? 0) >= 5) await unlock(user.id, "chatterbox");
+
+    // Tournament winner
+    const { data: wp } = await supabase
+      .from("nba_winner_predictions")
+      .select("points_earned")
+      .eq("user_id", user.id)
+      .single();
+    if (wp?.points_earned > 0) await unlock(user.id, "fortune_teller");
   }
 }
