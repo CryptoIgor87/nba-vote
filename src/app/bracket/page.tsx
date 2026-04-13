@@ -248,7 +248,7 @@ function PlayInCard({ game }: {
   const date = new Date(game.game_date).toLocaleDateString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
   return (
-    <div className="bg-card border border-border rounded-lg px-2 py-1.5 flex items-center gap-1.5 text-xs">
+    <div className="bg-card border border-border rounded-lg px-2 py-1.5 flex items-center justify-center gap-1.5 text-xs">
       <img src={getTeamLogoUrl(game.home_team_id)} alt="" className="w-5 h-5 shrink-0" />
       <span className={`font-bold ${isFinished && homeWins ? "text-success" : isFinished ? "text-muted" : ""}`}>
         {game.home_team?.abbreviation || "?"}
