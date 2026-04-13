@@ -18,7 +18,7 @@ import { useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
-  { href: "/predictions", label: "Прогнозы", icon: Target },
+  { href: "/predictions", label: "Мои прогнозы", icon: Target },
   { href: "/bracket", label: "Сетка", icon: Trophy },
   { href: "/leaderboard", label: "Рейтинг", icon: BarChart3 },
   { href: "/rules", label: "Правила", icon: BookOpen },
@@ -80,7 +80,7 @@ export default function Header() {
           <div className="hidden md:flex items-center gap-1">
             <ThemeToggle />
             <Link
-              href="/profile"
+              href={session?.user?.id ? `/user/${session.user.id}` : "/profile"}
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted hover:text-foreground hover:bg-surface transition-all"
             >
               {session?.user?.image ? (
@@ -146,12 +146,12 @@ export default function Header() {
             <div className="border-t border-border pt-2 mt-2 flex items-center justify-between px-3">
               <div className="flex items-center gap-2">
                 <Link
-                  href="/profile"
+                  href={session?.user?.id ? `/user/${session.user.id}` : "/profile"}
                   onClick={() => setMenuOpen(false)}
                   className="flex items-center gap-2 text-sm font-medium text-muted hover:text-foreground py-2"
                 >
                   <User size={16} />
-                  Профиль
+                  Мой профиль
                 </Link>
                 <ThemeToggle />
               </div>

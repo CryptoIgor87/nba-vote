@@ -101,11 +101,15 @@ export default function GameCard({
               </div>
             ) : null;
           })()}
-          {game.game_number && (
+          {game.round === "play_in" ? (
+            <div className="text-[10px] text-accent font-bold mt-0.5">
+              Play-In
+            </div>
+          ) : game.game_number ? (
             <div className="text-[10px] text-accent font-bold mt-0.5">
               Игра {game.game_number}
             </div>
-          )}
+          ) : null}
           {isFinished && (
             <div className="text-lg font-black mt-1 flex items-center gap-1.5">
               <span className={game.home_score! > game.away_score! ? "text-success" : "text-muted"}>

@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   ArrowLeft, Trophy, Crown, Check, X, Flame,
-  Crosshair, TrendingUp, Target, BarChart3,
+  Crosshair, TrendingUp, Target, BarChart3, Pencil,
 } from "lucide-react";
 import { getTeamLogoUrl, formatGameDate, getRoundLabel } from "@/lib/utils";
 import type { NbaGame, NbaPrediction, NbaTeam } from "@/lib/types";
@@ -55,6 +56,8 @@ interface UserProfileData {
 
 export default function UserPage() {
   const { id } = useParams();
+  const { data: session } = useSession();
+  const isOwnProfile = session?.user?.id === id;
   const [data, setData] = useState<UserProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -113,6 +116,11 @@ export default function UserPage() {
         </div>
         <div className="flex-1">
           <h1 className="text-xl font-bold">{userName}</h1>
+          {isOwnProfile && (
+            <Link href="/profile" className="text-xs text-muted hover:text-accent flex items-center gap-1 mt-0.5">
+              <Pencil size={10} /> Редактировать
+            </Link>
+          )}
         </div>
         <div className="text-right">
           <p className="text-2xl font-bold text-accent">{totalPoints}</p>
