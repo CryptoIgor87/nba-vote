@@ -91,5 +91,35 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Generate "first prediction" event
+  const { data: predCount } = await supabase
+    .from("nba_predictions")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", session.user.id);
+
+  if (predCount !== null) {
+    const { data: existingEvent } = await supabase
+      .from("nba_events")
+      .select("id")
+      .eq("user_id", session.user.id)
+      .eq("event_type", "first_prediction")
+      .single();
+
+    if (!existingEvent) {
+      const { data: userData } = await supabase
+        .from("nba_users")
+        .select("name, display_name")
+        .eq("id", session.user.id)
+        .single();
+      const name = userData?.display_name || userData?.name || "Игрок";
+      await supabase.from("nba_events").insert({
+        user_id: session.user.id,
+        event_type: "first_prediction",
+        title: `${name} сделал первый прогноз`,
+        icon: "target",
+      });
+    }
+  }
+
   return NextResponse.json(data);
 }

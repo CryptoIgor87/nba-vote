@@ -264,6 +264,9 @@ export async function recalculateScores() {
 
   // 5. Rebuild leaderboard
   await rebuildLeaderboard();
+
+  // 6. Generate events
+  await generateEvents();
 }
 
 async function rebuildLeaderboard() {
@@ -321,5 +324,117 @@ async function rebuildLeaderboard() {
       },
       { onConflict: "user_id" }
     );
+  }
+}
+
+async function generateEvents() {
+  const { data: users } = await supabase.from("nba_users").select("id, name, display_name");
+  const { data: existingEvents } = await supabase.from("nba_events").select("user_id, event_type");
+  if (!users) return;
+
+  const hasEvent = (userId: string, type: string) =>
+    existingEvents?.some((e) => e.user_id === userId && e.event_type === type) ?? false;
+
+  async function addEvent(userId: string, type: string, title: string, icon: string) {
+    if (hasEvent(userId, type)) return;
+    await supabase.from("nba_events").insert({ user_id: userId, event_type: type, title, icon });
+  }
+
+  for (const user of users) {
+    const name = user.display_name || user.name || "Игрок";
+
+    // Predictions count
+    const { data: preds } = await supabase
+      .from("nba_predictions")
+      .select("points_earned")
+      .eq("user_id", user.id);
+
+    const total = preds?.length ?? 0;
+    const correct = preds?.filter((p) => p.points_earned > 0).length ?? 0;
+
+    // First prediction
+    if (total >= 1) {
+      await addEvent(user.id, "first_prediction", `${name} сделал первый прогноз`, "target");
+    }
+
+    // First point
+    if (correct >= 1) {
+      await addEvent(user.id, "first_point", `${name} набрал первый балл!`, "trophy");
+    }
+
+    // Milestones
+    if (correct >= 10) {
+      await addEvent(user.id, "correct_10", `${name} угадал 10 матчей`, "target");
+    }
+    if (correct >= 20) {
+      await addEvent(user.id, "correct_20", `${name} угадал 20 матчей`, "target");
+    }
+    if (correct >= 30) {
+      await addEvent(user.id, "correct_30", `${name} угадал 30 матчей!`, "target");
+    }
+
+    // Accuracy
+    if (total >= 10) {
+      const accuracy = Math.round((correct / total) * 100);
+      if (accuracy >= 80) {
+        await addEvent(user.id, "accuracy_80", `${name} - точность прогнозов выше 80%!`, "crosshair");
+      }
+    }
+
+    // Streak
+    const { data: finishedGames } = await supabase
+      .from("nba_games")
+      .select("id, home_team_id, away_team_id, home_score, away_score, game_date")
+      .eq("status", "finished")
+      .order("game_date", { ascending: true });
+
+    let maxStreak = 0;
+    let currentStreak = 0;
+    const userPreds = preds?.map((p) => {
+      const g = finishedGames?.find((g) => g.id === (p as unknown as { game_id: number }).game_id);
+      return g ? { correct: p.points_earned > 0 } : null;
+    }).filter(Boolean) || [];
+
+    for (const p of userPreds) {
+      if (p!.correct) { currentStreak++; maxStreak = Math.max(maxStreak, currentStreak); }
+      else currentStreak = 0;
+    }
+
+    if (maxStreak >= 3) {
+      await addEvent(user.id, `streak_${maxStreak >= 7 ? 7 : maxStreak >= 5 ? 5 : 3}`,
+        `${name} - стрик ${maxStreak} угаданных подряд!`, "flame");
+    }
+
+    // Bonuses
+    const { data: bonuses } = await supabase
+      .from("nba_bonuses")
+      .select("bonus_type")
+      .eq("user_id", user.id);
+
+    if (bonuses?.some((b) => b.bonus_type === "sniper")) {
+      await addEvent(user.id, "sniper", `${name} получил бонус Снайпер!`, "crosshair");
+    }
+    if (bonuses?.some((b) => b.bonus_type === "upset")) {
+      await addEvent(user.id, "upset", `${name} предсказал апсет!`, "trending-up");
+    }
+  }
+
+  // Leaderboard position changes
+  const { data: leaderboard } = await supabase
+    .from("nba_leaderboard")
+    .select("user_id, total_points")
+    .order("total_points", { ascending: false });
+
+  if (leaderboard && leaderboard.length > 0) {
+    for (let i = 0; i < Math.min(3, leaderboard.length); i++) {
+      const entry = leaderboard[i];
+      if (entry.total_points === 0) continue;
+      const user = users.find((u) => u.id === entry.user_id);
+      const name = user?.display_name || user?.name || "Игрок";
+      const place = i + 1;
+      const placeText = place === 1 ? "1-е место" : place === 2 ? "2-е место" : "3-е место";
+      const emoji = place === 1 ? "crown" : "trophy";
+      await addEvent(entry.user_id, `place_${place}`, `${name} занимает ${placeText} в рейтинге!`, emoji);
+    }
   }
 }
