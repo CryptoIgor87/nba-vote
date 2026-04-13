@@ -142,7 +142,7 @@ export default function PredictionsPage() {
 
   // Get playoff series (not play-in) for series predictions, sorted by first game date
   const playoffSeries = allSeries
-    .filter((s) => s.round !== "play_in" && s.home_team && s.away_team)
+    .filter((s) => s.round !== "play_in" && s.home_team && s.away_team && s.team_home_id && s.team_away_id)
     .sort((a, b) => {
       const aGame = games.filter((g) => g.series_id === a.id).sort((x, y) => x.game_date.localeCompare(y.game_date))[0];
       const bGame = games.filter((g) => g.series_id === b.id).sort((x, y) => x.game_date.localeCompare(y.game_date))[0];
