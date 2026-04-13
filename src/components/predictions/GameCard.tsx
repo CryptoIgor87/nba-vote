@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { getTeamLogoUrl, formatGameDate, isGameLocked } from "@/lib/utils";
-import { Lock, Check, X, Trophy } from "lucide-react";
+import { NBA_ARENAS } from "@/lib/arenas";
+import { Lock, Check, X, Trophy, MapPin } from "lucide-react";
 import Countdown from "./Countdown";
 import type { NbaGame, NbaPrediction } from "@/lib/types";
 
@@ -91,6 +92,15 @@ export default function GameCard({
           <div className="text-[11px] sm:text-xs font-semibold text-foreground leading-tight">
             {formatGameDate(game.game_date)}
           </div>
+          {(() => {
+            const arena = NBA_ARENAS[game.home_team_id];
+            return arena ? (
+              <div className="text-[9px] sm:text-[10px] text-muted flex items-center gap-0.5 mt-0.5">
+                <MapPin size={8} />
+                {arena.city}
+              </div>
+            ) : null;
+          })()}
           {game.game_number && (
             <div className="text-[10px] text-accent font-bold mt-0.5">
               Игра {game.game_number}
@@ -204,7 +214,7 @@ function TeamBtn({
   onClick: () => void;
 }) {
   let bg = "";
-  if (isSelected && !isFinished) bg = "bg-accent/10";
+  if (isSelected && !isFinished) bg = "bg-accent/20 ring-1 ring-accent/40 ring-inset";
   else if (isSelected && isWinner) bg = "bg-success/10";
   else if (isSelected && !isWinner && isFinished) bg = "bg-danger/10";
   else if (isWinner && isFinished) bg = "";

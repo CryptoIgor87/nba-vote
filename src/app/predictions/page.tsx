@@ -140,10 +140,14 @@ export default function PredictionsPage() {
       ? games
       : games.filter((g) => g.round === activeRound);
 
-  // Get playoff series (not play-in) for series predictions
-  const playoffSeries = allSeries.filter(
-    (s) => s.round !== "play_in" && s.home_team && s.away_team
-  );
+  // Get playoff series (not play-in) for series predictions, sorted by first game date
+  const playoffSeries = allSeries
+    .filter((s) => s.round !== "play_in" && s.home_team && s.away_team)
+    .sort((a, b) => {
+      const aGame = games.filter((g) => g.series_id === a.id).sort((x, y) => x.game_date.localeCompare(y.game_date))[0];
+      const bGame = games.filter((g) => g.series_id === b.id).sort((x, y) => x.game_date.localeCompare(y.game_date))[0];
+      return (aGame?.game_date || "z").localeCompare(bGame?.game_date || "z");
+    });
 
   return (
     <div>
