@@ -140,28 +140,42 @@ export default function SeriesPrediction({
       )}
 
       {/* Save / Status */}
-      {!isLocked && selectedWinner && selectedScore && !prediction && (
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full py-2 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
-        >
-          {saved ? (
-            <>
-              <Check size={14} /> Сохранено
-            </>
-          ) : saving ? (
-            "Сохраняю..."
+      {!isLocked && selectedWinner && selectedScore && (
+        (() => {
+          const changed = !prediction ||
+            prediction.predicted_winner_id !== selectedWinner ||
+            `${prediction.predicted_home_wins}-${prediction.predicted_away_wins}` !== selectedScore;
+          return changed ? (
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="w-full py-2 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+            >
+              {saved ? (
+                <>
+                  <Check size={14} /> Сохранено
+                </>
+              ) : saving ? (
+                "Сохраняю..."
+              ) : prediction ? (
+                "Обновить прогноз"
+              ) : (
+                "Сохранить прогноз на серию"
+              )}
+            </button>
           ) : (
-            "Сохранить прогноз на серию"
-          )}
-        </button>
+            <div className="text-center text-xs text-success font-medium flex items-center justify-center gap-1">
+              <Check size={12} />
+              Прогноз сохранён
+            </div>
+          );
+        })()
       )}
 
-      {prediction && (
-        <div className="text-center text-xs text-success font-medium flex items-center justify-center gap-1">
+      {isLocked && prediction && (
+        <div className="text-center text-xs text-muted font-medium flex items-center justify-center gap-1">
           <Check size={12} />
-          Прогноз сохранён:{" "}
+          Прогноз:{" "}
           {prediction.predicted_winner_id === home_team.id
             ? home_team.abbreviation
             : away_team.abbreviation}{" "}
