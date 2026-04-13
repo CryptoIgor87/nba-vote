@@ -73,14 +73,24 @@ export default function BracketPage() {
             confFinals={getSeries("West", "conference_finals")}
           />
 
+          {/* Connector West -> Finals */}
+          <div className="flex flex-col justify-center w-4 shrink-0">
+            <div className="w-full border-t border-border" />
+          </div>
+
           {/* FINALS */}
-          <div className="flex flex-col justify-center px-2 shrink-0">
-            <div className="text-[10px] text-accent font-bold text-center mb-1 uppercase">Финал</div>
+          <div className="flex flex-col justify-center w-[140px] shrink-0">
+            <div className="text-[10px] text-accent font-bold text-center mb-1 uppercase">Финал NBA</div>
             {finalsSeries.length > 0 ? (
-              <MatchupCard series={finalsSeries[0]} />
+              <MatchupCard series={finalsSeries[0]} compact />
             ) : (
               <EmptySlot />
             )}
+          </div>
+
+          {/* Connector Finals -> East */}
+          <div className="flex flex-col justify-center w-4 shrink-0">
+            <div className="w-full border-t border-border" />
           </div>
 
           {/* EAST (reversed) */}
