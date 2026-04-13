@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Trophy, Crown, Star } from "lucide-react";
+import { Trophy, Crown } from "lucide-react";
 import { getTeamLogoUrl } from "@/lib/utils";
 import type { LeaderboardEntry, NbaTeam } from "@/lib/types";
 
@@ -12,31 +12,21 @@ interface WinnerPred {
   points_earned: number;
 }
 
-interface MvpPred {
-  user_id: string;
-  player_name: string;
-  team_id: number;
-  points_earned: number;
-}
-
 export default function LeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [winnerPreds, setWinnerPreds] = useState<WinnerPred[]>([]);
-  const [mvpPreds, setMvpPreds] = useState<MvpPred[]>([]);
   const [teams, setTeams] = useState<NbaTeam[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const [lbRes, wpRes, mvpRes, teamsRes] = await Promise.all([
+      const [lbRes, wpRes, teamsRes] = await Promise.all([
         fetch("/api/leaderboard"),
         fetch("/api/all-winner-predictions"),
-        fetch("/api/all-mvp-predictions"),
         fetch("/api/teams"),
       ]);
       if (lbRes.ok) setEntries(await lbRes.json());
       if (wpRes.ok) setWinnerPreds(await wpRes.json());
-      if (mvpRes.ok) setMvpPreds(await mvpRes.json());
       if (teamsRes.ok) setTeams(await teamsRes.json());
       setLoading(false);
     }
@@ -72,7 +62,6 @@ export default function LeaderboardPage() {
             const avatar = user?.avatar_url || user?.image;
             const name = user?.display_name || user?.name || "Игрок";
             const wp = winnerPreds.find((w) => w.user_id === entry.user_id);
-            const mp = mvpPreds.find((m) => m.user_id === entry.user_id);
             const wpTeam = wp ? teamsMap.get(wp.team_id) : null;
 
             return (
@@ -132,12 +121,6 @@ export default function LeaderboardPage() {
                             className="w-3.5 h-3.5"
                           />
                           {wpTeam.abbreviation}
-                        </span>
-                      )}
-                      {mp && (
-                        <span className="text-xs text-muted flex items-center gap-1">
-                          <Star size={10} className="text-accent" />
-                          {mp.player_name}
                         </span>
                       )}
                     </div>

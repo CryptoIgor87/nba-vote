@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import GameCard from "@/components/predictions/GameCard";
 import WinnerPicker from "@/components/predictions/WinnerPicker";
-import MvpPicker from "@/components/predictions/MvpPicker";
 import SeriesPrediction from "@/components/predictions/SeriesPrediction";
 import { getRoundLabel } from "@/lib/utils";
 import type { NbaGame, NbaPrediction, NbaTeam, NbaSeries } from "@/lib/types";
@@ -152,7 +151,6 @@ export default function PredictionsPage() {
 
       {/* Tournament winner + MVP predictions */}
       <WinnerPicker teams={teams} />
-      <MvpPicker />
 
       {/* Series predictions */}
       {playoffSeries.length > 0 && (

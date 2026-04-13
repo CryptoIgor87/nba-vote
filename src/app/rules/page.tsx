@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trophy, Target, Award, Crown, Star } from "lucide-react";
+import { Trophy, Target, Award, Crown } from "lucide-react";
 
 export default function RulesPage() {
   const [settings, setSettings] = useState<Record<string, number>>({});
@@ -129,25 +129,6 @@ export default function RulesPage() {
             <p className="text-xs text-muted mt-1">
               Одноразовая ставка до начала первых матчей. Выбираете команду
               которая, по вашему мнению, выиграет весь турнир.
-            </p>
-          </div>
-        </section>
-
-        <section className="bg-card border border-accent/30 rounded-xl p-5">
-          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            <Star size={20} className="text-accent" />
-            MVP Финала
-          </h2>
-          <div className="bg-background rounded-lg p-3">
-            <div className="flex justify-between text-sm">
-              <span>Угадал MVP финальной серии</span>
-              <span className="text-accent font-bold">
-                +{pts("points_finals_mvp", 5)} баллов
-              </span>
-            </div>
-            <p className="text-xs text-muted mt-1">
-              Одноразовая ставка до начала первых матчей. Выбираете игрока
-              который станет MVP финала NBA.
             </p>
           </div>
         </section>
