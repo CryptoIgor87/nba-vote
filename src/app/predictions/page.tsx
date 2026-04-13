@@ -5,8 +5,21 @@ import { useSession } from "next-auth/react";
 import GameCard from "@/components/predictions/GameCard";
 import WinnerPicker from "@/components/predictions/WinnerPicker";
 import MvpPicker from "@/components/predictions/MvpPicker";
+import SeriesPrediction from "@/components/predictions/SeriesPrediction";
 import { getRoundLabel } from "@/lib/utils";
-import type { NbaGame, NbaPrediction, NbaTeam } from "@/lib/types";
+import type { NbaGame, NbaPrediction, NbaTeam, NbaSeries } from "@/lib/types";
+
+interface SeriesWithTeams extends NbaSeries {
+  home_team?: NbaTeam;
+  away_team?: NbaTeam;
+}
+
+interface SeriesPred {
+  series_id: string;
+  predicted_winner_id: number;
+  predicted_home_wins: number;
+  predicted_away_wins: number;
+}
 
 export default function PredictionsPage() {
   const { data: session } = useSession();
@@ -16,22 +29,29 @@ export default function PredictionsPage() {
     { series_id: string; bonus_type: string; points: number }[]
   >([]);
   const [teams, setTeams] = useState<NbaTeam[]>([]);
+  const [allSeries, setAllSeries] = useState<SeriesWithTeams[]>([]);
+  const [seriesPredictions, setSeriesPredictions] = useState<SeriesPred[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeRound, setActiveRound] = useState<string>("all");
 
   useEffect(() => {
     async function load() {
-      const [gamesRes, predsRes, teamsRes, bonusesRes] = await Promise.all([
-        fetch("/api/games"),
-        fetch("/api/predictions"),
-        fetch("/api/teams"),
-        fetch("/api/series-bonuses"),
-      ]);
+      const [gamesRes, predsRes, teamsRes, bonusesRes, seriesRes, seriesPredsRes] =
+        await Promise.all([
+          fetch("/api/games"),
+          fetch("/api/predictions"),
+          fetch("/api/teams"),
+          fetch("/api/series-bonuses"),
+          fetch("/api/bracket"),
+          fetch("/api/series-predictions"),
+        ]);
 
       if (gamesRes.ok) setGames(await gamesRes.json());
       if (predsRes.ok) setPredictions(await predsRes.json());
       if (teamsRes.ok) setTeams(await teamsRes.json());
       if (bonusesRes.ok) setSeriesBonuses(await bonusesRes.json());
+      if (seriesRes.ok) setAllSeries(await seriesRes.json());
+      if (seriesPredsRes.ok) setSeriesPredictions(await seriesPredsRes.json());
       setLoading(false);
     }
     load();
@@ -71,6 +91,42 @@ export default function PredictionsPage() {
     return false;
   };
 
+  const handleSaveSeriesPrediction = async (
+    seriesId: string,
+    winnerId: number,
+    homeWins: number,
+    awayWins: number
+  ) => {
+    const res = await fetch("/api/series-predictions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        series_id: seriesId,
+        predicted_winner_id: winnerId,
+        predicted_home_wins: homeWins,
+        predicted_away_wins: awayWins,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      setSeriesPredictions((prev) => {
+        const existing = prev.findIndex((p) => p.series_id === seriesId);
+        if (existing >= 0) {
+          const updated = [...prev];
+          updated[existing] = data;
+          return updated;
+        }
+        return [...prev, data];
+      });
+      return true;
+    }
+
+    const error = await res.json();
+    alert(error.error || "Ошибка");
+    return false;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20 text-muted">
@@ -85,6 +141,11 @@ export default function PredictionsPage() {
       ? games
       : games.filter((g) => g.round === activeRound);
 
+  // Get playoff series (not play-in) for series predictions
+  const playoffSeries = allSeries.filter(
+    (s) => s.round !== "play_in" && s.home_team && s.away_team
+  );
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Мои прогнозы</h1>
@@ -93,7 +154,27 @@ export default function PredictionsPage() {
       <WinnerPicker teams={teams} />
       <MvpPicker />
 
+      {/* Series predictions */}
+      {playoffSeries.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-3">Прогнозы на серии</h2>
+          <div className="space-y-3">
+            {playoffSeries.map((s) => (
+              <SeriesPrediction
+                key={s.id}
+                series={s}
+                prediction={seriesPredictions.find(
+                  (p) => p.series_id === s.id
+                )}
+                onSave={handleSaveSeriesPrediction}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Round tabs */}
+      <h2 className="text-lg font-semibold mb-3">Прогнозы на матчи</h2>
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
         <button
           onClick={() => setActiveRound("all")}
