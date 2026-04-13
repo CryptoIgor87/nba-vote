@@ -88,7 +88,7 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
               <Camera size={20} className="text-white" />
             </div>
             <input
@@ -115,7 +115,7 @@ export default function ProfilePage() {
             type="text"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-accent"
+            className="w-full px-3 py-3 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-accent"
             placeholder="Ваше имя"
           />
         </div>

@@ -25,7 +25,7 @@ function logo(id: number) {
 
 export default function LandingPage() {
   return (
-    <div className="-mt-6 -mx-4">
+    <div className="-mt-6 -mx-4 overflow-hidden">
       {/* Hero */}
       <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-6 overflow-hidden">
         {/* Background team logos */}
@@ -50,9 +50,9 @@ export default function LandingPage() {
 
           {/* Title */}
           <h1 className="font-display font-extrabold tracking-tight leading-[0.85] mb-6">
-            <span className="text-foreground text-5xl sm:text-7xl md:text-8xl">NBA PLAY OFF</span>
+            <span className="text-foreground text-4xl sm:text-6xl md:text-8xl">NBA PLAY OFF</span>
             <br />
-            <span className="bg-gradient-to-r from-accent to-amber-400 bg-clip-text text-transparent text-4xl sm:text-6xl md:text-7xl">PREDICTIONS</span>
+            <span className="bg-gradient-to-r from-accent to-amber-400 bg-clip-text text-transparent text-3xl sm:text-5xl md:text-7xl">PREDICTIONS</span>
           </h1>
 
           <p className="text-lg sm:text-xl text-muted max-w-lg mx-auto mb-10 leading-relaxed font-light">
@@ -74,7 +74,7 @@ export default function LandingPage() {
         <div className="relative mt-16 w-full overflow-hidden">
           <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background to-transparent z-10" />
-          <div className="flex items-center gap-10 animate-marquee">
+          <div className="flex items-center gap-6 sm:gap-10 animate-marquee">
             {[...PLAYOFF_TEAMS, ...PLAYOFF_TEAMS].map((t, i) => (
               <img
                 key={`${t.id}-${i}`}

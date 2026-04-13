@@ -95,7 +95,7 @@ export default function UserPage() {
     <div className="max-w-2xl mx-auto">
       <Link
         href="/leaderboard"
-        className="flex items-center gap-1 text-sm text-muted hover:text-foreground mb-4"
+        className="flex items-center gap-1 text-sm text-muted hover:text-foreground mb-4 py-2"
       >
         <ArrowLeft size={16} /> Рейтинг
       </Link>
@@ -347,7 +347,7 @@ function StatCard({
   return (
     <div className="bg-card border border-border rounded-xl p-3 text-center">
       <Icon size={16} className="text-muted mx-auto mb-1" />
-      <p className={`text-lg font-bold ${color || "text-foreground"}`}>{value}</p>
+      <p className={`text-base sm:text-lg font-bold ${color || "text-foreground"}`}>{value}</p>
       <p className="text-xs text-muted">{label}</p>
     </div>
   );

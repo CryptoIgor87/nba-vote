@@ -54,7 +54,7 @@ export default function BracketPage() {
       {playInGames.length > 0 && (
         <div className="mb-6">
           <h2 className="text-sm font-semibold text-accent mb-2">Play-In</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
             {playInGames.map((g) => (
               <PlayInCard key={g.id} game={g} />
             ))}
@@ -63,6 +63,7 @@ export default function BracketPage() {
       )}
 
       {/* Full bracket: West left, Finals center, East right */}
+      <p className="text-xs text-muted mb-2 sm:hidden">Прокрутите вправо для полной сетки &rarr;</p>
       <div className="overflow-x-auto pb-4">
         <div className="flex gap-0 min-w-[900px] items-stretch">
           {/* WEST */}

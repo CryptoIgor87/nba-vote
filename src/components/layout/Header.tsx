@@ -108,7 +108,7 @@ export default function Header() {
           {/* Mobile */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-2 text-muted hover:text-foreground rounded-lg"
+            className="md:hidden p-2.5 text-muted hover:text-foreground rounded-lg flex items-center justify-center min-w-[44px] min-h-[44px]"
           >
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -121,7 +121,7 @@ export default function Header() {
                 key={href}
                 href={href}
                 onClick={() => setMenuOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-semibold transition-all ${
                   pathname === href
                     ? "bg-accent/15 text-accent"
                     : "text-muted hover:text-foreground"
@@ -135,7 +135,7 @@ export default function Header() {
               <Link
                 href="/admin/settings"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-muted hover:text-foreground"
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-semibold text-muted hover:text-foreground"
               >
                 <Settings size={18} />
                 Настройки
@@ -145,14 +145,14 @@ export default function Header() {
               <Link
                 href="/profile"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2 text-sm font-medium text-muted hover:text-foreground"
+                className="flex items-center gap-2 text-sm font-medium text-muted hover:text-foreground py-2"
               >
                 <User size={16} />
                 Профиль
               </Link>
               <button
                 onClick={() => signOut()}
-                className="flex items-center gap-2 text-sm font-medium text-muted hover:text-danger"
+                className="flex items-center gap-2 text-sm font-medium text-muted hover:text-danger py-2"
               >
                 <LogOut size={16} />
                 Выйти

@@ -162,14 +162,14 @@ export default function WinnerPicker({
                 setIsOpen(false);
                 setSelectedTeam(null);
               }}
-              className="px-3 py-1.5 text-sm text-muted hover:text-foreground"
+              className="px-3 py-2.5 text-sm text-muted hover:text-foreground"
             >
               Отмена
             </button>
             <button
               onClick={handleSave}
               disabled={!selectedTeam || saving}
-              className="px-4 py-1.5 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
+              className="px-4 py-2.5 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
             >
               {saving ? "Сохраняю..." : "Подтвердить"}
             </button>

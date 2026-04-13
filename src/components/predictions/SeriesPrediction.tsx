@@ -128,7 +128,7 @@ export default function SeriesPrediction({
                 key={key}
                 onClick={() => !isLocked && setSelectedScore(key)}
                 disabled={isLocked}
-                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
+                className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${
                   selectedScore === key
                     ? "bg-accent text-white"
                     : "bg-surface text-foreground hover:bg-card-hover"

@@ -89,7 +89,7 @@ export default function AdminSettingsPage() {
               min="0"
               value={setting.value}
               onChange={(e) => handleChange(setting.key, e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-accent"
+              className="w-full px-3 py-3 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-accent"
             />
           </div>
         ))}
