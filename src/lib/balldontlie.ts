@@ -6,7 +6,7 @@ const api = new BalldontlieAPI({
 
 export async function fetchPlayoffGames(startDate: string, endDate: string) {
   const response = await api.nba.getGames({
-    seasons: [2024], // 2024-25 season
+    seasons: [2025], // 2025-26 season
     postseason: true,
     start_date: startDate,
     end_date: endDate,

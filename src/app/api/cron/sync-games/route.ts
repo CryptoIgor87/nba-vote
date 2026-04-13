@@ -9,12 +9,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Fetch games for a wide range around current date
-    const now = new Date();
-    const startDate = new Date(now);
-    startDate.setDate(startDate.getDate() - 2);
-    const endDate = new Date(now);
-    endDate.setDate(endDate.getDate() + 14);
+    // Fetch all playoff games for the season
+    const startDate = new Date("2025-04-01");
+    const endDate = new Date("2025-07-01");
 
     const formatDate = (d: Date) => d.toISOString().split("T")[0];
 
@@ -44,7 +41,7 @@ export async function GET(req: NextRequest) {
             game.home_team_score > 0 ? game.home_team_score : null,
           away_score:
             game.visitor_team_score > 0 ? game.visitor_team_score : null,
-          game_date: game.date,
+          game_date: game.datetime || game.date,
           is_playoff: game.postseason,
           round: game.postseason ? "first_round" : null,
         },

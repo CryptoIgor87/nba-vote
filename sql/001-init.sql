@@ -64,7 +64,7 @@ CREATE TABLE nba_teams (
 -- PLAYOFF SERIES
 CREATE TABLE nba_series (
     id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    season          INT NOT NULL DEFAULT 2024,
+    season          INT NOT NULL DEFAULT 2025,
     round           TEXT NOT NULL CHECK (round IN ('play_in', 'first_round', 'conference_semis', 'conference_finals', 'finals')),
     conference      TEXT CHECK (conference IN ('East', 'West')),
     team_home_id    INT REFERENCES nba_teams(id),
@@ -81,7 +81,7 @@ CREATE TABLE nba_series (
 CREATE TABLE nba_games (
     id              INT PRIMARY KEY,
     series_id       UUID REFERENCES nba_series(id),
-    season          INT NOT NULL DEFAULT 2024,
+    season          INT NOT NULL DEFAULT 2025,
     status          TEXT NOT NULL DEFAULT 'upcoming',
     home_team_id    INT NOT NULL REFERENCES nba_teams(id),
     away_team_id    INT NOT NULL REFERENCES nba_teams(id),
