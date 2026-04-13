@@ -33,11 +33,11 @@ export default function LandingPage() {
   return (
     <div className="-mt-6 -mx-4">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] text-white">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#1a1a1a] via-[#2d1a00] to-[#1a1a1a] text-white">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-40 h-40 rounded-full border-2 border-white/20" />
-          <div className="absolute bottom-20 right-20 w-60 h-60 rounded-full border-2 border-white/20" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full border border-white/10" />
+          <div className="absolute top-10 left-10 w-40 h-40 rounded-full border-2 border-orange-500/20" />
+          <div className="absolute bottom-20 right-20 w-60 h-60 rounded-full border-2 border-orange-500/20" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full border border-orange-500/10" />
         </div>
 
         <div className="relative max-w-4xl mx-auto px-6 py-20 text-center">
