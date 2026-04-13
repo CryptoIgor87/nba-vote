@@ -26,7 +26,8 @@ export const authConfig: NextAuthConfig = {
       const isAuthPath = nextUrl.pathname.startsWith("/auth");
       const isApiPath = nextUrl.pathname.startsWith("/api");
 
-      if (isApiPath || isAuthPath) return true;
+      const isHome = nextUrl.pathname === "/";
+      if (isApiPath || isAuthPath || isHome) return true;
 
       if (isAdminPath) {
         if (!isLoggedIn)

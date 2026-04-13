@@ -1,5 +1,11 @@
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import LandingPage from "@/components/landing/LandingPage";
 
-export default function Home() {
-  redirect("/predictions");
+export default async function Home() {
+  const session = await auth();
+  if (session?.user) {
+    redirect("/predictions");
+  }
+  return <LandingPage />;
 }
