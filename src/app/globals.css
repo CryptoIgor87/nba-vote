@@ -19,6 +19,29 @@
   --glow: rgba(255, 106, 0, 0.15);
 }
 
+/* Light theme */
+:root.light {
+  --background: #faf8f5;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-hover: #f5f0ea;
+  --accent: #e65100;
+  --accent-hover: #ff6d00;
+  --accent-light: rgba(230, 81, 0, 0.1);
+  --success: #2e7d32;
+  --success-light: rgba(46, 125, 50, 0.1);
+  --danger: #c62828;
+  --danger-light: rgba(198, 40, 40, 0.08);
+  --muted: #78909c;
+  --border: rgba(0, 0, 0, 0.1);
+  --surface: #f0ece6;
+  --glow: rgba(230, 81, 0, 0.1);
+}
+
+:root.light body::before {
+  background: linear-gradient(90deg, transparent 0%, #e65100 20%, #ff8f00 50%, #e65100 80%, transparent 100%);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
