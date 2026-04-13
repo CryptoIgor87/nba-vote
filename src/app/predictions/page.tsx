@@ -159,16 +159,25 @@ export default function PredictionsPage() {
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-3">Прогнозы на серии</h2>
           <div className="space-y-3">
-            {playoffSeries.map((s) => (
-              <SeriesPrediction
-                key={s.id}
-                series={s}
-                prediction={seriesPredictions.find(
-                  (p) => p.series_id === s.id
-                )}
-                onSave={handleSaveSeriesPrediction}
-              />
-            ))}
+            {playoffSeries.map((s) => {
+              // Find earliest game in this series
+              const seriesGames = games
+                .filter((g) => g.series_id === s.id)
+                .sort((a, b) => a.game_date.localeCompare(b.game_date));
+              const firstGameDate = seriesGames[0]?.game_date;
+
+              return (
+                <SeriesPrediction
+                  key={s.id}
+                  series={s}
+                  prediction={seriesPredictions.find(
+                    (p) => p.series_id === s.id
+                  )}
+                  onSave={handleSaveSeriesPrediction}
+                  firstGameDate={firstGameDate}
+                />
+              );
+            })}
           </div>
         </div>
       )}

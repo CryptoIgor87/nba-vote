@@ -28,6 +28,7 @@ export default function SeriesPrediction({
   series,
   prediction,
   onSave,
+  firstGameDate,
 }: {
   series: SeriesWithTeams;
   prediction?: SeriesPred;
@@ -37,6 +38,7 @@ export default function SeriesPrediction({
     homeWins: number,
     awayWins: number
   ) => Promise<boolean>;
+  firstGameDate?: string;
 }) {
   const { home_team, away_team } = series;
   const [selectedWinner, setSelectedWinner] = useState<number | null>(
@@ -52,8 +54,10 @@ export default function SeriesPrediction({
 
   if (!home_team || !away_team) return null;
 
-  // Check if series already started (any game not upcoming)
-  const isLocked = series.status !== "upcoming";
+  // Locked if series started OR first game time has passed
+  const isLocked =
+    series.status !== "upcoming" ||
+    (firstGameDate ? new Date() >= new Date(firstGameDate) : false);
 
   const handleSave = async () => {
     if (!selectedWinner || !selectedScore) return;
