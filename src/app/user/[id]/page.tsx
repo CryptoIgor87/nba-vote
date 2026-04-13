@@ -419,7 +419,7 @@ function AchievementsSection({ achievements }: { achievements: Achievement[] }) 
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
 
   return (
-    <div className="bg-card border border-border rounded-xl mb-4 overflow-hidden">
+    <div className="bg-card border border-border rounded-xl mb-4">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-4 py-3 text-left"
