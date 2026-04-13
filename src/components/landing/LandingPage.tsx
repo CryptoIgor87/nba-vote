@@ -49,10 +49,12 @@ export default function LandingPage() {
           </div>
 
           {/* Title */}
-          <h1 className="font-display text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight leading-[0.9] mb-6">
-            <span className="text-foreground">NBA</span>
+          <h1 className="font-display font-extrabold tracking-tight leading-[0.85] mb-6">
+            <span className="text-foreground text-5xl sm:text-7xl md:text-8xl">NBA</span>
             <br />
-            <span className="bg-gradient-to-r from-accent to-amber-400 bg-clip-text text-transparent">PREDICTIONS</span>
+            <span className="text-accent text-4xl sm:text-5xl md:text-6xl">PLAY OFF</span>
+            <br />
+            <span className="bg-gradient-to-r from-accent to-amber-400 bg-clip-text text-transparent text-3xl sm:text-4xl md:text-5xl">PREDICTIONS</span>
           </h1>
 
           <p className="text-lg sm:text-xl text-muted max-w-lg mx-auto mb-10 leading-relaxed font-light">
@@ -70,15 +72,17 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        {/* Team logos ticker */}
-        <div className="relative mt-16 w-full max-w-4xl">
-          <div className="flex items-center justify-center gap-4 sm:gap-6 flex-wrap">
-            {PLAYOFF_TEAMS.map((t) => (
+        {/* Team logos marquee */}
+        <div className="relative mt-16 w-full overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background to-transparent z-10" />
+          <div className="flex items-center gap-10 animate-marquee">
+            {[...PLAYOFF_TEAMS, ...PLAYOFF_TEAMS].map((t, i) => (
               <img
-                key={t.id}
+                key={`${t.id}-${i}`}
                 src={logo(t.id)}
                 alt={t.abbr}
-                className="w-10 h-10 sm:w-14 sm:h-14 object-contain opacity-40 hover:opacity-100 hover:scale-110 transition-all duration-300"
+                className="w-12 h-12 sm:w-14 sm:h-14 object-contain opacity-40 hover:opacity-100 transition-opacity duration-300 shrink-0"
               />
             ))}
           </div>
