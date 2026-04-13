@@ -165,7 +165,7 @@ export default function PredictionsPage() {
       {playoffSeries.length > 0 && (
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-3">Прогнозы на серии</h2>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {playoffSeries.map((s) => {
               // Find earliest game in this series
               const seriesGames = games
@@ -218,7 +218,7 @@ export default function PredictionsPage() {
       </div>
 
       {/* Games list */}
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {filteredGames.map((game) => {
           const prediction = predictions.find((p) => p.game_id === game.id);
           const gameSeriesBonuses = game.series_id
