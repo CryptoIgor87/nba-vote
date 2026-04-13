@@ -283,7 +283,18 @@ async function rebuildLeaderboard() {
       predictions?.reduce((sum, p) => sum + (p.points_earned || 0), 0) ?? 0;
     const correctWinners =
       predictions?.filter((p) => p.points_earned > 0).length ?? 0;
-    const totalPredictions = predictions?.length ?? 0;
+    // Count all predictions: matches + series + winner
+    const { count: seriesPredCount } = await supabase
+      .from("nba_series_predictions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    const { count: winnerPredCount } = await supabase
+      .from("nba_winner_predictions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    const totalPredictions = (predictions?.length ?? 0) + (seriesPredCount ?? 0) + (winnerPredCount ?? 0);
 
     const { data: seriesBonuses } = await supabase
       .from("nba_series_bonuses")
