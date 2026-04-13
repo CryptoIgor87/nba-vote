@@ -3,12 +3,19 @@
 import { useEffect, useState } from "react";
 import { getTeamLogoUrl } from "@/lib/utils";
 import { Trophy } from "lucide-react";
+import Countdown from "./Countdown";
 import type { NbaTeam } from "@/lib/types";
 
 // Only playoff/play-in team IDs
 const PLAYOFF_TEAM_IDS = [1, 2, 4, 6, 8, 10, 11, 13, 14, 16, 17, 18, 20, 21, 22, 23, 24, 25, 28];
 
-export default function WinnerPicker({ teams }: { teams: NbaTeam[] }) {
+export default function WinnerPicker({
+  teams,
+  firstGameDate,
+}: {
+  teams: NbaTeam[];
+  firstGameDate?: string;
+}) {
   const playoffTeams = teams.filter((t) => PLAYOFF_TEAM_IDS.includes(t.id));
   const [winnerPrediction, setWinnerPrediction] = useState<{
     team_id: number;
@@ -75,6 +82,11 @@ export default function WinnerPicker({ teams }: { teams: NbaTeam[] }) {
               <span className="text-sm">
                 {selectedTeamData?.full_name || "-"}
               </span>
+              {firstGameDate && (
+                <span className="ml-2">
+                  <Countdown deadline={firstGameDate} />
+                </span>
+              )}
             </div>
           </div>
           {winnerPrediction.points_earned > 0 ? (
@@ -105,7 +117,8 @@ export default function WinnerPicker({ teams }: { teams: NbaTeam[] }) {
           <div>
             <p className="text-sm font-semibold">Победитель турнира</p>
             <p className="text-xs text-muted">
-              +10 баллов. Ставка делается один раз.
+              +10 баллов.{" "}
+              {firstGameDate && <Countdown deadline={firstGameDate} />}
             </p>
           </div>
         </div>

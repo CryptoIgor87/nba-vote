@@ -4,6 +4,7 @@ import { useState } from "react";
 import { getTeamLogoUrl, formatGameDate, isGameLocked } from "@/lib/utils";
 import { NBA_ARENAS } from "@/lib/arenas";
 import { Lock, Check, X, Trophy, MapPin } from "lucide-react";
+import Countdown from "./Countdown";
 import type { NbaGame, NbaPrediction } from "@/lib/types";
 
 interface Props {
@@ -129,8 +130,15 @@ export default function GameCard({
             Игра {game.game_number}
           </span>
         )}
+        {!isFinished && !locked && (
+          <Countdown
+            deadline={new Date(
+              new Date(game.game_date).getTime() - 30 * 60 * 1000
+            ).toISOString()}
+          />
+        )}
         {locked && !isFinished && (
-          <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted">
+          <span className="inline-flex items-center gap-1 text-xs text-muted">
             <Lock size={11} />
             Закрыто
           </span>

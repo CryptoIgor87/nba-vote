@@ -149,8 +149,17 @@ export default function PredictionsPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Мои прогнозы</h1>
 
-      {/* Tournament winner + MVP predictions */}
-      <WinnerPicker teams={teams} />
+      {/* Tournament winner prediction */}
+      <WinnerPicker
+        teams={teams}
+        firstGameDate={
+          games.length > 0
+            ? games.reduce((min, g) =>
+                g.game_date < min ? g.game_date : min
+              , games[0].game_date)
+            : undefined
+        }
+      />
 
       {/* Series predictions */}
       {playoffSeries.length > 0 && (

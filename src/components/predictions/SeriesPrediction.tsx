@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getTeamLogoUrl, getRoundLabel } from "@/lib/utils";
 import { Check } from "lucide-react";
+import Countdown from "./Countdown";
 import type { NbaSeries, NbaTeam } from "@/lib/types";
 
 interface SeriesWithTeams extends NbaSeries {
@@ -85,8 +86,9 @@ export default function SeriesPrediction({
         prediction ? "border-success/20" : "border-accent/20"
       }`}
     >
-      <div className="text-xs text-muted font-semibold mb-3">
-        {getRoundLabel(series.round)} - Прогноз на серию
+      <div className="text-xs text-muted font-semibold mb-3 flex items-center justify-between">
+        <span>{getRoundLabel(series.round)} - Прогноз на серию</span>
+        {!isLocked && firstGameDate && <Countdown deadline={firstGameDate} />}
       </div>
 
       {/* Team selection */}
