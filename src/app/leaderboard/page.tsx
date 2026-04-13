@@ -187,31 +187,38 @@ export default function LeaderboardPage() {
                 { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }
               );
 
+              const userName = event.user?.display_name || event.user?.name || "Игрок";
+              // Remove user name from title to show it as a link separately
+              const eventText = event.title.replace(userName, "").trim();
+
               return (
                 <div
                   key={event.id}
                   className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3"
                 >
                   {/* Avatar */}
-                  <div className="w-8 h-8 rounded-full bg-surface overflow-hidden shrink-0 border border-border">
-                    {avatar ? (
-                      <img
-                        src={avatar}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted text-xs font-bold">
-                        {(event.user?.display_name || event.user?.name || "?")[0]}
-                      </div>
-                    )}
-                  </div>
+                  <Link href={`/user/${event.user_id}`} className="shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-surface overflow-hidden border border-border">
+                      {avatar ? (
+                        <img src={avatar} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted text-xs font-bold">
+                          {userName[0]}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
 
                   {/* Icon */}
                   <IconComp size={16} className="text-accent shrink-0" />
 
-                  {/* Text */}
-                  <p className="text-sm flex-1 min-w-0">{event.title}</p>
+                  {/* Name + Text */}
+                  <p className="text-sm flex-1 min-w-0">
+                    <Link href={`/user/${event.user_id}`} className="font-display font-bold uppercase hover:text-accent transition-colors">
+                      {userName}
+                    </Link>{" "}
+                    <span className="text-muted">{eventText}</span>
+                  </p>
 
                   {/* Date */}
                   <span className="text-xs text-muted shrink-0">{date}</span>
