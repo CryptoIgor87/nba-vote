@@ -138,7 +138,7 @@ export default function LeaderboardPage() {
 
                   {/* Name + predictions */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">{name}</p>
+                    <p className="font-display font-bold text-sm truncate uppercase">{name}</p>
                     <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
                       <span className="text-xs text-muted">
                         {entry.total_predictions} прогнозов

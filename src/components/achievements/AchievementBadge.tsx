@@ -100,8 +100,8 @@ export default function AchievementBadge({
         )}
       </div>
       <span
-        className={`${s.text} font-semibold text-center leading-tight max-w-[80px] ${
-          achievement.unlocked ? "text-foreground" : "text-muted"
+        className={`${s.text} font-medium text-center leading-tight w-full ${
+          achievement.unlocked ? "text-foreground" : "text-muted/50"
         }`}
       >
         {achievement.title}

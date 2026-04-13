@@ -445,11 +445,11 @@ function AchievementsSection({ achievements }: { achievements: Achievement[] }) 
               return acc;
             }, {})
           ).map(([cat, items]) => (
-            <div key={cat} className="mb-4 last:mb-0">
-              <p className="text-[10px] text-muted uppercase tracking-wider font-bold mb-2">
+            <div key={cat} className="mb-5 last:mb-0">
+              <p className="text-[11px] text-foreground/70 uppercase tracking-wider font-bold mb-3">
                 {CATEGORY_LABELS[cat] || cat}
               </p>
-              <div className="flex flex-wrap gap-4">
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-y-4 gap-x-2">
                 {items.map((a) => (
                   <div key={a.id} className="relative group/tip">
                     <AchievementBadge achievement={a} size="md" />
