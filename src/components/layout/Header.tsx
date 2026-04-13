@@ -8,6 +8,7 @@ import {
   BarChart3,
   Target,
   BookOpen,
+  MessageCircle,
   User,
   LogOut,
   Settings,
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/predictions", label: "Мои прогнозы", icon: Target },
   { href: "/bracket", label: "Сетка", icon: Trophy },
   { href: "/leaderboard", label: "Рейтинг", icon: BarChart3 },
+  { href: "/chat", label: "Чат", icon: MessageCircle },
   { href: "/rules", label: "Правила", icon: BookOpen },
 ];
 
