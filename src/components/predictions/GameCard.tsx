@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { getTeamLogoUrl, formatGameDate, isGameLocked } from "@/lib/utils";
-import { Lock, Check, X, Trophy } from "lucide-react";
+import { NBA_ARENAS } from "@/lib/arenas";
+import { Lock, Check, X, Trophy, MapPin } from "lucide-react";
 import type { NbaGame, NbaPrediction } from "@/lib/types";
 
 interface Props {
@@ -111,9 +112,18 @@ export default function GameCard({
           isFinished ? "bg-surface" : "bg-accent/10"
         }`}
       >
-        <span className="text-sm font-bold text-foreground">
+        <div className="text-sm font-bold text-foreground">
           {formatGameDate(game.game_date)}
-        </span>
+        </div>
+        {(() => {
+          const arena = NBA_ARENAS[game.home_team_id];
+          return arena ? (
+            <div className="text-xs text-muted flex items-center justify-center gap-1 mt-0.5">
+              <MapPin size={10} />
+              {arena.arena}, {arena.city}
+            </div>
+          ) : null;
+        })()}
         {game.game_number && (
           <span className="ml-2 text-sm text-accent font-semibold">
             Игра {game.game_number}

@@ -32,7 +32,7 @@ export default function RulesPage() {
           </h2>
           <ul className="space-y-2 text-sm text-foreground/80">
             <li>1. Зарегистрируйтесь через Google или Яндекс</li>
-            <li>2. Перед каждым матчем введите свой прогноз — точный счёт</li>
+            <li>2. Перед каждым матчем выберите победителя нажатием на логотип команды</li>
             <li>
               3. Приём прогнозов закрывается за{" "}
               <strong>{pts("betting_close_minutes", 30)} минут</strong> до
@@ -69,7 +69,7 @@ export default function RulesPage() {
             Плей-офф (серии до 4 побед)
           </h2>
           <p className="text-sm text-foreground/80 mb-3">
-            В плей-офф вы делаете прогноз на каждый матч серии. Баллы
+            В плей-офф вы выбираете победителя каждого матча серии. Баллы
             начисляются за:
           </p>
           <div className="space-y-2">
@@ -81,7 +81,7 @@ export default function RulesPage() {
                 </span>
               </div>
               <p className="text-xs text-muted mt-1">
-                За каждый матч, где вы правильно предсказали кто победит
+                За каждый матч, где вы правильно выбрали победителя
               </p>
             </div>
 
