@@ -73,7 +73,7 @@ export default function WinnerPicker({ teams }: { teams: NbaTeam[] }) {
                 />
               )}
               <span className="text-sm">
-                {selectedTeamData?.full_name || "—"}
+                {selectedTeamData?.full_name || "-"}
               </span>
             </div>
           </div>

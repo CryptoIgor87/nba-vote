@@ -52,7 +52,7 @@ export default function SeriesCard({ series }: { series: SeriesWithTeams }) {
       {isFinished && (
         <div className="text-center mt-2">
           <span className="text-xs text-success font-medium">
-            {home_wins} — {away_wins}
+            {home_wins} - {away_wins}
           </span>
         </div>
       )}

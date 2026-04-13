@@ -312,7 +312,7 @@ function PlayInCard({
         </div>
         {isFinished ? (
           <span className="text-sm font-bold">
-            {game.home_score} — {game.away_score}
+            {game.home_score} - {game.away_score}
           </span>
         ) : (
           <span className="text-xs text-muted">VS</span>

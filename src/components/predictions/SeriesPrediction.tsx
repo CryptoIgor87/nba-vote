@@ -86,7 +86,7 @@ export default function SeriesPrediction({
       }`}
     >
       <div className="text-xs text-muted font-semibold mb-3">
-        {getRoundLabel(series.round)} — Прогноз на серию
+        {getRoundLabel(series.round)} - Прогноз на серию
       </div>
 
       {/* Team selection */}
@@ -132,7 +132,7 @@ export default function SeriesPrediction({
                     : "bg-surface text-foreground hover:bg-card-hover"
                 } ${isLocked ? "opacity-60 cursor-default" : "cursor-pointer"}`}
               >
-                {s.home}—{s.away}
+                {s.home} - {s.away}
               </button>
             );
           })}
@@ -179,7 +179,7 @@ export default function SeriesPrediction({
           {prediction.predicted_winner_id === home_team.id
             ? home_team.abbreviation
             : away_team.abbreviation}{" "}
-          {prediction.predicted_home_wins}—{prediction.predicted_away_wins}
+          {prediction.predicted_home_wins} - {prediction.predicted_away_wins}
         </div>
       )}
     </div>

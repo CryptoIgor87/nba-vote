@@ -188,7 +188,7 @@ export default function UserPage() {
                     )}
                   </div>
                   <div className="text-sm font-semibold">
-                    {winnerTeam?.abbreviation} {sp.predicted_home_wins}—{sp.predicted_away_wins}
+                    {winnerTeam?.abbreviation} {sp.predicted_home_wins} - {sp.predicted_away_wins}
                   </div>
                   {bonus && (
                     <span className="text-success font-bold text-sm">+{bonus.points}</span>

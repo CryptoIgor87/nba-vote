@@ -51,7 +51,7 @@ export default function RulesPage() {
             Play-In турнир
           </h2>
           <p className="text-sm text-foreground/80 mb-2">
-            Play-In — это отдельные матчи (не серии). Начисление баллов:
+            Play-In - это отдельные матчи (не серии). Начисление баллов:
           </p>
           <div className="bg-background rounded-lg p-3">
             <div className="flex justify-between text-sm">

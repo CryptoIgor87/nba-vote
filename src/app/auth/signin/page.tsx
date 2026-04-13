@@ -1,7 +1,7 @@
 import { signIn } from "@/lib/auth";
 
 export const metadata = {
-  title: "Войти — NBA Predictions",
+  title: "Войти - NBA Predictions",
   robots: { index: false, follow: false },
 };
 
