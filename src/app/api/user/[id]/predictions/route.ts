@@ -99,15 +99,60 @@ export async function GET(
     .select("*")
     .eq("user_id", userId);
 
+  // General bonuses (streaks, sniper, upset)
+  const { data: bonuses } = await supabase
+    .from("nba_bonuses")
+    .select("*")
+    .eq("user_id", userId);
+
+  // Calculate stats
+  const finishedGames = games?.filter((g) => g.status === "finished") || [];
+  const predsForFinished = visiblePredictions?.filter((p) =>
+    finishedGames.some((g) => g.id === p.game_id)
+  ) || [];
+  const correctPreds = predsForFinished.filter((p) => p.points_earned > 0);
+
+  // Streak calculation
+  const predsInOrder = (predictions || [])
+    .map((p) => {
+      const game = finishedGames.find((g) => g.id === p.game_id);
+      if (!game) return null;
+      return { game_date: game.game_date, correct: p.points_earned > 0 };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a!.game_date.localeCompare(b!.game_date));
+
+  let maxStreak = 0;
+  let currentStreak = 0;
+  for (const p of predsInOrder) {
+    if (p!.correct) { currentStreak++; maxStreak = Math.max(maxStreak, currentStreak); }
+    else currentStreak = 0;
+  }
+
+  const stats = {
+    totalPredictions: predsForFinished.length,
+    correctPredictions: correctPreds.length,
+    accuracy: predsForFinished.length > 0
+      ? Math.round((correctPreds.length / predsForFinished.length) * 100)
+      : 0,
+    maxStreak,
+    currentStreak,
+    gamePoints: predsForFinished.reduce((s, p) => s + (p.points_earned || 0), 0),
+    seriesBonusPoints: seriesBonuses?.reduce((s, b) => s + b.points, 0) || 0,
+    generalBonusPoints: bonuses?.reduce((s, b) => s + b.points, 0) || 0,
+    winnerPoints: winnerPrediction?.points_earned || 0,
+  };
+
   return NextResponse.json({
     user,
     predictions: visiblePredictions,
     seriesPredictions: visibleSeriesPreds,
     seriesBonuses,
+    bonuses,
     winnerPrediction,
-    mvpPrediction,
     games: enrichedGames,
     series: allSeries,
     teams: teams,
+    stats,
   });
 }

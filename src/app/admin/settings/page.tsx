@@ -9,6 +9,11 @@ const LABELS: Record<string, string> = {
   points_correct_series_winner: "Баллы за победителя серии",
   points_correct_series_score: "Баллы за точный счёт серии",
   points_tournament_winner: "Баллы за победителя турнира",
+  points_upset_bonus: "Бонус за апсет (нижний сид выиграл)",
+  points_streak_3: "Бонус за стрик 3 подряд",
+  points_streak_5: "Бонус за стрик 5 подряд",
+  points_streak_7: "Бонус за стрик 7 подряд",
+  points_sniper: "Бонус Снайпер (все матчи серии)",
   betting_close_minutes: "Закрытие прогнозов (минуты до матча)",
 };
 
