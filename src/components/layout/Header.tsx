@@ -39,8 +39,9 @@ export default function Header() {
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
-          <Link href="/predictions" className="flex items-center gap-1">
-            <span className="text-accent font-display font-bold text-lg tracking-wide uppercase">
+          <Link href="/predictions" className="flex items-center gap-1.5">
+            <img src="/favicon.svg" alt="" className="w-6 h-6" />
+            <span className="text-accent font-display font-black text-lg tracking-wide uppercase">
               NBA</span>
             <span className="text-foreground font-display font-bold text-lg tracking-wide uppercase hidden sm:block">
               Predictions
