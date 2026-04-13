@@ -22,7 +22,11 @@ export default function RulesPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Правила</h1>
+      <h1 className="text-2xl font-bold mb-4">Правила</h1>
+      <div className="bg-accent/10 border border-accent/20 rounded-xl px-4 py-3 mb-6 text-sm text-accent">
+        По всем вопросам, багам и предложениям пишите в Telegram:{" "}
+        <a href="https://t.me/ba1udze" target="_blank" rel="noopener" className="font-bold underline hover:no-underline">@ba1udze</a>
+      </div>
 
       <div className="space-y-6">
         {/* How it works */}
