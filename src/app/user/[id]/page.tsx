@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   ArrowLeft, Trophy, Crown, Check, X, Flame, Award, Plus, Minus,
-  Crosshair, TrendingUp, Target, BarChart3, Pencil,
+  Crosshair, TrendingUp, Target, BarChart3, Pencil, Trash2,
 } from "lucide-react";
 import { getTeamLogoUrl, formatGameDate, getRoundLabel } from "@/lib/utils";
 import { CATEGORY_LABELS } from "@/lib/achievement-icons";
@@ -68,7 +68,9 @@ interface UserProfileData {
 export default function UserPage() {
   const { id } = useParams();
   const { data: session } = useSession();
+  const router = useRouter();
   const isOwnProfile = session?.user?.id === id;
+  const isAdmin = (session?.user as { role?: string })?.role === "ADMIN";
   const [data, setData] = useState<UserProfileData | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,11 +132,34 @@ export default function UserPage() {
         </div>
         <div className="flex-1">
           <h1 className="text-xl font-bold">{userName}</h1>
-          {isOwnProfile && (
-            <Link href="/profile" className="text-xs text-muted hover:text-accent flex items-center gap-1 mt-0.5">
-              <Pencil size={10} /> Редактировать
-            </Link>
-          )}
+          <div className="flex items-center gap-3 mt-0.5">
+            {isOwnProfile && (
+              <Link href="/profile" className="text-xs text-muted hover:text-accent flex items-center gap-1">
+                <Pencil size={10} /> Редактировать
+              </Link>
+            )}
+            {isAdmin && !isOwnProfile && (
+              <button
+                onClick={async () => {
+                  if (!confirm(`Удалить ${userName} и все прогнозы? Это действие необратимо.`)) return;
+                  const res = await fetch("/api/admin/delete-user", {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: id }),
+                  });
+                  if (res.ok) {
+                    router.push("/leaderboard");
+                  } else {
+                    const err = await res.json();
+                    alert(err.error || "Ошибка");
+                  }
+                }}
+                className="text-xs text-muted hover:text-danger flex items-center gap-1"
+              >
+                <Trash2 size={10} /> Удалить профиль
+              </button>
+            )}
+          </div>
         </div>
         <div className="text-right">
           <p className="text-2xl font-bold text-accent">{totalPoints}</p>
