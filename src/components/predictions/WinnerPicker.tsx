@@ -7,7 +7,8 @@ import Countdown from "./Countdown";
 import type { NbaTeam } from "@/lib/types";
 
 // Only playoff/play-in team IDs
-const PLAYOFF_TEAM_IDS = [1, 2, 4, 6, 8, 10, 11, 13, 14, 16, 17, 18, 20, 21, 22, 23, 24, 25, 28];
+// All play-in + playoff teams: ATL,BOS,CHA,CLE,DEN,DET,GSW,HOU,LAC,LAL,MIA,MIL,MIN,NYK,OKC,ORL,PHI,PHX,POR,SAS,TOR
+const PLAYOFF_TEAM_IDS = [1, 2, 4, 6, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 27, 28];
 
 export default function WinnerPicker({
   teams,
