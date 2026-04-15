@@ -6,7 +6,7 @@ export async function GET() {
   const { data: allGames } = await supabase
     .from("nba_games")
     .select("*")
-    .order("game_date", { ascending: true });
+    .order("game_date", { ascending: false });
 
   const { data: settings } = await supabase
     .from("nba_settings")
