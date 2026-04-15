@@ -62,6 +62,7 @@ interface UserProfileData {
     seriesBonusPoints: number;
     generalBonusPoints: number;
     winnerPoints: number;
+    dailyQuestionPoints: number;
   };
 }
 
@@ -108,7 +109,7 @@ export default function UserPage() {
   const userName = user.display_name || user.name || "Игрок";
   const avatar = user.avatar_url || user.image;
   const totalPoints =
-    stats.gamePoints + stats.seriesBonusPoints + stats.generalBonusPoints + stats.winnerPoints;
+    stats.gamePoints + stats.seriesBonusPoints + stats.generalBonusPoints + stats.winnerPoints + (stats.dailyQuestionPoints || 0);
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -186,6 +187,7 @@ export default function UserPage() {
           <PointsRow label="Бонусы за серии" points={stats.seriesBonusPoints} />
           <PointsRow label="Бонусы (стрик, снайпер, апсет)" points={stats.generalBonusPoints} />
           <PointsRow label="Победитель турнира" points={stats.winnerPoints} />
+          <PointsRow label="Вопросы дня" points={stats.dailyQuestionPoints || 0} />
           <div className="border-t border-border pt-2 flex justify-between font-bold">
             <span>Итого</span>
             <span className="text-accent">{totalPoints}</span>

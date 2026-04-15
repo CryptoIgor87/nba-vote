@@ -353,7 +353,12 @@ async function rebuildLeaderboard() {
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id);
 
-    const totalPredictions = (predictions?.length ?? 0) + (seriesPredCount ?? 0) + (winnerPredCount ?? 0);
+    const { count: dailyPickCount } = await supabase
+      .from("nba_daily_picks")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    const totalPredictions = (predictions?.length ?? 0) + (seriesPredCount ?? 0) + (winnerPredCount ?? 0) + (dailyPickCount ?? 0);
 
     const { data: seriesBonuses } = await supabase
       .from("nba_series_bonuses")

@@ -129,6 +129,14 @@ export async function GET(
     else currentStreak = 0;
   }
 
+  // Daily question picks
+  const { data: dailyPicks } = await supabase
+    .from("nba_daily_picks")
+    .select("*, question:nba_daily_questions!nba_daily_picks_question_id_fkey(*)")
+    .eq("user_id", userId);
+
+  const dailyPoints = dailyPicks?.reduce((s, p) => s + (p.points_earned || 0), 0) || 0;
+
   const stats = {
     totalPredictions: predsForFinished.length,
     correctPredictions: correctPreds.length,
@@ -141,6 +149,7 @@ export async function GET(
     seriesBonusPoints: seriesBonuses?.reduce((s, b) => s + b.points, 0) || 0,
     generalBonusPoints: bonuses?.reduce((s, b) => s + b.points, 0) || 0,
     winnerPoints: winnerPrediction?.points_earned || 0,
+    dailyQuestionPoints: dailyPoints,
   };
 
   return NextResponse.json({
@@ -150,6 +159,7 @@ export async function GET(
     seriesBonuses,
     bonuses,
     winnerPrediction,
+    dailyPicks,
     games: enrichedGames,
     series: allSeries,
     teams: teams,
