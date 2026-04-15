@@ -529,12 +529,18 @@ async function checkAchievements() {
     if (upsetCount >= 1) await unlock(user.id, "upset_king");
     if (upsetCount >= 2) await unlock(user.id, "double_upset");
 
-    // Leaderboard position
-    if (leaderboard) {
+    // Leaderboard position — only meaningful with enough data
+    const finishedCount = finishedGames?.length ?? 0;
+    const participantCount = leaderboard?.filter((l) => l.total_points > 0).length ?? 0;
+    if (leaderboard && finishedCount >= 10 && participantCount >= 5) {
       const rank = leaderboard.findIndex((l) => l.user_id === user.id);
       const points = leaderboard[rank]?.total_points ?? 0;
       if (rank >= 0 && rank < 3 && points > 0) await unlock(user.id, "podium");
       if (rank === 0 && points > 0) await unlock(user.id, "champion");
+    }
+    if (leaderboard) {
+      const rank = leaderboard.findIndex((l) => l.user_id === user.id);
+      const points = leaderboard[rank]?.total_points ?? 0;
       if (points >= 20) await unlock(user.id, "point_hunter");
       if (points >= 50) await unlock(user.id, "half_century");
     }
