@@ -433,24 +433,6 @@ async function generateEvents() {
     }
   }
 
-  // Leaderboard position changes
-  const { data: leaderboard } = await supabase
-    .from("nba_leaderboard")
-    .select("user_id, total_points")
-    .order("total_points", { ascending: false });
-
-  if (leaderboard && leaderboard.length > 0) {
-    for (let i = 0; i < Math.min(3, leaderboard.length); i++) {
-      const entry = leaderboard[i];
-      if (entry.total_points === 0) continue;
-      const user = users.find((u) => u.id === entry.user_id);
-      const name = user?.display_name || user?.name || "Игрок";
-      const place = i + 1;
-      const placeText = place === 1 ? "1-е место" : place === 2 ? "2-е место" : "3-е место";
-      const emoji = place === 1 ? "crown" : "trophy";
-      await addEvent(entry.user_id, `place_${place}`, `${name} занимает ${placeText} в рейтинге!`, emoji);
-    }
-  }
 }
 
 async function checkAchievements() {
