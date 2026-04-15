@@ -103,6 +103,15 @@ export default function RulesPage() {
                 Вместо +{pts("points_correct_series_winner", 2)}. Например: предсказали 4-2, и серия закончилась 4-2
               </p>
             </div>
+            <div className="bg-background rounded-lg p-3">
+              <div className="flex justify-between text-sm">
+                <span>Вопрос дня</span>
+                <span className="text-accent font-bold">+{pts("points_daily_question", 1)} балл</span>
+              </div>
+              <p className="text-xs text-muted mt-1">
+                Каждый день — один вопрос по статистике матча: кто наберёт больше очков, трёшек, передач, подборов и т.д. Выберите одного из 4 игроков или &quot;Другой&quot;. Результат определяется автоматически после матча.
+              </p>
+            </div>
           </div>
         </section>
 
