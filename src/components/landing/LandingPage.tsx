@@ -144,10 +144,10 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20" />
         <div className="relative max-w-4xl mx-auto px-6 py-20 text-center">
           <h2 className="font-display text-3xl sm:text-4xl font-bold uppercase tracking-wide text-foreground mb-3">
-            Play-In стартует завтра
+            Play-In уже идёт, плей-офф через пару дней
           </h2>
           <p className="text-muted mb-8 text-lg">
-            Успей сделать прогнозы до начала первых матчей
+            Присоединяйся и делай прогнозы — у новых игроков 24 часа на все ставки
           </p>
           <Link
             href="/auth/signin"
