@@ -32,6 +32,13 @@ export default function PredictionsPage() {
   const [seriesPredictions, setSeriesPredictions] = useState<SeriesPred[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeRound, setActiveRound] = useState<string>("all");
+  const [now, setNow] = useState(new Date());
+
+  // Update now every 30 seconds so locks activate in real time
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -134,7 +141,6 @@ export default function PredictionsPage() {
     );
   }
 
-  const now = new Date();
   const closeMinutes = 30;
 
   // Only show the next upcoming game per series/matchup
@@ -191,7 +197,7 @@ export default function PredictionsPage() {
         const firstDate = games.length > 0
           ? games.reduce((min, g) => g.game_date < min ? g.game_date : min, games[0].game_date)
           : undefined;
-        const gamesStarted = firstDate && new Date() >= new Date(firstDate);
+        const gamesStarted = firstDate && now >= new Date(firstDate);
         if (gamesStarted) return null;
         return <WinnerPicker teams={teams} firstGameDate={firstDate} />;
       })()}
