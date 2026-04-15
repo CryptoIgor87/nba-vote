@@ -76,10 +76,18 @@ export default function LeaderboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <Trophy size={24} className="text-accent" />
-        Рейтинг
-      </h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <Trophy size={24} className="text-accent" />
+          Рейтинг
+        </h1>
+        <Link
+          href="/history"
+          className="text-sm text-muted hover:text-accent transition-colors font-medium"
+        >
+          Сводная таблица &rarr;
+        </Link>
+      </div>
 
       {entries.length === 0 ? (
         <p className="text-center text-muted py-10">
