@@ -3,8 +3,11 @@ import type { DailyQuestionCategory } from "./types";
 const CDN_BASE = "https://cdn.nba.com/static/json";
 
 interface NbaCdnPlayer {
+  personId: number;
   firstName: string;
   familyName: string;
+  starter: string;
+  played: string;
   statistics: {
     points: number;
     threePointersMade: number;
@@ -13,7 +16,18 @@ interface NbaCdnPlayer {
     steals: number;
     blocks: number;
     turnovers: number;
+    foulsPersonal: number;
+    minutes: string;
   };
+}
+
+export interface LivePlayer {
+  nba_id: number;
+  name: string;
+  teamTricode: string;
+  starter: boolean;
+  minutes: number;
+  stats: NbaCdnPlayer["statistics"];
 }
 
 interface NbaCdnBoxScore {
@@ -44,7 +58,7 @@ interface NbaCdnScheduleDate {
   games: NbaCdnScheduleGame[];
 }
 
-const CATEGORY_TO_STAT: Record<DailyQuestionCategory, keyof NbaCdnPlayer["statistics"]> = {
+const CATEGORY_TO_STAT: Record<DailyQuestionCategory, string> = {
   points: "points",
   threes: "threePointersMade",
   rebounds: "reboundsTotal",
@@ -52,6 +66,7 @@ const CATEGORY_TO_STAT: Record<DailyQuestionCategory, keyof NbaCdnPlayer["statis
   steals: "steals",
   blocks: "blocks",
   turnovers: "turnovers",
+  fouls: "foulsPersonal",
 };
 
 async function fetchJson<T>(url: string): Promise<T | null> {
@@ -127,7 +142,7 @@ export async function getTopPlayerByStat(
   const box = await fetchBoxScore(nbaComGameId);
   if (!box?.game) return null;
 
-  const statKey = CATEGORY_TO_STAT[category];
+  const statKey = CATEGORY_TO_STAT[category] as keyof NbaCdnPlayer["statistics"];
   const allPlayers = [
     ...box.game.homeTeam.players.map((p) => ({
       ...p,
@@ -143,7 +158,8 @@ export async function getTopPlayerByStat(
   let bestValue = -1;
 
   for (const p of allPlayers) {
-    const val = p.statistics?.[statKey] ?? 0;
+    const raw = p.statistics?.[statKey] ?? 0;
+    const val = typeof raw === "string" ? parseInt(raw) || 0 : raw;
     if (val > bestValue) {
       bestValue = val;
       best = p;
@@ -157,6 +173,76 @@ export async function getTopPlayerByStat(
     value: bestValue,
     teamTricode: best.teamTricode,
   };
+}
+
+/**
+ * Get the last finished game ID for a team from the schedule.
+ */
+async function findLastFinishedGameForTeam(
+  teamTricode: string
+): Promise<string | null> {
+  const schedule = await fetchJson<{
+    leagueSchedule: { gameDates: NbaCdnScheduleDate[] };
+  }>(`${CDN_BASE}/staticData/scheduleLeagueV2.json`);
+
+  if (!schedule?.leagueSchedule?.gameDates) return null;
+
+  // Walk backwards through dates to find last finished game for this team
+  const allGames: { gameId: string; dateStr: string }[] = [];
+  for (const gd of schedule.leagueSchedule.gameDates) {
+    for (const g of gd.games) {
+      if (
+        (g.homeTeam.teamTricode === teamTricode ||
+          g.awayTeam.teamTricode === teamTricode) &&
+        g.gameStatusText === "Final"
+      ) {
+        allGames.push({ gameId: g.gameId, dateStr: gd.gameDate });
+      }
+    }
+  }
+
+  if (allGames.length === 0) return null;
+  return allGames[allGames.length - 1].gameId;
+}
+
+/**
+ * Get real roster + stats for a team from their last finished game.
+ * Returns players sorted by minutes played (starters first).
+ */
+export async function getTeamLiveRoster(
+  teamTricode: string
+): Promise<LivePlayer[]> {
+  const gameId = await findLastFinishedGameForTeam(teamTricode);
+  if (!gameId) return [];
+
+  const box = await fetchBoxScore(gameId);
+  if (!box?.game) return [];
+
+  const team =
+    box.game.homeTeam.teamTricode === teamTricode
+      ? box.game.homeTeam
+      : box.game.awayTeam.teamTricode === teamTricode
+        ? box.game.awayTeam
+        : null;
+
+  if (!team) return [];
+
+  return team.players
+    .filter((p) => p.played === "1")
+    .map((p) => {
+      const minStr = p.statistics?.minutes || "PT00M";
+      const minMatch = minStr.match?.(/(\d+)M/);
+      const minutes = minMatch ? parseInt(minMatch[1]) : 0;
+      return {
+        nba_id: p.personId,
+        name: `${p.firstName} ${p.familyName}`,
+        teamTricode,
+        starter: p.starter === "1",
+        minutes,
+        stats: p.statistics,
+      };
+    })
+    .sort((a, b) => b.minutes - a.minutes);
 }
 
 /**

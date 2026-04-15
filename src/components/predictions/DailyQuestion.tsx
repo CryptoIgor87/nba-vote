@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { formatGameDate, isGameLocked } from "@/lib/utils";
-import { getPlayerHeadshotUrl, getPlayerNbaId } from "@/lib/players";
+import { getPlayerHeadshotUrl } from "@/lib/players";
 import { Lock, Check, Trophy, HelpCircle, Star } from "lucide-react";
 import Countdown from "./Countdown";
 import type { NbaDailyQuestion, NbaDailyPick, NbaGame, NbaTeam } from "@/lib/types";
@@ -10,11 +10,12 @@ import type { NbaDailyQuestion, NbaDailyPick, NbaGame, NbaTeam } from "@/lib/typ
 const CATEGORY_LABELS: Record<string, string> = {
   points: "очков",
   threes: "трёшек",
-  rebounds: "подборов",
   assists: "передач",
+  rebounds: "подборов",
+  turnovers: "потерь",
+  fouls: "фолов",
   steals: "перехватов",
   blocks: "блоков",
-  turnovers: "потерь",
 };
 
 interface Props {
@@ -40,11 +41,11 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
   const categoryLabel = CATEGORY_LABELS[question.category] || question.category;
 
   const options = [
-    { name: question.player1_name, team_id: question.player1_team_id },
-    { name: question.player2_name, team_id: question.player2_team_id },
-    { name: question.player3_name, team_id: question.player3_team_id },
-    { name: question.player4_name, team_id: question.player4_team_id },
-    { name: "other", team_id: null },
+    { name: question.player1_name, team_id: question.player1_team_id, nba_id: question.player1_nba_id },
+    { name: question.player2_name, team_id: question.player2_team_id, nba_id: question.player2_nba_id },
+    { name: question.player3_name, team_id: question.player3_team_id, nba_id: question.player3_nba_id },
+    { name: question.player4_name, team_id: question.player4_team_id, nba_id: question.player4_nba_id },
+    { name: "other", team_id: null, nba_id: null },
   ];
 
   const handlePick = async (option: string) => {
@@ -81,7 +82,6 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
         >
           <div className="flex items-center gap-1 mb-1">
             <Star size={10} className="text-accent" />
-            <span className="text-[9px] font-bold text-accent uppercase">Вопрос дня</span>
           </div>
           <div className="text-[11px] sm:text-xs font-semibold text-foreground leading-tight">
             {formatGameDate(game.game_date)}
@@ -128,7 +128,7 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
             const canSelect = !locked && !isFinished && !saving;
             const count = pickCounts?.[opt.name] ?? 0;
             const pct = totalPicks > 0 ? Math.round((count / totalPicks) * 100) : 0;
-            const nbaId = opt.name !== "other" ? getPlayerNbaId(opt.name) : null;
+            const nbaId = opt.nba_id;
 
             let bg = "";
             if (isSelected && !isResolved) bg = "bg-accent/20 ring-1 ring-accent/40 ring-inset";

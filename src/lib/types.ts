@@ -112,11 +112,12 @@ export interface LeaderboardEntry {
 export type DailyQuestionCategory =
   | "points"
   | "threes"
-  | "rebounds"
   | "assists"
+  | "rebounds"
+  | "turnovers"
+  | "fouls"
   | "steals"
-  | "blocks"
-  | "turnovers";
+  | "blocks";
 
 export interface NbaDailyQuestion {
   id: string;
@@ -131,6 +132,10 @@ export interface NbaDailyQuestion {
   player3_team_id: number;
   player4_name: string;
   player4_team_id: number;
+  player1_nba_id: number | null;
+  player2_nba_id: number | null;
+  player3_nba_id: number | null;
+  player4_nba_id: number | null;
   correct_answer: string | null;
   correct_value: number | null;
   status: "active" | "resolved";

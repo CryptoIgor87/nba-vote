@@ -102,6 +102,7 @@ const CATEGORY_FILTERS: Record<DailyQuestionCategory, (p: NbaPlayer) => boolean>
   steals: (p) => p.tags.includes("defender") && p.pos !== "C",
   blocks: (p) => p.tags.includes("rim_protector") || p.tags.includes("defender"),
   turnovers: (p) => p.tags.includes("playmaker") || p.tags.includes("scorer"),
+  fouls: () => true,
 };
 
 /**
