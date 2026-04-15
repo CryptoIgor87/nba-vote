@@ -19,7 +19,7 @@ import { useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
-  { href: "/predictions", label: "Мои прогнозы", icon: Target },
+  { href: "/predictions", label: "Прогнозы", icon: Target },
   { href: "/bracket", label: "Сетка", icon: Trophy },
   { href: "/leaderboard", label: "Рейтинг", icon: BarChart3 },
   { href: "/chat", label: "Чат", icon: MessageCircle },
