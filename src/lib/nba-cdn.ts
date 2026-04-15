@@ -194,7 +194,7 @@ async function findLastFinishedGameForTeam(
       if (
         (g.homeTeam.teamTricode === teamTricode ||
           g.awayTeam.teamTricode === teamTricode) &&
-        g.gameStatusText === "Final"
+        g.gameStatusText.startsWith("Final")
       ) {
         allGames.push({ gameId: g.gameId, dateStr: gd.gameDate });
       }
@@ -230,8 +230,8 @@ export async function getTeamLiveRoster(
   return team.players
     .filter((p) => p.played === "1")
     .map((p) => {
-      const minStr = p.statistics?.minutes || "PT00M";
-      const minMatch = minStr.match?.(/(\d+)M/);
+      const minStr = String(p.statistics?.minutes || "PT00M");
+      const minMatch = minStr.match(/PT(\d+)M/);
       const minutes = minMatch ? parseInt(minMatch[1]) : 0;
       return {
         nba_id: p.personId,
