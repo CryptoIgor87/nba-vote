@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { getTopPlayerByStat } from "./nba-cdn";
+import { getTopPlayersByStat } from "./nba-cdn";
 import type { DailyQuestionCategory, NbaSetting } from "./types";
 
 export async function getSettings(): Promise<Record<string, number>> {
@@ -291,40 +291,58 @@ async function resolveDailyQuestions(pointsDailyQuestion: number) {
     if (game?.status !== "finished") continue;
     if (!q.nba_game_id) continue;
 
-    // Get top player from NBA.com CDN
-    const top = await getTopPlayerByStat(
+    // Get ALL top players (handles ties)
+    const tops = await getTopPlayersByStat(
       q.nba_game_id,
       q.category as DailyQuestionCategory
     );
-    if (!top) continue;
+    if (tops.length === 0) continue;
 
-    // Determine correct answer
+    const topValue = tops[0].value;
+    const topNames = tops.map((t) => t.name);
+
+    // Determine correct answers — any of the tied leaders, or "other" if none are in options
     const playerNames = [q.player1_name, q.player2_name, q.player3_name, q.player4_name];
-    const correctAnswer = playerNames.includes(top.name) ? top.name : "other";
+    const correctOptions = playerNames.filter((name) => topNames.includes(name));
+    // If none of the 4 options are among the leaders, "other" is correct
+    if (correctOptions.length === 0) correctOptions.push("other");
+
+    // Store the first correct answer for display
+    const correctAnswer = correctOptions[0];
 
     // Update question
     await supabase
       .from("nba_daily_questions")
       .update({
         correct_answer: correctAnswer,
-        correct_value: top.value,
+        correct_value: topValue,
         status: "resolved",
       })
       .eq("id", q.id);
 
-    // Award points to correct picks
-    await supabase
-      .from("nba_daily_picks")
-      .update({ points_earned: pointsDailyQuestion })
-      .eq("question_id", q.id)
-      .eq("picked_option", correctAnswer);
+    // Award points to anyone who picked ANY correct option
+    for (const opt of correctOptions) {
+      await supabase
+        .from("nba_daily_picks")
+        .update({ points_earned: pointsDailyQuestion })
+        .eq("question_id", q.id)
+        .eq("picked_option", opt);
+    }
 
     // Zero out wrong picks
-    await supabase
+    const { data: allPicks } = await supabase
       .from("nba_daily_picks")
-      .update({ points_earned: 0 })
-      .eq("question_id", q.id)
-      .neq("picked_option", correctAnswer);
+      .select("id, picked_option")
+      .eq("question_id", q.id);
+
+    for (const pick of allPicks || []) {
+      if (!correctOptions.includes(pick.picked_option)) {
+        await supabase
+          .from("nba_daily_picks")
+          .update({ points_earned: 0 })
+          .eq("id", pick.id);
+      }
+    }
   }
 }
 

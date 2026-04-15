@@ -132,15 +132,15 @@ export async function fetchBoxScore(nbaComGameId: string) {
 }
 
 /**
- * Get the top player for a given stat category in a game.
- * Returns { name, value, teamTricode } or null.
+ * Get ALL top players (tied for first) for a given stat category in a game.
+ * Returns array of { name, value, teamTricode }.
  */
-export async function getTopPlayerByStat(
+export async function getTopPlayersByStat(
   nbaComGameId: string,
   category: DailyQuestionCategory
-): Promise<{ name: string; value: number; teamTricode: string } | null> {
+): Promise<{ name: string; value: number; teamTricode: string }[]> {
   const box = await fetchBoxScore(nbaComGameId);
-  if (!box?.game) return null;
+  if (!box?.game) return [];
 
   const statKey = CATEGORY_TO_STAT[category] as keyof NbaCdnPlayer["statistics"];
   const allPlayers = [
@@ -154,25 +154,35 @@ export async function getTopPlayerByStat(
     })),
   ];
 
-  let best: (typeof allPlayers)[number] | null = null;
   let bestValue = -1;
-
   for (const p of allPlayers) {
     const raw = p.statistics?.[statKey] ?? 0;
     const val = typeof raw === "string" ? parseInt(raw) || 0 : raw;
-    if (val > bestValue) {
-      bestValue = val;
-      best = p;
-    }
+    if (val > bestValue) bestValue = val;
   }
 
-  if (!best) return null;
+  if (bestValue <= 0) return [];
 
-  return {
-    name: `${best.firstName} ${best.familyName}`,
-    value: bestValue,
-    teamTricode: best.teamTricode,
-  };
+  return allPlayers
+    .filter((p) => {
+      const raw = p.statistics?.[statKey] ?? 0;
+      const val = typeof raw === "string" ? parseInt(raw) || 0 : raw;
+      return val === bestValue;
+    })
+    .map((p) => ({
+      name: `${p.firstName} ${p.familyName}`,
+      value: bestValue,
+      teamTricode: p.teamTricode,
+    }));
+}
+
+/** Backward-compat: single top player */
+export async function getTopPlayerByStat(
+  nbaComGameId: string,
+  category: DailyQuestionCategory
+): Promise<{ name: string; value: number; teamTricode: string } | null> {
+  const tops = await getTopPlayersByStat(nbaComGameId, category);
+  return tops[0] ?? null;
 }
 
 /**
