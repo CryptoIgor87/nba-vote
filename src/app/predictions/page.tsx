@@ -137,11 +137,22 @@ export default function PredictionsPage() {
   const now = new Date();
   const closeMinutes = 30;
 
-  // Only show games where betting is still open
-  const openGames = games.filter((g) => {
-    if (g.status !== "upcoming") return false;
-    const lockTime = new Date(new Date(g.game_date).getTime() - closeMinutes * 60 * 1000);
-    return now < lockTime;
+  // Only show the next upcoming game per series/matchup
+  const allOpenGames = games
+    .filter((g) => {
+      if (g.status !== "upcoming") return false;
+      const lockTime = new Date(new Date(g.game_date).getTime() - closeMinutes * 60 * 1000);
+      return now < lockTime;
+    })
+    .sort((a, b) => a.game_date.localeCompare(b.game_date));
+
+  // Group by series_id (or by home+away teams for play-in)
+  const seen = new Set<string>();
+  const openGames = allOpenGames.filter((g) => {
+    const key = g.series_id || `${Math.min(g.home_team_id, g.away_team_id)}-${Math.max(g.home_team_id, g.away_team_id)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
 
   const rounds = [...new Set(openGames.map((g) => g.round).filter(Boolean))];
