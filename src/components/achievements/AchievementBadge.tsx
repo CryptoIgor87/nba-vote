@@ -3,18 +3,38 @@
 import {
   Trophy, Target, Crosshair, Flame, Shield, Diamond,
   Crown, Award, Star, Eye, Sparkles, Scroll, Zap,
-  Heart, MessageCircle, Users, Calculator, CheckCircle,
-  Lock,
+  Heart, MessageCircle, Users, Calculator, Scan,
+  Lock, CircleDot, CalendarDays, HeartHandshake,
+  CheckCheck, Swords, Medal, Coins, Wand,
 } from "lucide-react";
 
 const ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  trophy: Trophy, target: Target, crosshair: Crosshair, flame: Flame,
-  shield: Shield, diamond: Diamond, crown: Crown, award: Award,
-  star: Star, eye: Eye, sparkles: Sparkles, scroll: Scroll,
-  zap: Zap, heart: Heart, "message-circle": MessageCircle,
-  users: Users, calculator: Calculator, "check-circle": CheckCircle,
-  basketball: Target,
-  "calendar-check": CheckCircle,
+  trophy: Trophy,
+  target: Target,
+  crosshair: Crosshair,
+  flame: Flame,
+  shield: Shield,
+  diamond: Diamond,
+  crown: Crown,
+  award: Award,
+  star: Star,
+  eye: Eye,
+  sparkles: Sparkles,
+  scroll: Scroll,
+  zap: Zap,
+  heart: Heart,
+  "message-circle": MessageCircle,
+  users: Users,
+  calculator: Calculator,
+  scan: Scan,
+  "circle-dot": CircleDot,
+  "calendar-days": CalendarDays,
+  "heart-handshake": HeartHandshake,
+  "check-check": CheckCheck,
+  swords: Swords,
+  medal: Medal,
+  coins: Coins,
+  wand: Wand,
 };
 
 const GRADIENTS: Record<string, string> = {
@@ -37,10 +57,12 @@ const GRADIENTS: Record<string, string> = {
   "from-yellow-500 to-yellow-200": "linear-gradient(135deg, #eab308, #fef08a)",
   "from-green-600 to-emerald-400": "linear-gradient(135deg, #16a34a, #34d399)",
   "from-orange-600 to-amber-400": "linear-gradient(135deg, #ea580c, #fbbf24)",
+  "from-orange-600 to-orange-400": "linear-gradient(135deg, #ea580c, #fb923c)",
   "from-indigo-600 to-indigo-400": "linear-gradient(135deg, #4f46e5, #818cf8)",
   "from-purple-600 to-pink-400": "linear-gradient(135deg, #9333ea, #f472b6)",
   "from-pink-600 to-rose-400": "linear-gradient(135deg, #db2777, #fb7185)",
   "from-red-600 to-red-400": "linear-gradient(135deg, #dc2626, #f87171)",
+  "from-yellow-600 to-yellow-400": "linear-gradient(135deg, #ca8a04, #facc15)",
 };
 
 import { ACHIEVEMENT_STYLES } from "@/lib/achievement-icons";

@@ -176,17 +176,15 @@ export default function PredictionsPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Мои прогнозы</h1>
 
-      {/* Tournament winner prediction */}
-      <WinnerPicker
-        teams={teams}
-        firstGameDate={
-          games.length > 0
-            ? games.reduce((min, g) =>
-                g.game_date < min ? g.game_date : min
-              , games[0].game_date)
-            : undefined
-        }
-      />
+      {/* Tournament winner - only show if no games started yet */}
+      {(() => {
+        const firstDate = games.length > 0
+          ? games.reduce((min, g) => g.game_date < min ? g.game_date : min, games[0].game_date)
+          : undefined;
+        const gamesStarted = firstDate && new Date() >= new Date(firstDate);
+        if (gamesStarted) return null;
+        return <WinnerPicker teams={teams} firstGameDate={firstDate} />;
+      })()}
 
       {/* Series predictions */}
       {playoffSeries.length > 0 && (
