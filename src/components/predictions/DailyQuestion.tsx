@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formatGameDate, isGameLocked } from "@/lib/utils";
 import { getPlayerHeadshotUrl } from "@/lib/players";
-import { Lock, Check, Trophy, HelpCircle, Star } from "lucide-react";
+import { Lock, Check, Trophy, HelpCircle } from "lucide-react";
 import Countdown from "./Countdown";
 import type { NbaDailyQuestion, NbaDailyPick, NbaGame, NbaTeam } from "@/lib/types";
 
@@ -80,9 +80,6 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
             isFinished ? "bg-surface" : "bg-accent/10"
           }`}
         >
-          <div className="flex items-center gap-1 mb-1">
-            <Star size={10} className="text-accent" />
-          </div>
           <div className="text-[11px] sm:text-xs font-semibold text-foreground leading-tight">
             {formatGameDate(game.game_date)}
           </div>
