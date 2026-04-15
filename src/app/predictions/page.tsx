@@ -5,8 +5,9 @@ import { useSession } from "next-auth/react";
 import GameCard from "@/components/predictions/GameCard";
 import WinnerPicker from "@/components/predictions/WinnerPicker";
 import SeriesPrediction from "@/components/predictions/SeriesPrediction";
+import DailyQuestion from "@/components/predictions/DailyQuestion";
 import { getRoundLabel } from "@/lib/utils";
-import type { NbaGame, NbaPrediction, NbaTeam, NbaSeries } from "@/lib/types";
+import type { NbaGame, NbaPrediction, NbaTeam, NbaSeries, NbaDailyQuestion, NbaDailyPick } from "@/lib/types";
 
 interface SeriesWithTeams extends NbaSeries {
   home_team?: NbaTeam;
@@ -30,6 +31,9 @@ export default function PredictionsPage() {
   const [teams, setTeams] = useState<NbaTeam[]>([]);
   const [allSeries, setAllSeries] = useState<SeriesWithTeams[]>([]);
   const [seriesPredictions, setSeriesPredictions] = useState<SeriesPred[]>([]);
+  const [dailyQuestion, setDailyQuestion] = useState<(NbaDailyQuestion & { game?: NbaGame & { home_team?: NbaTeam; away_team?: NbaTeam } }) | null>(null);
+  const [dailyPick, setDailyPick] = useState<NbaDailyPick | null>(null);
+  const [dailyPickCounts, setDailyPickCounts] = useState<Record<string, number> | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeRound, setActiveRound] = useState<string>("all");
   const [now, setNow] = useState(new Date());
@@ -42,7 +46,7 @@ export default function PredictionsPage() {
 
   useEffect(() => {
     async function load() {
-      const [gamesRes, predsRes, teamsRes, bonusesRes, seriesRes, seriesPredsRes] =
+      const [gamesRes, predsRes, teamsRes, bonusesRes, seriesRes, seriesPredsRes, dailyRes] =
         await Promise.all([
           fetch("/api/games"),
           fetch("/api/predictions"),
@@ -50,6 +54,7 @@ export default function PredictionsPage() {
           fetch("/api/series-bonuses"),
           fetch("/api/bracket"),
           fetch("/api/series-predictions"),
+          fetch("/api/daily-question"),
         ]);
 
       if (gamesRes.ok) setGames(await gamesRes.json());
@@ -58,6 +63,12 @@ export default function PredictionsPage() {
       if (bonusesRes.ok) setSeriesBonuses(await bonusesRes.json());
       if (seriesRes.ok) setAllSeries(await seriesRes.json());
       if (seriesPredsRes.ok) setSeriesPredictions(await seriesPredsRes.json());
+      if (dailyRes.ok) {
+        const daily = await dailyRes.json();
+        setDailyQuestion(daily.question);
+        setDailyPick(daily.pick);
+        setDailyPickCounts(daily.pickCounts);
+      }
       setLoading(false);
     }
     load();
@@ -125,6 +136,24 @@ export default function PredictionsPage() {
         }
         return [...prev, data];
       });
+      return true;
+    }
+
+    const error = await res.json();
+    alert(error.error || "Ошибка");
+    return false;
+  };
+
+  const handleSaveDailyPick = async (questionId: string, option: string) => {
+    const res = await fetch("/api/daily-question", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question_id: questionId, picked_option: option }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      setDailyPick(data);
       return true;
     }
 
@@ -260,6 +289,14 @@ export default function PredictionsPage() {
 
       {/* Games list */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {dailyQuestion && (
+          <DailyQuestion
+            question={dailyQuestion}
+            pick={dailyPick}
+            pickCounts={dailyPickCounts}
+            onSave={handleSaveDailyPick}
+          />
+        )}
         {filteredGames.map((game) => {
           const prediction = predictions.find((p) => p.game_id === game.id);
           const gameSeriesBonuses = game.series_id

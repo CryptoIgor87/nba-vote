@@ -109,10 +109,51 @@ export interface LeaderboardEntry {
   user?: NbaUser;
 }
 
+export type DailyQuestionCategory =
+  | "points"
+  | "threes"
+  | "rebounds"
+  | "assists"
+  | "steals"
+  | "blocks"
+  | "turnovers";
+
+export interface NbaDailyQuestion {
+  id: string;
+  game_id: number;
+  question_date: string;
+  category: DailyQuestionCategory;
+  player1_name: string;
+  player1_team_id: number;
+  player2_name: string;
+  player2_team_id: number;
+  player3_name: string;
+  player3_team_id: number;
+  player4_name: string;
+  player4_team_id: number;
+  correct_answer: string | null;
+  correct_value: number | null;
+  status: "active" | "resolved";
+  nba_game_id: string | null;
+  created_at: string;
+  // joined
+  game?: NbaGame;
+}
+
+export interface NbaDailyPick {
+  id: string;
+  user_id: string;
+  question_id: string;
+  picked_option: string;
+  points_earned: number;
+  created_at: string;
+}
+
 export interface PointsBreakdown {
   game_winner: number;
   series_winner: number;
   series_exact: number;
   tournament_winner: number;
+  daily_question: number;
   total: number;
 }

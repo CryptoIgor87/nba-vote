@@ -14,6 +14,7 @@ const LABELS: Record<string, string> = {
   points_streak_5: "Бонус за стрик 5 подряд",
   points_streak_7: "Бонус за стрик 7 подряд",
   points_sniper: "Бонус Снайпер (все матчи серии)",
+  points_daily_question: "Баллы за вопрос дня",
   betting_close_minutes: "Закрытие прогнозов (минуты до матча)",
 };
 

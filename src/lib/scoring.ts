@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
-import type { NbaSetting } from "./types";
+import { getTopPlayerByStat } from "./nba-cdn";
+import type { DailyQuestionCategory, NbaSetting } from "./types";
 
 export async function getSettings(): Promise<Record<string, number>> {
   const { data } = await supabase.from("nba_settings").select("*");
@@ -262,14 +263,69 @@ export async function recalculateScores() {
     }
   }
 
-  // 5. Rebuild leaderboard
+  // 5. Resolve daily questions
+  const pointsDailyQuestion = settings.points_daily_question ?? 1;
+  await resolveDailyQuestions(pointsDailyQuestion);
+
+  // 6. Rebuild leaderboard
   await rebuildLeaderboard();
 
-  // 6. Generate events
+  // 7. Generate events
   await generateEvents();
 
-  // 7. Check achievements
+  // 8. Check achievements
   await checkAchievements();
+}
+
+async function resolveDailyQuestions(pointsDailyQuestion: number) {
+  // Find active questions where the game is finished
+  const { data: activeQuestions } = await supabase
+    .from("nba_daily_questions")
+    .select("*, game:nba_games!nba_daily_questions_game_id_fkey(status)")
+    .eq("status", "active");
+
+  if (!activeQuestions) return;
+
+  for (const q of activeQuestions) {
+    const game = q.game as { status: string } | null;
+    if (game?.status !== "finished") continue;
+    if (!q.nba_game_id) continue;
+
+    // Get top player from NBA.com CDN
+    const top = await getTopPlayerByStat(
+      q.nba_game_id,
+      q.category as DailyQuestionCategory
+    );
+    if (!top) continue;
+
+    // Determine correct answer
+    const playerNames = [q.player1_name, q.player2_name, q.player3_name, q.player4_name];
+    const correctAnswer = playerNames.includes(top.name) ? top.name : "other";
+
+    // Update question
+    await supabase
+      .from("nba_daily_questions")
+      .update({
+        correct_answer: correctAnswer,
+        correct_value: top.value,
+        status: "resolved",
+      })
+      .eq("id", q.id);
+
+    // Award points to correct picks
+    await supabase
+      .from("nba_daily_picks")
+      .update({ points_earned: pointsDailyQuestion })
+      .eq("question_id", q.id)
+      .eq("picked_option", correctAnswer);
+
+    // Zero out wrong picks
+    await supabase
+      .from("nba_daily_picks")
+      .update({ points_earned: 0 })
+      .eq("question_id", q.id)
+      .neq("picked_option", correctAnswer);
+  }
 }
 
 async function rebuildLeaderboard() {
@@ -325,8 +381,17 @@ async function rebuildLeaderboard() {
 
     const winnerPoints = winnerPred?.points_earned ?? 0;
 
+    // Daily question points
+    const { data: dailyPicks } = await supabase
+      .from("nba_daily_picks")
+      .select("points_earned")
+      .eq("user_id", user.id);
+
+    const dailyPoints =
+      dailyPicks?.reduce((sum, p) => sum + (p.points_earned || 0), 0) ?? 0;
+
     const totalPoints =
-      gamePoints + seriesPoints + bonusPoints + winnerPoints;
+      gamePoints + seriesPoints + bonusPoints + winnerPoints + dailyPoints;
 
     await supabase.from("nba_leaderboard").upsert(
       {
