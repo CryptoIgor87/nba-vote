@@ -221,15 +221,13 @@ export default function PredictionsPage() {
   return (
     <div>
 
-      {/* Tournament winner - only show if no games started yet */}
-      {(() => {
-        const firstDate = games.length > 0
+      {/* Tournament winner - show for all users (new users get 24h window) */}
+      <WinnerPicker
+        teams={teams}
+        firstGameDate={games.length > 0
           ? games.reduce((min, g) => g.game_date < min ? g.game_date : min, games[0].game_date)
-          : undefined;
-        const gamesStarted = firstDate && now >= new Date(firstDate);
-        if (gamesStarted) return null;
-        return <WinnerPicker teams={teams} firstGameDate={firstDate} />;
-      })()}
+          : undefined}
+      />
 
       {/* Series predictions */}
       {playoffSeries.length > 0 && (

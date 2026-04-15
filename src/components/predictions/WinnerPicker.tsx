@@ -26,13 +26,17 @@ export default function WinnerPicker({
   const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
+  const [newUserDeadline, setNewUserDeadline] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       const res = await fetch("/api/winner");
       if (res.ok) {
         const data = await res.json();
-        setWinnerPrediction(data);
+        setWinnerPrediction(data.prediction);
+        setIsNewUser(data.isNewUser || false);
+        setNewUserDeadline(data.newUserDeadline || null);
       }
       setLoading(false);
     }
@@ -83,9 +87,9 @@ export default function WinnerPicker({
               <span className="text-sm">
                 {selectedTeamData?.full_name || "-"}
               </span>
-              {firstGameDate && (
+              {(newUserDeadline || firstGameDate) && (
                 <span className="ml-2">
-                  <Countdown deadline={firstGameDate} />
+                  <Countdown deadline={newUserDeadline || firstGameDate!} />
                 </span>
               )}
             </div>
@@ -94,7 +98,10 @@ export default function WinnerPicker({
             <span className="text-success font-bold text-lg">
               +{winnerPrediction.points_earned}
             </span>
-          ) : firstGameDate && new Date() < new Date(firstGameDate) ? (
+          ) : (() => {
+            const dl = newUserDeadline || firstGameDate;
+            return dl && new Date() < new Date(dl);
+          })() ? (
             <button
               onClick={() => {
                 setWinnerPrediction(null);
@@ -119,11 +126,11 @@ export default function WinnerPicker({
             <p className="text-sm font-semibold">Победитель турнира</p>
             <p className="text-xs text-muted">
               +10 баллов.{" "}
-              {firstGameDate && <Countdown deadline={firstGameDate} />}
+              {(newUserDeadline || firstGameDate) && <Countdown deadline={newUserDeadline || firstGameDate!} />}
             </p>
           </div>
         </div>
-        {!isOpen && (!firstGameDate || new Date() < new Date(firstGameDate)) && (
+        {!isOpen && (!(newUserDeadline || firstGameDate) || new Date() < new Date(newUserDeadline || firstGameDate!)) && (
           <button
             onClick={() => setIsOpen(true)}
             className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium transition-colors"

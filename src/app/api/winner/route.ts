@@ -14,7 +14,18 @@ export async function GET() {
     .eq("user_id", session.user.id)
     .single();
 
-  return NextResponse.json(data);
+  // Check if user is new (< 24h) — they get extra time to pick
+  const { data: user } = await supabase
+    .from("nba_users")
+    .select("created_at")
+    .eq("id", session.user.id)
+    .single();
+
+  const createdAt = user?.created_at ? new Date(user.created_at) : new Date(0);
+  const deadline = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000);
+  const isNewUser = Date.now() < deadline.getTime();
+
+  return NextResponse.json({ prediction: data, isNewUser, newUserDeadline: isNewUser ? deadline.toISOString() : null });
 }
 
 export async function POST(req: NextRequest) {
@@ -31,10 +42,22 @@ export async function POST(req: NextRequest) {
     .limit(1);
 
   if (startedGames && startedGames.length > 0) {
-    return NextResponse.json(
-      { error: "Турнир уже начался, ставка на победителя закрыта" },
-      { status: 400 }
-    );
+    // Allow new users (registered < 24h ago) to still pick
+    const { data: user } = await supabase
+      .from("nba_users")
+      .select("created_at")
+      .eq("id", session.user.id)
+      .single();
+
+    const createdAt = user?.created_at ? new Date(user.created_at) : new Date(0);
+    const hoursSinceRegistration = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60);
+
+    if (hoursSinceRegistration > 24) {
+      return NextResponse.json(
+        { error: "Турнир уже начался, ставка на победителя закрыта" },
+        { status: 400 }
+      );
+    }
   }
 
   const { team_id } = await req.json();
