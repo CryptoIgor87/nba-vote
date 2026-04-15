@@ -328,7 +328,16 @@ export default function UserPage() {
             const correctWinner = isFinished && pred.points_earned > 0;
 
             return (
-              <div key={pred.id} className="bg-card border border-border rounded-xl p-3">
+              <div
+                key={pred.id}
+                className={`border rounded-xl p-3 ${
+                  isFinished
+                    ? correctWinner
+                      ? "bg-success/10 border-success/30"
+                      : "bg-danger/10 border-danger/30"
+                    : "bg-card border-border"
+                }`}
+              >
                 <div className="text-xs text-muted mb-2">
                   {formatGameDate(game.game_date)}
                   {game.round && (
