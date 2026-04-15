@@ -10,8 +10,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const startDate = new Date("2025-04-01");
-    const endDate = new Date("2025-07-01");
+    const startDate = new Date("2026-04-01");
+    const endDate = new Date("2026-07-01");
     const formatDate = (d: Date) => d.toISOString().split("T")[0];
 
     const games = await fetchPlayoffGames(

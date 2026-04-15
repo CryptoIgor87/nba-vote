@@ -16,7 +16,7 @@ export async function fetchPlayoffGames(startDate: string, endDate: string) {
   // Also fetch play-in period games (marked as regular by API)
   const playIn = await api.nba.getGames({
     seasons: [2025],
-    start_date: startDate,
+    start_date: "2026-04-14", // play-in starts Apr 14
     end_date: "2026-04-18", // play-in ends before first round
   });
 
