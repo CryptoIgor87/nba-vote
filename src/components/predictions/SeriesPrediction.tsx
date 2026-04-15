@@ -55,7 +55,6 @@ export default function SeriesPrediction({
 
   if (!home_team || !away_team) return null;
 
-  // Locked if series started OR first game time has passed
   const isLocked =
     series.status !== "upcoming" ||
     (firstGameDate ? new Date() >= new Date(firstGameDate) : false);
@@ -72,7 +71,6 @@ export default function SeriesPrediction({
     }
   };
 
-  // Generate score options based on selected winner
   const scoreOptions = selectedWinner
     ? SCORE_OPTIONS.map(([w, l]) => {
         if (selectedWinner === home_team.id) return { home: w, away: l };
@@ -80,19 +78,25 @@ export default function SeriesPrediction({
       })
     : [];
 
+  const changed = !prediction ||
+    prediction.predicted_winner_id !== selectedWinner ||
+    `${prediction.predicted_home_wins}-${prediction.predicted_away_wins}` !== selectedScore;
+
   return (
     <div
-      className={`bg-card border rounded-xl p-4 ${
+      className={`bg-card border rounded-xl p-3 ${
         prediction ? "border-success/20" : "border-accent/20"
       }`}
     >
-      <div className="text-xs text-muted font-semibold mb-3 flex items-center justify-between">
-        <span>{getRoundLabel(series.round)} - Прогноз на серию</span>
-        {!isLocked && firstGameDate && <Countdown deadline={firstGameDate} />}
-      </div>
+      {/* Header: timer */}
+      {!isLocked && firstGameDate && (
+        <div className="mb-2">
+          <Countdown deadline={firstGameDate} />
+        </div>
+      )}
 
-      {/* Team selection */}
-      <div className="flex gap-2 mb-3">
+      {/* Teams row */}
+      <div className="flex gap-1.5 mb-2">
         {[home_team, away_team].map((team) => (
           <button
             key={team.id}
@@ -102,25 +106,25 @@ export default function SeriesPrediction({
               setSelectedScore(null);
             }}
             disabled={isLocked}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 transition-all ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border transition-all ${
               selectedWinner === team.id
-                ? "border-accent bg-accent/10"
+                ? "border-accent bg-accent/15"
                 : "border-border hover:border-muted"
             } ${isLocked ? "opacity-60 cursor-default" : "cursor-pointer"}`}
           >
             <img
               src={getTeamLogoUrl(team.id)}
               alt={team.abbreviation}
-              className="w-8 h-8"
+              className="w-6 h-6"
             />
-            <span className="text-sm font-bold">{team.abbreviation}</span>
+            <span className="text-xs font-bold">{team.abbreviation}</span>
           </button>
         ))}
       </div>
 
-      {/* Score selection */}
+      {/* Score options */}
       {selectedWinner && (
-        <div className="flex gap-2 mb-3">
+        <div className="flex gap-1 mb-2">
           {scoreOptions.map((s) => {
             const key = `${s.home}-${s.away}`;
             return (
@@ -128,13 +132,13 @@ export default function SeriesPrediction({
                 key={key}
                 onClick={() => !isLocked && setSelectedScore(key)}
                 disabled={isLocked}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                className={`flex-1 py-1.5 rounded text-xs font-bold transition-all ${
                   selectedScore === key
                     ? "bg-accent text-white"
                     : "bg-surface text-foreground hover:bg-card-hover"
                 } ${isLocked ? "opacity-60 cursor-default" : "cursor-pointer"}`}
               >
-                {s.home} - {s.away}
+                {s.home}-{s.away}
               </button>
             );
           })}
@@ -142,42 +146,25 @@ export default function SeriesPrediction({
       )}
 
       {/* Save / Status */}
-      {!isLocked && selectedWinner && selectedScore && (
-        (() => {
-          const changed = !prediction ||
-            prediction.predicted_winner_id !== selectedWinner ||
-            `${prediction.predicted_home_wins}-${prediction.predicted_away_wins}` !== selectedScore;
-          return changed ? (
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="w-full py-2 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
-            >
-              {saved ? (
-                <>
-                  <Check size={14} /> Сохранено
-                </>
-              ) : saving ? (
-                "Сохраняю..."
-              ) : prediction ? (
-                "Обновить прогноз"
-              ) : (
-                "Сохранить прогноз на серию"
-              )}
-            </button>
-          ) : (
-            <div className="text-center text-xs text-success font-medium flex items-center justify-center gap-1">
-              <Check size={12} />
-              Прогноз сохранён
-            </div>
-          );
-        })()
+      {!isLocked && selectedWinner && selectedScore && changed && (
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full py-1.5 bg-accent hover:bg-accent-hover text-white rounded-lg text-xs font-semibold disabled:opacity-50 transition-colors"
+        >
+          {saved ? "OK" : saving ? "..." : prediction ? "Обновить" : "Сохранить"}
+        </button>
+      )}
+
+      {!isLocked && selectedWinner && selectedScore && !changed && (
+        <div className="text-center text-[10px] text-success font-medium flex items-center justify-center gap-1">
+          <Check size={10} />
+          Сохранено
+        </div>
       )}
 
       {isLocked && prediction && (
-        <div className="text-center text-xs text-muted font-medium flex items-center justify-center gap-1">
-          <Check size={12} />
-          Прогноз:{" "}
+        <div className="text-center text-[10px] text-muted font-medium">
           {prediction.predicted_winner_id === home_team.id
             ? home_team.abbreviation
             : away_team.abbreviation}{" "}
