@@ -338,10 +338,17 @@ export default function UserPage() {
                     : "bg-card border-border"
                 }`}
               >
-                <div className="text-xs text-muted mb-2">
-                  {formatGameDate(game.game_date)}
-                  {game.round && (
-                    <span className="ml-2">{getRoundLabel(game.round)}</span>
+                <div className="text-xs text-muted mb-2 flex items-center justify-between">
+                  <span>
+                    {formatGameDate(game.game_date)}
+                    {game.round && (
+                      <span className="ml-2">{getRoundLabel(game.round)}</span>
+                    )}
+                  </span>
+                  {isFinished && (
+                    <span className="font-semibold">
+                      {game.home_team?.abbreviation} {game.home_score} - {game.away_score} {game.away_team?.abbreviation}
+                    </span>
                   )}
                 </div>
                 <div className="flex items-center justify-between">
@@ -353,29 +360,21 @@ export default function UserPage() {
                   </div>
 
                   <div className="text-center">
-                    {isFinished && (
-                      <div className="text-xs text-muted mb-0.5">
-                        {game.home_score} : {game.away_score}
-                      </div>
-                    )}
                     <div className="flex items-center gap-1.5">
                       <span className="text-sm font-bold">
                         {pred.predicted_home_score > pred.predicted_away_score
                           ? game.home_team?.abbreviation
                           : game.away_team?.abbreviation}
                       </span>
-                      {isFinished &&
-                        (correctWinner ? (
-                          <Check size={14} className="text-success" />
-                        ) : (
-                          <X size={14} className="text-danger" />
-                        ))}
+                      {isFinished && pred.points_earned > 0 && (
+                        <span className="text-xs text-success font-bold">
+                          +{pred.points_earned}
+                        </span>
+                      )}
+                      {isFinished && pred.points_earned === 0 && (
+                        <X size={12} className="text-danger" />
+                      )}
                     </div>
-                    {isFinished && pred.points_earned > 0 && (
-                      <span className="text-xs text-success font-bold">
-                        +{pred.points_earned}
-                      </span>
-                    )}
                   </div>
 
                   <div className="flex items-center gap-2">
