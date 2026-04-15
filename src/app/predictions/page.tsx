@@ -134,15 +134,34 @@ export default function PredictionsPage() {
     );
   }
 
-  const rounds = [...new Set(games.map((g) => g.round).filter(Boolean))];
+  const now = new Date();
+  const closeMinutes = 30;
+
+  // Only show games where betting is still open
+  const openGames = games.filter((g) => {
+    if (g.status !== "upcoming") return false;
+    const lockTime = new Date(new Date(g.game_date).getTime() - closeMinutes * 60 * 1000);
+    return now < lockTime;
+  });
+
+  const rounds = [...new Set(openGames.map((g) => g.round).filter(Boolean))];
   const filteredGames =
     activeRound === "all"
-      ? games
-      : games.filter((g) => g.round === activeRound);
+      ? openGames
+      : openGames.filter((g) => g.round === activeRound);
 
-  // Get playoff series (not play-in) for series predictions, sorted by first game date
+  // Get playoff series where betting is still open
   const playoffSeries = allSeries
-    .filter((s) => s.round !== "play_in" && s.home_team && s.away_team && s.team_home_id && s.team_away_id)
+    .filter((s) => {
+      if (s.round === "play_in" || !s.home_team || !s.away_team || !s.team_home_id || !s.team_away_id) return false;
+      if (s.status !== "upcoming") return false;
+      // Check if first game already started
+      const firstGame = games
+        .filter((g) => g.series_id === s.id)
+        .sort((a, b) => a.game_date.localeCompare(b.game_date))[0];
+      if (firstGame && new Date(firstGame.game_date) <= now) return false;
+      return true;
+    })
     .sort((a, b) => {
       const aGame = games.filter((g) => g.series_id === a.id).sort((x, y) => x.game_date.localeCompare(y.game_date))[0];
       const bGame = games.filter((g) => g.series_id === b.id).sort((x, y) => x.game_date.localeCompare(y.game_date))[0];

@@ -94,7 +94,7 @@ export default function WinnerPicker({
             <span className="text-success font-bold text-lg">
               +{winnerPrediction.points_earned}
             </span>
-          ) : (
+          ) : firstGameDate && new Date() < new Date(firstGameDate) ? (
             <button
               onClick={() => {
                 setWinnerPrediction(null);
@@ -104,7 +104,7 @@ export default function WinnerPicker({
             >
               Изменить
             </button>
-          )}
+          ) : null}
         </div>
       </div>
     );
@@ -123,7 +123,7 @@ export default function WinnerPicker({
             </p>
           </div>
         </div>
-        {!isOpen && (
+        {!isOpen && (!firstGameDate || new Date() < new Date(firstGameDate)) && (
           <button
             onClick={() => setIsOpen(true)}
             className="px-3 py-1.5 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium transition-colors"

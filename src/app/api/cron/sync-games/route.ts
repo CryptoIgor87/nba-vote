@@ -29,6 +29,15 @@ export async function GET(req: NextRequest) {
           ? "in_progress"
           : "upcoming";
 
+      // Check if game already exists to preserve its round
+      const { data: existing } = await supabase
+        .from("nba_games")
+        .select("round")
+        .eq("id", game.id)
+        .single();
+
+      const round = existing?.round || (game.postseason ? "first_round" : null);
+
       const { error } = await supabase.from("nba_games").upsert(
         {
           id: game.id,
@@ -41,8 +50,8 @@ export async function GET(req: NextRequest) {
           away_score:
             game.visitor_team_score > 0 ? game.visitor_team_score : null,
           game_date: (game as unknown as { datetime?: string }).datetime || game.date,
-          is_playoff: game.postseason,
-          round: game.postseason ? "first_round" : null,
+          is_playoff: game.postseason || !!existing,
+          round,
         },
         { onConflict: "id" }
       );
