@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import GameCard from "@/components/predictions/GameCard";
 import WinnerPicker from "@/components/predictions/WinnerPicker";
@@ -31,9 +31,9 @@ export default function PredictionsPage() {
   const [teams, setTeams] = useState<NbaTeam[]>([]);
   const [allSeries, setAllSeries] = useState<SeriesWithTeams[]>([]);
   const [seriesPredictions, setSeriesPredictions] = useState<SeriesPred[]>([]);
-  const [dailyQuestion, setDailyQuestion] = useState<(NbaDailyQuestion & { game?: NbaGame & { home_team?: NbaTeam; away_team?: NbaTeam } }) | null>(null);
-  const [dailyPick, setDailyPick] = useState<NbaDailyPick | null>(null);
-  const [dailyPickCounts, setDailyPickCounts] = useState<Record<string, number> | null>(null);
+  const [dailyQuestions, setDailyQuestions] = useState<(NbaDailyQuestion & { game?: NbaGame & { home_team?: NbaTeam; away_team?: NbaTeam } })[]>([]);
+  const [dailyPicks, setDailyPicks] = useState<Record<string, NbaDailyPick>>({});
+  const [dailyPickCounts, setDailyPickCounts] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
   const [activeRound, setActiveRound] = useState<string>("all");
   const [now, setNow] = useState(new Date());
@@ -65,9 +65,9 @@ export default function PredictionsPage() {
       if (seriesPredsRes.ok) setSeriesPredictions(await seriesPredsRes.json());
       if (dailyRes.ok) {
         const daily = await dailyRes.json();
-        setDailyQuestion(daily.question);
-        setDailyPick(daily.pick);
-        setDailyPickCounts(daily.pickCounts);
+        setDailyQuestions(daily.questions || []);
+        setDailyPicks(daily.picks || {});
+        setDailyPickCounts(daily.pickCounts || {});
       }
       setLoading(false);
     }
@@ -153,7 +153,7 @@ export default function PredictionsPage() {
 
     if (res.ok) {
       const data = await res.json();
-      setDailyPick(data);
+      setDailyPicks((prev) => ({ ...prev, [questionId]: data }));
       return true;
     }
 
@@ -289,28 +289,31 @@ export default function PredictionsPage() {
 
       {/* Games list */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {dailyQuestion && (
-          <DailyQuestion
-            question={dailyQuestion}
-            pick={dailyPick}
-            pickCounts={dailyPickCounts}
-            onSave={handleSaveDailyPick}
-          />
-        )}
         {filteredGames.map((game) => {
           const prediction = predictions.find((p) => p.game_id === game.id);
           const gameSeriesBonuses = game.series_id
             ? seriesBonuses.filter((b) => b.series_id === game.series_id)
             : [];
 
+          const dq = dailyQuestions.find((q) => q.game_id === game.id);
+
           return (
-            <GameCard
-              key={game.id}
-              game={game}
-              prediction={prediction}
-              seriesBonuses={gameSeriesBonuses}
-              onSave={handleSavePrediction}
-            />
+            <React.Fragment key={game.id}>
+              <GameCard
+                game={game}
+                prediction={prediction}
+                seriesBonuses={gameSeriesBonuses}
+                onSave={handleSavePrediction}
+              />
+              {dq && (
+                <DailyQuestion
+                  question={dq}
+                  pick={(dailyPicks[dq.id] as NbaDailyPick) ?? null}
+                  pickCounts={dailyPickCounts[dq.id] ?? null}
+                  onSave={handleSaveDailyPick}
+                />
+              )}
+            </React.Fragment>
           );
         })}
       </div>

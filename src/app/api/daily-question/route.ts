@@ -7,54 +7,50 @@ export async function GET() {
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Get the nearest active question (today or future), or the most recent resolved one
-  const { data: question } = await supabase
+  // Get all active questions (today and future)
+  const { data: questions } = await supabase
     .from("nba_daily_questions")
     .select(
       "*, game:nba_games!nba_daily_questions_game_id_fkey(*, home_team:nba_teams!nba_games_home_team_id_fkey(*), away_team:nba_teams!nba_games_away_team_id_fkey(*))"
     )
     .gte("question_date", today)
-    .eq("status", "active")
-    .order("question_date", { ascending: true })
-    .limit(1)
-    .single();
+    .order("question_date", { ascending: true });
 
-  if (!question) {
-    return NextResponse.json({ question: null });
+  if (!questions || questions.length === 0) {
+    return NextResponse.json({ questions: [], picks: {} });
   }
 
-  // Get user's pick if authenticated
-  let pick = null;
+  // Get user's picks for all questions
+  const picks: Record<string, unknown> = {};
   if (session?.user?.id) {
+    const qIds = questions.map((q) => q.id);
     const { data } = await supabase
       .from("nba_daily_picks")
       .select("*")
-      .eq("question_id", question.id)
       .eq("user_id", session.user.id)
-      .single();
-    pick = data;
-  }
+      .in("question_id", qIds);
 
-  // Get pick counts for display (after game finished or resolved)
-  let pickCounts = null;
-  if (question.status === "resolved") {
-    const { data: picks } = await supabase
-      .from("nba_daily_picks")
-      .select("picked_option")
-      .eq("question_id", question.id);
-
-    if (picks) {
-      pickCounts = picks.reduce(
-        (acc: Record<string, number>, p) => {
-          acc[p.picked_option] = (acc[p.picked_option] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>
-      );
+    for (const p of data || []) {
+      picks[p.question_id] = p;
     }
   }
 
-  return NextResponse.json({ question, pick, pickCounts });
+  // Get pick counts for resolved questions
+  const pickCounts: Record<string, Record<string, number>> = {};
+  const resolvedIds = questions.filter((q) => q.status === "resolved").map((q) => q.id);
+  if (resolvedIds.length > 0) {
+    const { data: allPicks } = await supabase
+      .from("nba_daily_picks")
+      .select("question_id, picked_option")
+      .in("question_id", resolvedIds);
+
+    for (const p of allPicks || []) {
+      if (!pickCounts[p.question_id]) pickCounts[p.question_id] = {};
+      pickCounts[p.question_id][p.picked_option] = (pickCounts[p.question_id][p.picked_option] || 0) + 1;
+    }
+  }
+
+  return NextResponse.json({ questions, picks, pickCounts });
 }
 
 export async function POST(req: NextRequest) {
