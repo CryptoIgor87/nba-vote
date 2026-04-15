@@ -345,11 +345,6 @@ export default function UserPage() {
                       <span className="ml-2">{getRoundLabel(game.round)}</span>
                     )}
                   </span>
-                  {isFinished && (
-                    <span className="font-semibold">
-                      {game.home_team?.abbreviation} {game.home_score} - {game.away_score} {game.away_team?.abbreviation}
-                    </span>
-                  )}
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -360,7 +355,12 @@ export default function UserPage() {
                   </div>
 
                   <div className="text-center">
-                    <div className="flex items-center gap-1.5">
+                    {isFinished && (
+                      <div className="text-xs text-muted mb-0.5">
+                        {game.home_score} - {game.away_score}
+                      </div>
+                    )}
+                    <div className="flex items-center justify-center gap-1.5">
                       <span className="text-sm font-bold">
                         {pred.predicted_home_score > pred.predicted_away_score
                           ? game.home_team?.abbreviation
