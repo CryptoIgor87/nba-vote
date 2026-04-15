@@ -5,15 +5,26 @@ import { findNbaComGameId } from "@/lib/nba-cdn";
 import { getPlayersForCategory, pickTwoWeighted } from "@/lib/players";
 import type { DailyQuestionCategory, NbaGame, NbaTeam } from "@/lib/types";
 
-const CATEGORIES: DailyQuestionCategory[] = [
-  "points",
-  "threes",
-  "rebounds",
-  "assists",
-  "steals",
-  "blocks",
-  "turnovers",
+// Weighted categories — points/threes/assists appear much more often
+const WEIGHTED_CATEGORIES: { cat: DailyQuestionCategory; weight: number }[] = [
+  { cat: "points", weight: 5 },
+  { cat: "threes", weight: 4 },
+  { cat: "assists", weight: 4 },
+  { cat: "rebounds", weight: 2 },
+  { cat: "steals", weight: 1 },
+  { cat: "blocks", weight: 1 },
+  { cat: "turnovers", weight: 1 },
 ];
+
+function pickCategory(): DailyQuestionCategory {
+  const total = WEIGHTED_CATEGORIES.reduce((s, c) => s + c.weight, 0);
+  let r = Math.random() * total;
+  for (const { cat, weight } of WEIGHTED_CATEGORIES) {
+    r -= weight;
+    if (r <= 0) return cat;
+  }
+  return "points";
+}
 
 // Round priority — higher is more interesting
 const ROUND_PRIORITY: Record<string, number> = {
@@ -62,7 +73,7 @@ async function generateForDate(dateStr: string) {
   const awayTeam = game.away_team as NbaTeam;
 
   // Pick random category
-  const category = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+  const category = pickCategory();
 
   // Pick 2 players from each team, filtered by category relevance
   const homePlayers = getPlayersForCategory(homeTeam.id, category);
