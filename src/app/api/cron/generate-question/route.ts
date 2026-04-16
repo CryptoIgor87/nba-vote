@@ -130,8 +130,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Auto-generation disabled — questions are created manually.
+  // To re-enable, pass ?auto=1 query param.
+  const auto = req.nextUrl.searchParams.get("auto");
+  if (auto !== "1") {
+    return NextResponse.json({
+      message: "Auto-generation disabled. Questions are created manually.",
+    });
+  }
+
   try {
-    // Count existing questions to determine category rotation index
     const { count: existingCount } = await supabase
       .from("nba_daily_questions")
       .select("id", { count: "exact", head: true });
