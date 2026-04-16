@@ -52,9 +52,9 @@ export default function BracketPage() {
   const eastCF = getSeries("East", "conference_finals");
   const finals = series.find((s) => s.round === "finals");
 
-  const ROUND_W = 140;
-  const CONN_W = 28;
-  const FINALS_W = 160;
+  const ROUND_W = 104;
+  const CONN_W = 22;
+  const FINALS_W = 120;
   const BRACKET_H = 520;
   const WEST_W = ROUND_W * 3 + CONN_W * 2;
   const EAST_W = WEST_W;
