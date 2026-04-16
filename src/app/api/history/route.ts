@@ -92,11 +92,47 @@ export async function GET() {
     away_team: teamsMap.get(s.team_away_id),
   }));
 
+  // Daily questions where betting is closed (game started) or resolved
+  const { data: allDailyQuestions } = await supabase
+    .from("nba_daily_questions")
+    .select("*, game:nba_games!nba_daily_questions_game_id_fkey(status, game_date, home_team_id, away_team_id)")
+    .order("question_date", { ascending: false });
+
+  const visibleDailyQuestions = (allDailyQuestions || []).filter((q) => {
+    const game = q.game as { status: string; game_date: string } | null;
+    if (!game) return false;
+    if (game.status !== "upcoming") return true;
+    const lockTime = new Date(new Date(game.game_date).getTime() - closeMinutes * 60 * 1000);
+    return now >= lockTime;
+  });
+
+  const { data: dailyPicks } = visibleDailyQuestions.length > 0
+    ? await supabase
+        .from("nba_daily_picks")
+        .select("*")
+        .in("question_id", visibleDailyQuestions.map((q) => q.id))
+    : { data: [] };
+
+  // Map: question_id -> user_id -> { picked_option, points }
+  const dailyPicksMap: Record<string, Record<string, { picked_option: string; points: number }>> = {};
+  for (const q of visibleDailyQuestions) {
+    dailyPicksMap[q.id] = {};
+    const picks = dailyPicks?.filter((p) => p.question_id === q.id) || [];
+    for (const p of picks) {
+      dailyPicksMap[q.id][p.user_id] = {
+        picked_option: p.picked_option,
+        points: p.points_earned,
+      };
+    }
+  }
+
   return NextResponse.json({
     games: enrichedGames,
     series: enrichedSeries,
     users: users || [],
     gamePredictions: gamePreds,
     seriesPredictions: seriesPreds,
+    dailyQuestions: visibleDailyQuestions,
+    dailyPicks: dailyPicksMap,
   });
 }

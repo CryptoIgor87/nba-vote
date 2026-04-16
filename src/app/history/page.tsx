@@ -4,6 +4,18 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, X, Minus } from "lucide-react";
 import { getTeamLogoUrl, getRoundLabel } from "@/lib/utils";
+import { getPlayerHeadshotUrl } from "@/lib/players";
+
+const CATEGORY_LABELS: Record<string, string> = {
+  points: "очков",
+  threes: "трёшек",
+  assists: "передач",
+  rebounds: "подборов",
+  turnovers: "потерь",
+  fouls: "фолов",
+  steals: "перехватов",
+  blocks: "блоков",
+};
 
 interface User {
   id: string;
@@ -52,12 +64,41 @@ interface SeriesPick {
   score: string;
 }
 
+interface DailyQuestion {
+  id: string;
+  question_date: string;
+  category: string;
+  player1_name: string;
+  player1_team_id: number;
+  player1_nba_id: number | null;
+  player2_name: string;
+  player2_team_id: number;
+  player2_nba_id: number | null;
+  player3_name: string;
+  player3_team_id: number;
+  player3_nba_id: number | null;
+  player4_name: string;
+  player4_team_id: number;
+  player4_nba_id: number | null;
+  correct_answer: string | null;
+  correct_value: number | null;
+  status: string;
+  game: { status: string; game_date: string; home_team_id: number; away_team_id: number } | null;
+}
+
+interface DailyPick {
+  picked_option: string;
+  points: number;
+}
+
 interface HistoryData {
   games: Game[];
   series: Series[];
   users: User[];
   gamePredictions: Record<number, Record<string, GamePick>>;
   seriesPredictions: Record<string, Record<string, SeriesPick>>;
+  dailyQuestions: DailyQuestion[];
+  dailyPicks: Record<string, Record<string, DailyPick>>;
 }
 
 type Row = {
@@ -68,6 +109,10 @@ type Row = {
   type: "series";
   date: string;
   series: Series;
+} | {
+  type: "daily";
+  date: string;
+  question: DailyQuestion;
 };
 
 export default function HistoryPage() {
@@ -93,15 +138,16 @@ export default function HistoryPage() {
     );
   }
 
-  const { games, series, users, gamePredictions, seriesPredictions } = data;
+  const { games, series, users, gamePredictions, seriesPredictions, dailyQuestions, dailyPicks } = data;
 
   // Active users (have at least one prediction)
   const activeUsers = users.filter((u) =>
     games.some((g) => gamePredictions[g.id]?.[u.id]) ||
-    series.some((s) => seriesPredictions[s.id]?.[u.id])
+    series.some((s) => seriesPredictions[s.id]?.[u.id]) ||
+    (dailyQuestions || []).some((q) => dailyPicks?.[q.id]?.[u.id])
   );
 
-  // Build rows: games + series, sorted by date desc
+  // Build rows: games + series + daily questions, sorted by date desc
   const rows: Row[] = [];
   games.forEach((g) => rows.push({ type: "game", date: g.game_date, game: g }));
   series.forEach((s) => {
@@ -111,6 +157,9 @@ export default function HistoryPage() {
        (g.home_team_id === s.team_away_id && g.away_team_id === s.team_home_id))
     ).sort((a, b) => a.game_date.localeCompare(b.game_date))[0];
     rows.push({ type: "series", date: firstGame?.game_date || s.created_at, series: s });
+  });
+  (dailyQuestions || []).forEach((q) => {
+    rows.push({ type: "daily", date: q.game?.game_date || q.question_date, question: q });
   });
   rows.sort((a, b) => b.date.localeCompare(a.date));
 
@@ -175,8 +224,11 @@ export default function HistoryPage() {
                   if (row.type === "game") return (
                     <GameRow key={`g-${row.game.id}`} game={row.game} users={activeUsers} picks={gamePredictions[row.game.id] || {}} />
                   );
-                  return (
+                  if (row.type === "series") return (
                     <SeriesRow key={`s-${row.series.id}`} series={row.series} users={activeUsers} picks={seriesPredictions[row.series.id] || {}} />
+                  );
+                  return (
+                    <DailyRow key={`d-${row.question.id}`} question={row.question} users={activeUsers} picks={dailyPicks?.[row.question.id] || {}} />
                   );
                 })}
               </>
@@ -227,6 +279,63 @@ function GameRow({ game, users, picks }: { game: Game; users: User[]; picks: Rec
                 ? <span className="text-[9px] text-success font-bold">+{pick.points}</span>
                 : <X size={9} className="text-danger" />
               )}
+            </div>
+          </td>
+        );
+      })}
+    </tr>
+  );
+}
+
+function DailyRow({ question, users, picks }: { question: DailyQuestion; users: User[]; picks: Record<string, DailyPick> }) {
+  const isResolved = question.status === "resolved";
+  const categoryLabel = CATEGORY_LABELS[question.category] || question.category;
+  const game = question.game;
+
+  return (
+    <tr className="border-t border-accent/20">
+      <td className="sticky left-0 z-10 bg-card px-2 py-2">
+        <div className="flex items-center gap-1">
+          {game && <img src={getTeamLogoUrl(game.home_team_id)} alt="" className="w-4 h-4" />}
+          <span className="text-[10px] text-muted">❓</span>
+          {game && <img src={getTeamLogoUrl(game.away_team_id)} alt="" className="w-4 h-4" />}
+        </div>
+        <div className="text-[9px] text-accent font-semibold mt-0.5 leading-tight">
+          Кто больше {categoryLabel}?
+        </div>
+        {isResolved && question.correct_answer && (
+          <div className="text-[9px] text-success font-bold leading-tight">
+            {question.correct_answer === "other" ? "Другой" : question.correct_answer} ({question.correct_value})
+          </div>
+        )}
+      </td>
+      {users.map((user) => {
+        const pick = picks[user.id];
+        if (!pick) return <td key={user.id} className="px-1 py-2 text-center"><Minus size={12} className="text-border mx-auto" /></td>;
+
+        const isCorrect = isResolved && pick.points > 0;
+        const isWrong = isResolved && pick.points === 0;
+
+        // Find nba_id for headshot
+        let nbaId: number | null = null;
+        if (pick.picked_option === question.player1_name) nbaId = question.player1_nba_id;
+        else if (pick.picked_option === question.player2_name) nbaId = question.player2_nba_id;
+        else if (pick.picked_option === question.player3_name) nbaId = question.player3_nba_id;
+        else if (pick.picked_option === question.player4_name) nbaId = question.player4_nba_id;
+
+        return (
+          <td key={user.id} className={`px-1 py-2 text-center ${isCorrect ? "bg-success/10" : isWrong ? "bg-danger/10" : ""}`}>
+            <div className="flex flex-col items-center gap-0.5">
+              {nbaId ? (
+                <img src={getPlayerHeadshotUrl(nbaId)} alt="" className="w-6 h-5 object-cover object-top rounded" />
+              ) : (
+                <span className="text-[10px] text-muted">?</span>
+              )}
+              <span className="text-[9px] font-bold truncate max-w-[50px]">
+                {pick.picked_option === "other" ? "Другой" : pick.picked_option.split(" ").pop()}
+              </span>
+              {isCorrect && <span className="text-[9px] text-success font-bold">+{pick.points}</span>}
+              {isWrong && <X size={9} className="text-danger" />}
             </div>
           </td>
         );
