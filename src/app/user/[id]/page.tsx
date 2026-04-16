@@ -276,8 +276,11 @@ export default function UserPage() {
 
       {/* Series predictions */}
       {seriesPredictions && seriesPredictions.length > 0 && (
-        <div className="mb-4">
-          <h2 className="text-sm font-semibold mb-3">Прогнозы на серии</h2>
+        <CollapsibleSection
+          title="Прогнозы на серии"
+          icon={Trophy}
+          count={seriesPredictions.length}
+        >
           <div className="space-y-2">
             {seriesPredictions.map((sp) => {
               const s = series.find((x) => x.id === sp.series_id);
@@ -292,7 +295,7 @@ export default function UserPage() {
               return (
                 <div
                   key={sp.series_id}
-                  className="bg-card border border-border rounded-xl p-3 flex items-center gap-3"
+                  className="bg-background border border-border rounded-xl p-3 flex items-center gap-3"
                 >
                   <div className="flex items-center gap-1.5 flex-1 min-w-0">
                     {homeTeam && (
@@ -313,84 +316,125 @@ export default function UserPage() {
               );
             })}
           </div>
-        </div>
+        </CollapsibleSection>
       )}
 
       {/* Game predictions */}
-      <h2 className="text-sm font-semibold mb-3">Прогнозы на матчи</h2>
-      {predictions.length === 0 ? (
-        <p className="text-muted text-sm py-4">Нет видимых прогнозов</p>
-      ) : (
-        <div className="space-y-2">
-          {predictions.map((pred) => {
-            const game = games.find((g) => g.id === pred.game_id);
-            if (!game) return null;
+      <CollapsibleSection
+        title="Прогнозы на матчи"
+        icon={Target}
+        count={predictions.length}
+      >
+        {predictions.length === 0 ? (
+          <p className="text-muted text-sm py-4">Нет видимых прогнозов</p>
+        ) : (
+          <div className="space-y-2">
+            {predictions.map((pred) => {
+              const game = games.find((g) => g.id === pred.game_id);
+              if (!game) return null;
 
-            const isFinished = game.status === "finished";
-            const correctWinner = isFinished && pred.points_earned > 0;
+              const isFinished = game.status === "finished";
+              const correctWinner = isFinished && pred.points_earned > 0;
 
-            return (
-              <div
-                key={pred.id}
-                className={`border rounded-xl p-3 ${
-                  isFinished
-                    ? correctWinner
-                      ? "bg-success/10 border-success/30"
-                      : "bg-danger/10 border-danger/30"
-                    : "bg-card border-border"
-                }`}
-              >
-                <div className="text-xs text-muted mb-2 flex items-center justify-between">
-                  <span>
-                    {formatGameDate(game.game_date)}
-                    {game.round && (
-                      <span className="ml-2">{getRoundLabel(game.round)}</span>
-                    )}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <img src={getTeamLogoUrl(game.home_team_id)} alt="" className="w-7 h-7" />
-                    <span className="text-sm font-bold">
-                      {game.home_team?.abbreviation}
+              return (
+                <div
+                  key={pred.id}
+                  className={`border rounded-xl p-3 ${
+                    isFinished
+                      ? correctWinner
+                        ? "bg-success/10 border-success/30"
+                        : "bg-danger/10 border-danger/30"
+                      : "bg-background border-border"
+                  }`}
+                >
+                  <div className="text-xs text-muted mb-2 flex items-center justify-between">
+                    <span>
+                      {formatGameDate(game.game_date)}
+                      {game.round && (
+                        <span className="ml-2">{getRoundLabel(game.round)}</span>
+                      )}
                     </span>
                   </div>
-
-                  <div className="text-center">
-                    {isFinished && (
-                      <div className="text-xs text-muted mb-0.5">
-                        {game.home_score} - {game.away_score}
-                      </div>
-                    )}
-                    <div className="flex items-center justify-center gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <img src={getTeamLogoUrl(game.home_team_id)} alt="" className="w-7 h-7" />
                       <span className="text-sm font-bold">
-                        {pred.predicted_home_score > pred.predicted_away_score
-                          ? game.home_team?.abbreviation
-                          : game.away_team?.abbreviation}
+                        {game.home_team?.abbreviation}
                       </span>
-                      {isFinished && pred.points_earned > 0 && (
-                        <span className="text-xs text-success font-bold">
-                          +{pred.points_earned}
+                    </div>
+
+                    <div className="text-center">
+                      {isFinished && (
+                        <div className="text-xs text-muted mb-0.5">
+                          {game.home_score} - {game.away_score}
+                        </div>
+                      )}
+                      <div className="flex items-center justify-center gap-1.5">
+                        <span className="text-sm font-bold">
+                          {pred.predicted_home_score > pred.predicted_away_score
+                            ? game.home_team?.abbreviation
+                            : game.away_team?.abbreviation}
                         </span>
-                      )}
-                      {isFinished && pred.points_earned === 0 && (
-                        <X size={12} className="text-danger" />
-                      )}
+                        {isFinished && pred.points_earned > 0 && (
+                          <span className="text-xs text-success font-bold">
+                            +{pred.points_earned}
+                          </span>
+                        )}
+                        {isFinished && pred.points_earned === 0 && (
+                          <X size={12} className="text-danger" />
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold">
+                        {game.away_team?.abbreviation}
+                      </span>
+                      <img src={getTeamLogoUrl(game.away_team_id)} alt="" className="w-7 h-7" />
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold">
-                      {game.away_team?.abbreviation}
-                    </span>
-                    <img src={getTeamLogoUrl(game.away_team_id)} alt="" className="w-7 h-7" />
-                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </CollapsibleSection>
+    </div>
+  );
+}
+
+function CollapsibleSection({
+  title,
+  icon: Icon,
+  count,
+  children,
+}: {
+  title: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  count?: number;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-card border border-border rounded-xl mb-4">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+      >
+        <h2 className="text-sm font-semibold flex items-center gap-2">
+          <Icon size={16} className="text-accent" />
+          {title}
+          {count != null && (
+            <span className="text-xs text-muted font-normal">({count})</span>
+          )}
+        </h2>
+        {open ? (
+          <Minus size={16} className="text-muted" />
+        ) : (
+          <Plus size={16} className="text-muted" />
+        )}
+      </button>
+      {open && <div className="px-4 pb-4">{children}</div>}
     </div>
   );
 }
