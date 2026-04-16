@@ -59,12 +59,89 @@ export async function GET(req: NextRequest) {
       if (!error) synced++;
     }
 
+    await autoCreateSeriesForOrphanGames();
     await updateSeriesFromGames();
 
     return NextResponse.json({ synced, total: games.length });
   } catch (error) {
     console.error("Sync error:", error);
     return NextResponse.json({ error: "Sync failed" }, { status: 500 });
+  }
+}
+
+/**
+ * Auto-create series for first_round games that don't have series_id yet.
+ * Groups games by matchup (home+away combination) and creates a series.
+ */
+async function autoCreateSeriesForOrphanGames() {
+  const { data: orphanGames } = await supabase
+    .from("nba_games")
+    .select("*")
+    .is("series_id", null)
+    .eq("round", "first_round")
+    .eq("is_playoff", true);
+
+  if (!orphanGames || orphanGames.length === 0) return;
+
+  const { data: teams } = await supabase.from("nba_teams").select("id, conference");
+  const teamConference = new Map(teams?.map((t) => [t.id, t.conference]));
+
+  // Group by matchup (team pair)
+  const matchups = new Map<string, typeof orphanGames>();
+  for (const g of orphanGames) {
+    const key = [g.home_team_id, g.away_team_id].sort().join("-");
+    if (!matchups.has(key)) matchups.set(key, []);
+    matchups.get(key)!.push(g);
+  }
+
+  for (const [key, games] of matchups) {
+    const [teamA, teamB] = key.split("-").map(Number);
+
+    // Check if series already exists for this matchup
+    const { data: existingSeries } = await supabase
+      .from("nba_series")
+      .select("id")
+      .eq("round", "first_round")
+      .or(
+        `and(team_home_id.eq.${teamA},team_away_id.eq.${teamB}),and(team_home_id.eq.${teamB},team_away_id.eq.${teamA})`
+      )
+      .maybeSingle();
+
+    let seriesId = existingSeries?.id;
+
+    if (!seriesId) {
+      // Pick team with earliest home game as "home team" of series (higher seed)
+      games.sort((a, b) => a.game_date.localeCompare(b.game_date));
+      const firstGame = games[0];
+      const seriesHome = firstGame.home_team_id;
+      const seriesAway = firstGame.away_team_id;
+      const conference = teamConference.get(seriesHome) || null;
+
+      const { data: newSeries, error: createError } = await supabase
+        .from("nba_series")
+        .insert({
+          round: "first_round",
+          conference,
+          team_home_id: seriesHome,
+          team_away_id: seriesAway,
+          status: "upcoming",
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error("Series create error:", createError);
+        continue;
+      }
+      seriesId = newSeries.id;
+    }
+
+    // Link all games to this series
+    const gameIds = games.map((g) => g.id);
+    await supabase
+      .from("nba_games")
+      .update({ series_id: seriesId })
+      .in("id", gameIds);
   }
 }
 
