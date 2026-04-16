@@ -29,12 +29,31 @@ export async function GET(req: NextRequest) {
           ? "in_progress"
           : "upcoming";
 
+      const gameDate = (game as unknown as { datetime?: string }).datetime || game.date;
+
       // Check if game already exists to preserve its round
       const { data: existing } = await supabase
         .from("nba_games")
         .select("round")
         .eq("id", game.id)
         .single();
+
+      // Guard against duplicates: the API occasionally returns a different id
+      // for the same matchup+date (e.g. play-in games). If we find one, skip
+      // the new id entirely — we already track that game under the existing row.
+      if (!existing) {
+        const dayStart = new Date(new Date(gameDate).getTime() - 12 * 60 * 60 * 1000).toISOString();
+        const dayEnd = new Date(new Date(gameDate).getTime() + 12 * 60 * 60 * 1000).toISOString();
+        const { data: dup } = await supabase
+          .from("nba_games")
+          .select("id")
+          .eq("home_team_id", game.home_team.id)
+          .eq("away_team_id", game.visitor_team.id)
+          .gte("game_date", dayStart)
+          .lte("game_date", dayEnd)
+          .maybeSingle();
+        if (dup) continue;
+      }
 
       const round = existing?.round || (game.postseason ? "first_round" : null);
 
@@ -49,7 +68,7 @@ export async function GET(req: NextRequest) {
             game.home_team_score > 0 ? game.home_team_score : null,
           away_score:
             game.visitor_team_score > 0 ? game.visitor_team_score : null,
-          game_date: (game as unknown as { datetime?: string }).datetime || game.date,
+          game_date: gameDate,
           is_playoff: game.postseason || !!existing,
           round,
         },
