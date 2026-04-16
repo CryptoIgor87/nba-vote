@@ -52,14 +52,12 @@ export default function BracketPage() {
   const eastCF = getSeries("East", "conference_finals");
   const finals = series.find((s) => s.round === "finals");
 
-  const ROUND_W = 104;
   const CONN_W = 22;
-  const FINALS_W = 120;
   const BRACKET_H = 520;
-  const WEST_W = ROUND_W * 3 + CONN_W * 2;
-  const EAST_W = WEST_W;
-  const MID_W = CONN_W * 2 + FINALS_W;
-  const TOTAL_W = WEST_W + MID_W + EAST_W;
+  const ROUND_MIN = 96;
+  const FINALS_MIN = 108;
+  // 3*ROUND_MIN + 2*CONN_W (west) + 2*CONN_W + FINALS_MIN (mid) + same (east)
+  const MIN_TOTAL_W = ROUND_MIN * 6 + FINALS_MIN + CONN_W * 6;
 
   return (
     <div>
@@ -79,38 +77,30 @@ export default function BracketPage() {
 
       <p className="text-xs text-muted mb-2 sm:hidden">Прокрутите вправо для полной сетки &rarr;</p>
       <div className="overflow-x-auto pb-4">
-        <div style={{ minWidth: TOTAL_W }}>
-          {/* Conference labels row */}
-          <div className="flex mb-1">
-            <div style={{ width: WEST_W }} className="text-center text-xs font-bold text-accent">
-              Запад
-            </div>
-            <div style={{ width: MID_W }} />
-            <div style={{ width: EAST_W }} className="text-center text-xs font-bold text-accent">
-              Восток
-            </div>
-          </div>
+        <div style={{ minWidth: MIN_TOTAL_W }}>
+          {/* Conference labels row — mirrors bracket body structure exactly */}
+          <ConferenceLabels connW={CONN_W} roundMin={ROUND_MIN} finalsMin={FINALS_MIN} />
 
           {/* Bracket body */}
           <div className="flex items-stretch" style={{ height: BRACKET_H }}>
             {/* WEST */}
-            <Round width={ROUND_W} label="1 раунд" slots={4} series={westR1} />
+            <Round label="1 раунд" slots={4} series={westR1} minWidth={ROUND_MIN} />
             <ConnectorCollapse width={CONN_W} count={4} />
-            <Round width={ROUND_W} label="Полуфинал" slots={2} series={westSF} />
+            <Round label="Полуфинал" slots={2} series={westSF} minWidth={ROUND_MIN} />
             <ConnectorCollapse width={CONN_W} count={2} />
-            <Round width={ROUND_W} label="Финал конф." slots={1} series={westCF} />
+            <Round label="Финал конф." slots={1} series={westCF} minWidth={ROUND_MIN} />
 
             {/* CENTER */}
             <ConnectorStraight width={CONN_W} />
-            <Round width={FINALS_W} label="Финал NBA" slots={1} series={finals ? [finals] : []} accent />
+            <Round label="Финал NBA" slots={1} series={finals ? [finals] : []} accent grow={1.15} minWidth={FINALS_MIN} />
             <ConnectorStraight width={CONN_W} />
 
             {/* EAST (mirrored) */}
-            <Round width={ROUND_W} label="Финал конф." slots={1} series={eastCF} />
+            <Round label="Финал конф." slots={1} series={eastCF} minWidth={ROUND_MIN} />
             <ConnectorCollapse width={CONN_W} count={2} reversed />
-            <Round width={ROUND_W} label="Полуфинал" slots={2} series={eastSF} />
+            <Round label="Полуфинал" slots={2} series={eastSF} minWidth={ROUND_MIN} />
             <ConnectorCollapse width={CONN_W} count={4} reversed />
-            <Round width={ROUND_W} label="1 раунд" slots={4} series={eastR1} />
+            <Round label="1 раунд" slots={4} series={eastR1} minWidth={ROUND_MIN} />
           </div>
         </div>
       </div>
@@ -119,20 +109,22 @@ export default function BracketPage() {
 }
 
 function Round({
-  width,
   label,
   slots,
   series,
   accent,
+  minWidth,
+  grow = 1,
 }: {
-  width: number;
   label: string;
   slots: number;
   series: SeriesWithTeams[];
   accent?: boolean;
+  minWidth: number;
+  grow?: number;
 }) {
   return (
-    <div className="flex flex-col shrink-0" style={{ width }}>
+    <div className="flex flex-col" style={{ flex: `${grow} 1 0`, minWidth }}>
       <div
         className={`text-[10px] font-bold uppercase text-center h-5 leading-5 ${
           accent ? "text-accent" : "text-muted"
@@ -147,6 +139,40 @@ function Round({
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function ConferenceLabels({
+  connW,
+  roundMin,
+  finalsMin,
+}: {
+  connW: number;
+  roundMin: number;
+  finalsMin: number;
+}) {
+  const confSide = (label: string) => (
+    <div className="flex relative" style={{ flex: "3 1 0" }}>
+      <div style={{ flex: "1 1 0", minWidth: roundMin }} />
+      <div style={{ width: connW }} className="shrink-0" />
+      <div style={{ flex: "1 1 0", minWidth: roundMin }} />
+      <div style={{ width: connW }} className="shrink-0" />
+      <div style={{ flex: "1 1 0", minWidth: roundMin }} />
+      <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-accent pointer-events-none">
+        {label}
+      </div>
+    </div>
+  );
+  return (
+    <div className="flex mb-1 h-5">
+      {confSide("Запад")}
+      <div className="flex shrink-0" style={{ flex: "1.15 1 0", minWidth: finalsMin + connW * 2 }}>
+        <div style={{ width: connW }} className="shrink-0" />
+        <div style={{ flex: "1 1 0" }} />
+        <div style={{ width: connW }} className="shrink-0" />
+      </div>
+      {confSide("Восток")}
     </div>
   );
 }
