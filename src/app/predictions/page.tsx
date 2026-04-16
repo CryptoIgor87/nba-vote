@@ -6,7 +6,6 @@ import GameCard from "@/components/predictions/GameCard";
 import WinnerPicker from "@/components/predictions/WinnerPicker";
 import SeriesPrediction from "@/components/predictions/SeriesPrediction";
 import DailyQuestion from "@/components/predictions/DailyQuestion";
-import { getRoundLabel } from "@/lib/utils";
 import type { NbaGame, NbaPrediction, NbaTeam, NbaSeries, NbaDailyQuestion, NbaDailyPick } from "@/lib/types";
 
 interface SeriesWithTeams extends NbaSeries {
@@ -35,7 +34,6 @@ export default function PredictionsPage() {
   const [dailyPicks, setDailyPicks] = useState<Record<string, NbaDailyPick>>({});
   const [dailyPickCounts, setDailyPickCounts] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
-  const [activeRound, setActiveRound] = useState<string>("all");
   const [now, setNow] = useState(new Date());
 
   // Update now every 30 seconds so locks activate in real time
@@ -190,12 +188,6 @@ export default function PredictionsPage() {
     return true;
   });
 
-  const rounds = [...new Set(openGames.map((g) => g.round).filter(Boolean))];
-  const filteredGames =
-    activeRound === "all"
-      ? openGames
-      : openGames.filter((g) => g.round === activeRound);
-
   // Get playoff series where betting is still open
   const playoffSeries = allSeries
     .filter((s) => {
@@ -257,37 +249,11 @@ export default function PredictionsPage() {
         </div>
       )}
 
-      {/* Round tabs */}
       <h2 className="text-lg font-semibold mb-3">Прогнозы на матчи</h2>
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        <button
-          onClick={() => setActiveRound("all")}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-            activeRound === "all"
-              ? "bg-accent text-white"
-              : "bg-card text-muted hover:text-foreground"
-          }`}
-        >
-          Все
-        </button>
-        {rounds.map((round) => (
-          <button
-            key={round}
-            onClick={() => setActiveRound(round!)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-              activeRound === round
-                ? "bg-accent text-white"
-                : "bg-card text-muted hover:text-foreground"
-            }`}
-          >
-            {getRoundLabel(round!)}
-          </button>
-        ))}
-      </div>
 
       {/* Games list */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {filteredGames.map((game) => {
+        {openGames.map((game) => {
           const prediction = predictions.find((p) => p.game_id === game.id);
           const gameSeriesBonuses = game.series_id
             ? seriesBonuses.filter((b) => b.series_id === game.series_id)
@@ -316,7 +282,7 @@ export default function PredictionsPage() {
         })}
       </div>
 
-      {filteredGames.length === 0 && (
+      {openGames.length === 0 && (
         <p className="text-center text-muted py-10">
           Нет матчей для отображения
         </p>
