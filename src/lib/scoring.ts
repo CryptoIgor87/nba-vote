@@ -336,11 +336,12 @@ async function resolveDailyQuestions(pointsDailyQuestion: number) {
     const topValue = tops[0].value;
     const topNames = tops.map((t) => t.name);
 
-    // Determine correct answers — any of the tied leaders, or "other" if none are in options
+    // Determine correct answers — any of the tied leaders + "other" if any leader is outside 4 options
     const playerNames = [q.player1_name, q.player2_name, q.player3_name, q.player4_name];
     const correctOptions = playerNames.filter((name) => topNames.includes(name));
-    // If none of the 4 options are among the leaders, "other" is correct
-    if (correctOptions.length === 0) correctOptions.push("other");
+    // "other" is correct if ANY leader is not among the 4 options
+    const hasOutsideLeader = topNames.some((name) => !playerNames.includes(name));
+    if (hasOutsideLeader || correctOptions.length === 0) correctOptions.push("other");
 
     // Store the first correct answer for display
     const correctAnswer = correctOptions[0];
