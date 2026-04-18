@@ -1,41 +1,88 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700;800&display=swap');
 
 :root {
-  --background: #0a0a0f;
-  --foreground: #ededef;
-  --card: #111116;
-  --card-hover: #1a1a22;
+  /* Greys — tinted slightly cool (blue undertone) */
+  --gray-50: #f7f8fa;
+  --gray-100: #ebedf2;
+  --gray-200: #d1d5de;
+  --gray-300: #a0a6b8;
+  --gray-400: #737a8e;
+  --gray-500: #555c6e;
+  --gray-600: #3d4354;
+  --gray-700: #282d3a;
+  --gray-800: #1a1e28;
+  --gray-900: #0f1117;
+
+  /* Dark theme */
+  --background: var(--gray-900);
+  --foreground: var(--gray-100);
+  --foreground-secondary: var(--gray-300);
+  --foreground-tertiary: var(--gray-400);
+  --card: var(--gray-800);
+  --card-hover: var(--gray-700);
+  --surface: var(--gray-700);
+  --border: var(--gray-600);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+
+  /* Accent — orange (hue-rotated for depth) */
   --accent: #ff6a00;
   --accent-hover: #ff8533;
-  --accent-light: rgba(255, 106, 0, 0.12);
-  --success: #22c55e;
-  --success-light: rgba(34, 197, 94, 0.12);
-  --danger: #ef4444;
-  --danger-light: rgba(239, 68, 68, 0.12);
-  --muted: #6b7280;
-  --border: rgba(255, 255, 255, 0.08);
-  --surface: #15151c;
-  --glow: rgba(255, 106, 0, 0.15);
+  --accent-subtle: rgba(255, 106, 0, 0.12);
+  --accent-muted: #cc5500;
+
+  /* Semantic */
+  --success: #34d399;
+  --success-subtle: rgba(52, 211, 153, 0.12);
+  --danger: #f87171;
+  --danger-subtle: rgba(248, 113, 113, 0.12);
+
+  /* Legacy aliases */
+  --muted: var(--gray-400);
+  --accent-light: var(--accent-subtle);
+  --success-light: var(--success-subtle);
+  --danger-light: var(--danger-subtle);
+  --glow: rgba(255, 106, 0, 0.12);
+
+  /* Elevation shadows (two-part: ambient + direct) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Light theme */
 :root.light {
-  --background: #faf8f5;
-  --foreground: #1a1a1a;
+  --background: #f8f9fb;
+  --foreground: var(--gray-800);
+  --foreground-secondary: var(--gray-500);
+  --foreground-tertiary: var(--gray-400);
   --card: #ffffff;
-  --card-hover: #f5f0ea;
+  --card-hover: var(--gray-50);
+  --surface: var(--gray-100);
+  --border: var(--gray-200);
+  --border-subtle: rgba(0, 0, 0, 0.06);
+
   --accent: #e65100;
   --accent-hover: #ff6d00;
-  --accent-light: rgba(230, 81, 0, 0.1);
-  --success: #2e7d32;
-  --success-light: rgba(46, 125, 50, 0.1);
-  --danger: #c62828;
-  --danger-light: rgba(198, 40, 40, 0.08);
-  --muted: #78909c;
-  --border: rgba(0, 0, 0, 0.1);
-  --surface: #f0ece6;
-  --glow: rgba(230, 81, 0, 0.1);
+  --accent-subtle: rgba(230, 81, 0, 0.08);
+  --accent-muted: #bf4400;
+
+  --success: #16a34a;
+  --success-subtle: rgba(22, 163, 74, 0.08);
+  --danger: #dc2626;
+  --danger-subtle: rgba(220, 38, 38, 0.08);
+
+  --muted: var(--gray-400);
+  --accent-light: var(--accent-subtle);
+  --success-light: var(--success-subtle);
+  --danger-light: var(--danger-subtle);
+  --glow: rgba(230, 81, 0, 0.08);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.08), 0 3px 6px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 :root.light body::before {
@@ -45,21 +92,30 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-foreground-tertiary: var(--foreground-tertiary);
   --color-card: var(--card);
   --color-card-hover: var(--card-hover);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
-  --color-accent-light: var(--accent-light);
+  --color-accent-light: var(--accent-subtle);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-muted: var(--accent-muted);
   --color-success: var(--success);
-  --color-success-light: var(--success-light);
+  --color-success-light: var(--success-subtle);
   --color-danger: var(--danger);
-  --color-danger-light: var(--danger-light);
+  --color-danger-light: var(--danger-subtle);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
   --color-surface: var(--surface);
   --color-glow: var(--glow);
   --font-display: 'Barlow Condensed', sans-serif;
-  --font-body: 'Barlow', sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
 }
 
 body {
@@ -70,7 +126,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Orange top accent line */
+/* Orange top accent bar */
 body::before {
   content: '';
   position: fixed;
@@ -82,12 +138,19 @@ body::before {
   z-index: 100;
 }
 
-/* Display headings */
-h1, h2, h3 {
+/* Typography hierarchy
+   h1: Display font, uppercase — for page titles only
+   h2, h3: Body font, normal case — section headings */
+h1 {
   font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
+}
+
+h2, h3 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 /* Number inputs */
@@ -100,13 +163,14 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-/* Card hover glow */
+/* Card hover — subtle elevation shift instead of glow */
 .card-glow {
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 .card-glow:hover {
-  box-shadow: 0 0 20px var(--glow);
-  border-color: rgba(255, 106, 0, 0.2);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent);
+  transform: translateY(-1px);
 }
 
 /* Scrollbar */
@@ -118,11 +182,18 @@ input[type="number"] {
   background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--foreground-tertiary);
   border-radius: 3px;
+  opacity: 0.3;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--foreground-secondary);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--foreground-tertiary) var(--background);
 }
 
 /* Selection */

@@ -35,7 +35,7 @@ export default function Header() {
   if (pathname === "/auth/signin" || pathname === "/") return null;
 
   return (
-    <header className="bg-card/80 backdrop-blur-xl border-b border-border sticky top-0 z-50">
+    <header className="bg-card/90 backdrop-blur-xl border-b border-border-subtle sticky top-0 z-50 shadow-sm">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
@@ -43,7 +43,7 @@ export default function Header() {
             <img src="/favicon.svg" alt="" className="w-6 h-6" />
             <span className="text-accent font-display font-black text-lg tracking-wide uppercase">
               NBA</span>
-            <span className="text-foreground font-display font-bold text-lg tracking-wide uppercase hidden sm:block">
+            <span className="text-foreground/80 font-display font-bold text-lg tracking-wide uppercase hidden sm:block">
               Predictions
             </span>
           </Link>
@@ -54,23 +54,23 @@ export default function Header() {
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   pathname === href
-                    ? "bg-accent/15 text-accent"
-                    : "text-muted hover:text-foreground hover:bg-surface"
+                    ? "bg-accent-subtle text-accent"
+                    : "text-foreground-tertiary hover:text-foreground hover:bg-surface"
                 }`}
               >
-                <Icon size={15} />
+                <Icon size={15} strokeWidth={pathname === href ? 2.5 : 2} />
                 {label}
               </Link>
             ))}
             {isAdmin && (
               <Link
                 href="/admin/settings"
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
+                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm transition-colors ${
                   pathname === "/admin/settings"
-                    ? "bg-accent/15 text-accent"
-                    : "text-muted hover:text-foreground hover:bg-surface"
+                    ? "bg-accent-subtle text-accent"
+                    : "text-foreground-tertiary hover:text-foreground hover:bg-surface"
                 }`}
               >
                 <Settings size={15} />
@@ -83,16 +83,16 @@ export default function Header() {
             <ThemeToggle />
             <Link
               href={session?.user?.id ? `/user/${session.user.id}` : "/profile"}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted hover:text-foreground hover:bg-surface transition-all"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm text-foreground-tertiary hover:text-foreground hover:bg-surface transition-colors"
             >
               {session?.user?.image ? (
                 <img
                   src={session.user.image}
                   alt=""
-                  className="w-6 h-6 rounded-full ring-1 ring-border"
+                  className="w-6 h-6 rounded-full ring-1 ring-border-subtle"
                 />
               ) : (
-                <div className="w-6 h-6 rounded-full bg-surface flex items-center justify-center ring-1 ring-border">
+                <div className="w-6 h-6 rounded-full bg-surface flex items-center justify-center ring-1 ring-border-subtle">
                   <User size={12} />
                 </div>
               )}
@@ -102,7 +102,7 @@ export default function Header() {
             </Link>
             <button
               onClick={() => signOut()}
-              className="p-2 rounded-lg text-muted hover:text-danger transition-all"
+              className="p-2 rounded-lg text-foreground-tertiary hover:text-danger transition-colors"
               title="Выйти"
             >
               <LogOut size={15} />
@@ -112,23 +112,23 @@ export default function Header() {
           {/* Mobile */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-2.5 text-muted hover:text-foreground rounded-lg flex items-center justify-center min-w-[44px] min-h-[44px]"
+            className="md:hidden p-2.5 text-foreground-tertiary hover:text-foreground rounded-lg flex items-center justify-center min-w-[44px] min-h-[44px]"
           >
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
         {menuOpen && (
-          <nav className="md:hidden py-3 border-t border-border space-y-0.5">
+          <nav className="md:hidden py-3 border-t border-border-subtle space-y-0.5">
             {navItems.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
                 onClick={() => setMenuOpen(false)}
-                className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-semibold transition-all ${
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
                   pathname === href
-                    ? "bg-accent/15 text-accent"
-                    : "text-muted hover:text-foreground"
+                    ? "bg-accent-subtle text-accent"
+                    : "text-foreground-tertiary hover:text-foreground"
                 }`}
               >
                 <Icon size={18} />
@@ -139,18 +139,18 @@ export default function Header() {
               <Link
                 href="/admin/settings"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-semibold text-muted hover:text-foreground"
+                className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium text-foreground-tertiary hover:text-foreground"
               >
                 <Settings size={18} />
                 Настройки
               </Link>
             )}
-            <div className="border-t border-border pt-2 mt-2 flex items-center justify-between px-3">
+            <div className="border-t border-border-subtle pt-2 mt-2 flex items-center justify-between px-3">
               <div className="flex items-center gap-2">
                 <Link
                   href={session?.user?.id ? `/user/${session.user.id}` : "/profile"}
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-2 text-sm font-medium text-muted hover:text-foreground py-2"
+                  className="flex items-center gap-2 text-sm font-medium text-foreground-tertiary hover:text-foreground py-2"
                 >
                   <User size={16} />
                   Мой профиль
@@ -159,7 +159,7 @@ export default function Header() {
               </div>
               <button
                 onClick={() => signOut()}
-                className="flex items-center gap-2 text-sm font-medium text-muted hover:text-danger py-2"
+                className="flex items-center gap-2 text-sm font-medium text-foreground-tertiary hover:text-danger py-2"
               >
                 <LogOut size={16} />
                 Выйти

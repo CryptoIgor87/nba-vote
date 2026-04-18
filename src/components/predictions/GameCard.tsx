@@ -78,8 +78,8 @@ export default function GameCard({
 
   return (
     <div
-      className={`bg-card border rounded-xl overflow-hidden ${
-        isFinished ? "border-border" : locked ? "border-border opacity-75" : "border-border card-glow"
+      className={`bg-card border rounded-xl overflow-hidden shadow-sm ${
+        isFinished ? "border-border-subtle" : locked ? "border-border-subtle opacity-75" : "border-border card-glow"
       }`}
     >
       <div className="flex items-stretch">
@@ -228,14 +228,14 @@ function TeamBtn({
     <button
       onClick={onClick}
       disabled={!canSelect}
-      className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 transition-all ${
-        canSelect ? "cursor-pointer hover:bg-surface" : "cursor-default"
+      className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-4 transition-all ${
+        canSelect ? "cursor-pointer active:scale-95 hover:bg-surface" : "cursor-default"
       } ${bg}`}
     >
       <img
         src={getTeamLogoUrl(teamId)}
         alt={abbr}
-        className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+        className="w-11 h-11 sm:w-12 sm:h-12 object-contain"
       />
       <span className={`text-xs font-bold ${isWinner ? "text-success" : ""}`}>
         {abbr}
