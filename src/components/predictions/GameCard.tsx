@@ -76,17 +76,35 @@ export default function GameCard({
         : game.away_team_id
       : null;
 
+  const correctPrediction = isFinished && prediction && prediction.points_earned > 0;
+  const wrongPrediction = isFinished && prediction && prediction.points_earned === 0;
+
   return (
     <div
-      className={`bg-card border rounded-xl overflow-hidden shadow-sm ${
-        isFinished ? "border-border-subtle" : locked ? "border-border-subtle opacity-75" : "border-border card-glow"
+      className={`relative rounded-2xl overflow-hidden transition-all duration-300 ${
+        isFinished
+          ? correctPrediction
+            ? "winner-glow"
+            : "border border-border"
+          : locked
+          ? "border border-border opacity-60"
+          : "card-glow"
       }`}
     >
-      <div className="flex items-stretch">
-        {/* Left: match info */}
+      {/* Gradient top accent */}
+      {!isFinished && !locked && (
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent" />
+      )}
+
+      <div className="flex items-stretch bg-card">
+        {/* Left: match info panel */}
         <div
-          className={`w-28 sm:w-36 shrink-0 flex flex-col items-center justify-center px-2 py-3 text-center court-pattern ${
-            isFinished ? "bg-surface" : "bg-accent/10"
+          className={`w-[100px] sm:w-[130px] shrink-0 flex flex-col items-center justify-center px-2 py-4 text-center relative ${
+            isFinished
+              ? correctPrediction
+                ? "bg-success/5"
+                : "bg-surface"
+              : "bg-gradient-to-b from-accent/8 to-transparent"
           }`}
         >
           <div className="text-[11px] sm:text-xs font-semibold text-foreground leading-tight">
@@ -95,34 +113,34 @@ export default function GameCard({
           {(() => {
             const arena = NBA_ARENAS[game.home_team_id];
             return arena ? (
-              <div className="text-[9px] sm:text-[10px] text-muted flex items-center gap-0.5 mt-0.5">
+              <div className="text-[9px] sm:text-[10px] text-foreground-tertiary flex items-center gap-0.5 mt-0.5">
                 <MapPin size={8} />
                 {arena.city}
               </div>
             ) : null;
           })()}
           {game.round === "play_in" ? (
-            <div className="text-[10px] text-accent font-bold mt-0.5">
+            <div className="text-[10px] text-accent font-bold mt-1 tracking-wider uppercase">
               Play-In
             </div>
           ) : game.game_number ? (
-            <div className="text-[10px] text-accent font-bold mt-0.5">
+            <div className="text-[10px] text-accent font-bold mt-1">
               Игра {game.game_number}
             </div>
           ) : null}
           {isFinished && (
-            <div className="text-lg font-black mt-1 flex items-center gap-1.5">
-              <span className={game.home_score! > game.away_score! ? "text-success" : "text-muted"}>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className={`text-xl font-black tabular-nums ${game.home_score! > game.away_score! ? "text-foreground" : "text-foreground-tertiary"}`}>
                 {game.home_score}
               </span>
-              <span className="text-muted text-xs">:</span>
-              <span className={game.away_score! > game.home_score! ? "text-success" : "text-muted"}>
+              <span className="text-foreground-tertiary text-[10px] font-bold">:</span>
+              <span className={`text-xl font-black tabular-nums ${game.away_score! > game.home_score! ? "text-foreground" : "text-foreground-tertiary"}`}>
                 {game.away_score}
               </span>
             </div>
           )}
           {!isFinished && !locked && (
-            <div className="mt-1">
+            <div className="mt-2">
               <Countdown
                 deadline={new Date(
                   new Date(game.game_date).getTime() - 30 * 60 * 1000
@@ -131,22 +149,23 @@ export default function GameCard({
             </div>
           )}
           {locked && !isFinished && (
-            <div className="flex items-center gap-1 text-[10px] text-muted mt-1">
+            <div className="flex items-center gap-1 text-[10px] text-foreground-tertiary mt-2">
               <Lock size={10} />
               Закрыто
             </div>
           )}
           {isFinished && totalPoints > 0 && (
-            <div className="flex items-center gap-1 text-[10px] text-success font-bold mt-0.5">
-              <Trophy size={10} />+{totalPoints}
-            </div>
+            <div className="score-badge mt-2">+{totalPoints}</div>
           )}
           {saved && (
-            <div className="flex items-center gap-1 text-[10px] text-success font-bold mt-0.5">
-              <Check size={10} /> OK
+            <div className="flex items-center gap-1 text-[10px] text-success font-bold mt-2">
+              <Check size={10} /> Принято
             </div>
           )}
         </div>
+
+        {/* Divider */}
+        <div className="w-px bg-border" />
 
         {/* Right: team picks */}
         <div className="flex-1 flex items-stretch">
@@ -176,7 +195,7 @@ export default function GameCard({
 
       {/* Points breakdown */}
       {isFinished && prediction && pointsBreakdown.length > 0 && (
-        <div className="border-t border-border px-3 py-2 flex gap-4 text-[11px]">
+        <div className="border-t border-border bg-surface/50 px-3 py-2 flex gap-4 text-[11px]">
           {pointsBreakdown.map((p, i) => (
             <span key={i} className="flex items-center gap-1">
               {p.positive ? (
@@ -184,10 +203,10 @@ export default function GameCard({
               ) : (
                 <X size={10} className="text-danger" />
               )}
-              <span className={p.positive ? "text-foreground" : "text-muted"}>
+              <span className={p.positive ? "text-foreground-secondary" : "text-foreground-tertiary"}>
                 {p.label}
               </span>
-              <span className={p.positive ? "text-success font-bold" : "text-muted"}>
+              <span className={p.positive ? "text-success font-bold" : "text-foreground-tertiary"}>
                 {p.positive ? `+${p.points}` : "0"}
               </span>
             </span>
@@ -218,33 +237,46 @@ function TeamBtn({
   onClick: () => void;
 }) {
   let bg = "";
-  if (isSelected && !isFinished) bg = "bg-accent/20 ring-1 ring-accent/40 ring-inset";
-  else if (isSelected && isWinner) bg = "bg-success/10";
-  else if (isSelected && !isWinner && isFinished) bg = "bg-danger/10";
-  else if (isWinner && isFinished) bg = "";
-  else if (isLoser) bg = "opacity-40";
+  let extra = "";
+
+  if (isSelected && !isFinished) {
+    bg = "bg-accent/10";
+    extra = "ring-2 ring-inset ring-accent/50";
+  } else if (isSelected && isWinner) {
+    bg = "bg-success/8";
+  } else if (isSelected && !isWinner && isFinished) {
+    bg = "bg-danger/8";
+  } else if (isLoser) {
+    extra = "loser-fade";
+  }
 
   return (
     <button
       onClick={onClick}
       disabled={!canSelect}
-      className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-4 transition-all ${
-        canSelect ? "cursor-pointer active:scale-95 hover:bg-surface" : "cursor-default"
-      } ${bg}`}
+      className={`flex-1 flex flex-col items-center justify-center gap-2 py-5 transition-all duration-200 ${
+        canSelect ? "cursor-pointer active:scale-90 hover:bg-card-hover" : "cursor-default"
+      } ${bg} ${extra}`}
     >
-      <img
-        src={getTeamLogoUrl(teamId)}
-        alt={abbr}
-        className="w-11 h-11 sm:w-12 sm:h-12 object-contain"
-      />
-      <span className={`text-xs font-bold ${isWinner ? "text-success" : ""}`}>
-        {abbr}
-      </span>
-      <div className="h-3">
+      <div className="relative">
+        <img
+          src={getTeamLogoUrl(teamId)}
+          alt={abbr}
+          className={`w-12 h-12 sm:w-14 sm:h-14 object-contain transition-transform duration-200 ${
+            canSelect ? "group-hover:scale-110" : ""
+          } ${isWinner ? "drop-shadow-[0_0_8px_rgba(0,230,118,0.3)]" : ""}`}
+        />
         {isSelected && !isFinished && (
-          <Check size={12} className="text-accent" />
+          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-accent rounded-full flex items-center justify-center shadow-md">
+            <Check size={10} className="text-white" strokeWidth={3} />
+          </div>
         )}
       </div>
+      <span className={`text-xs font-bold tracking-wide ${
+        isWinner ? "text-success" : isLoser ? "text-foreground-tertiary" : ""
+      }`}>
+        {abbr}
+      </span>
     </button>
   );
 }

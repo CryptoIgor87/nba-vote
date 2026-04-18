@@ -107,30 +107,40 @@ export default function LeaderboardPage() {
               <Link
                 href={`/user/${entry.user_id}`}
                 key={entry.user_id}
-                className={`block p-4 rounded-xl border transition-all hover:shadow-md active:scale-[0.99] ${
-                  rank <= 3
-                    ? "bg-card border-l-4 border-l-accent border-border-subtle shadow-sm"
-                    : "bg-card border-border-subtle shadow-sm"
+                className={`group block rounded-2xl transition-all duration-200 active:scale-[0.98] ${
+                  rank === 1
+                    ? "bg-gradient-to-r from-accent/10 via-card to-card border border-accent/30 shadow-md hover:shadow-lg"
+                    : rank <= 3
+                    ? "bg-card border border-accent/20 shadow-sm hover:shadow-md"
+                    : "bg-card border border-border hover:border-border shadow-sm hover:shadow-md"
                 }`}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4">
                   {/* Rank */}
                   <div className="w-8 text-center shrink-0">
                     {rank === 1 ? (
-                      <span className="text-2xl">🥇</span>
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-md">
+                        <span className="text-sm font-black text-white">1</span>
+                      </div>
                     ) : rank === 2 ? (
-                      <span className="text-2xl">🥈</span>
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gray-300 to-gray-500 flex items-center justify-center shadow-sm">
+                        <span className="text-sm font-black text-white">2</span>
+                      </div>
                     ) : rank === 3 ? (
-                      <span className="text-2xl">🥉</span>
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-sm">
+                        <span className="text-sm font-black text-white">3</span>
+                      </div>
                     ) : (
-                      <span className="text-lg font-bold text-muted">
+                      <span className="text-lg font-bold text-foreground-tertiary">
                         {rank}
                       </span>
                     )}
                   </div>
 
                   {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full bg-surface overflow-hidden shrink-0 border border-border">
+                  <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-surface overflow-hidden shrink-0 ${
+                    rank === 1 ? "ring-2 ring-accent/50" : "ring-1 ring-border"
+                  }`}>
                     {avatar ? (
                       <img
                         src={avatar}
@@ -138,7 +148,7 @@ export default function LeaderboardPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted text-sm font-bold">
+                      <div className="w-full h-full flex items-center justify-center text-foreground-tertiary text-sm font-bold">
                         {name[0]}
                       </div>
                     )}
@@ -146,14 +156,14 @@ export default function LeaderboardPage() {
 
                   {/* Name + predictions */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">{name}</p>
+                    <p className="font-bold text-sm sm:text-base truncate group-hover:text-accent transition-colors">{name}</p>
                     <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
-                      <span className="text-xs text-foreground-tertiary">
+                      <span className="text-[11px] text-foreground-tertiary">
                         {entry.total_predictions} прогнозов
                       </span>
                       {wp && wpTeam && (
-                        <span className="text-xs text-foreground-tertiary flex items-center gap-1">
-                          <Crown size={10} className="text-accent" />
+                        <span className="text-[11px] text-foreground-tertiary flex items-center gap-1">
+                          <Crown size={9} className="text-accent" />
                           <img
                             src={getTeamLogoUrl(wp.team_id)}
                             alt={wpTeam.abbreviation}
@@ -167,10 +177,12 @@ export default function LeaderboardPage() {
 
                   {/* Points */}
                   <div className="text-right shrink-0">
-                    <p className="text-xl font-bold text-accent">
+                    <div className={`text-xl sm:text-2xl font-black tabular-nums ${
+                      rank === 1 ? "text-gradient" : "text-accent"
+                    }`}>
                       {entry.total_points}
-                    </p>
-                    <p className="text-xs text-muted">баллов</p>
+                    </div>
+                    <p className="text-[10px] text-foreground-tertiary">баллов</p>
                   </div>
                 </div>
               </Link>

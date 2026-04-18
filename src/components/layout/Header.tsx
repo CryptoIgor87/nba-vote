@@ -35,7 +35,7 @@ export default function Header() {
   if (pathname === "/auth/signin" || pathname === "/") return null;
 
   return (
-    <header className="bg-card/90 backdrop-blur-xl border-b border-border-subtle sticky top-0 z-50 shadow-sm">
+    <header className="glass border-b border-border-subtle sticky top-0 z-50 shadow-lg">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
