@@ -42,11 +42,11 @@ export default function Header() {
           {/* Logo */}
           <Link href="/predictions" className="flex items-center gap-2 group">
             <span className="text-[28px] leading-none group-hover:scale-110 transition-transform drop-shadow-[0_2px_4px_rgba(255,106,0,0.3)]">🏀</span>
-            <div className="hidden sm:flex items-baseline gap-1">
+            <div className="flex items-baseline gap-1">
               <span className="font-display font-black text-base tracking-wider uppercase bg-gradient-to-r from-accent to-amber-400 bg-clip-text text-transparent">
                 NBA
               </span>
-              <span className="font-display font-bold text-sm tracking-wide uppercase text-foreground/60">
+              <span className="font-display font-bold text-sm tracking-wide uppercase text-foreground/60 hidden sm:inline">
                 Predict
               </span>
             </div>
