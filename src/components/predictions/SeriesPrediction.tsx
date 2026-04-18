@@ -156,13 +156,6 @@ export default function SeriesPrediction({
         </button>
       )}
 
-      {!isLocked && selectedWinner && selectedScore && !changed && (
-        <div className="text-center text-[10px] text-success font-medium flex items-center justify-center gap-1">
-          <Check size={10} />
-          Сохранено
-        </div>
-      )}
-
       {isLocked && prediction && (
         <div className="text-center text-[10px] text-muted font-medium">
           {prediction.predicted_winner_id === home_team.id
