@@ -147,17 +147,15 @@ export default function HistoryPage() {
     (dailyQuestions || []).some((q) => dailyPicks?.[q.id]?.[u.id])
   );
 
-  // Build rows: games + series + daily questions, sorted by date desc
+  // Series rows — shown separately at top
+  const seriesRows: Row[] = [];
+  series.forEach((s) => {
+    seriesRows.push({ type: "series", date: s.created_at, series: s });
+  });
+
+  // Game + daily rows, sorted by date desc
   const rows: Row[] = [];
   games.forEach((g) => rows.push({ type: "game", date: g.game_date, game: g }));
-  series.forEach((s) => {
-    // Use first game date of series, or created_at
-    const firstGame = games.filter((g) => g.round === "first_round" &&
-      ((g.home_team_id === s.team_home_id && g.away_team_id === s.team_away_id) ||
-       (g.home_team_id === s.team_away_id && g.away_team_id === s.team_home_id))
-    ).sort((a, b) => a.game_date.localeCompare(b.game_date))[0];
-    rows.push({ type: "series", date: firstGame?.game_date || s.created_at, series: s });
-  });
   (dailyQuestions || []).forEach((q) => {
     rows.push({ type: "daily", date: q.game?.game_date || q.question_date, question: q });
   });
@@ -208,9 +206,26 @@ export default function HistoryPage() {
           </thead>
 
           <tbody>
+            {/* Series predictions — separate block at top */}
+            {seriesRows.length > 0 && (
+              <>
+                <tr>
+                  <td
+                    colSpan={activeUsers.length + 1}
+                    className="sticky left-0 z-10 bg-surface px-3 py-1.5 text-xs font-bold text-accent uppercase tracking-wider"
+                  >
+                    Серии
+                  </td>
+                </tr>
+                {seriesRows.map((row) => (
+                  <SeriesRow key={`s-${(row as { series: Series }).series.id}`} series={(row as { series: Series }).series} users={activeUsers} picks={seriesPredictions[(row as { series: Series }).series.id] || {}} />
+                ))}
+              </>
+            )}
+
+            {/* Game + daily rows by day */}
             {[...days.entries()].map(([day, dayRows]) => (
               <>
-                {/* Day header */}
                 <tr key={`day-${day}`}>
                   <td
                     colSpan={activeUsers.length + 1}
@@ -224,11 +239,8 @@ export default function HistoryPage() {
                   if (row.type === "game") return (
                     <GameRow key={`g-${row.game.id}`} game={row.game} users={activeUsers} picks={gamePredictions[row.game.id] || {}} />
                   );
-                  if (row.type === "series") return (
-                    <SeriesRow key={`s-${row.series.id}`} series={row.series} users={activeUsers} picks={seriesPredictions[row.series.id] || {}} />
-                  );
                   return (
-                    <DailyRow key={`d-${row.question.id}`} question={row.question} users={activeUsers} picks={dailyPicks?.[row.question.id] || {}} />
+                    <DailyRow key={`d-${(row as { question: DailyQuestion }).question.id}`} question={(row as { question: DailyQuestion }).question} users={activeUsers} picks={dailyPicks?.[(row as { question: DailyQuestion }).question.id] || {}} />
                   );
                 })}
               </>

@@ -236,6 +236,9 @@ export async function recalculateScores() {
     // Don't forget the trailing streak (still active)
     if (currentStreak >= 3) streaks.push(currentStreak);
 
+    // Clear any leftover streak bonuses for this user then insert fresh
+    await supabase.from("nba_bonuses").delete().eq("user_id", user.id).eq("bonus_type", "streak");
+
     // Award progressive bonuses for each streak
     for (const streak of streaks) {
       if (streak >= 3) {

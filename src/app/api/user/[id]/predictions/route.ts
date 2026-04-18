@@ -59,10 +59,18 @@ export async function GET(
   const { data: allSeries } = await supabase.from("nba_series").select("*");
 
   const visibleSeriesPreds = seriesPredictions?.filter((sp) => {
-    const series = allSeries?.find((s) => s.id === sp.series_id);
-    if (!series) return false;
-    // Show if series is active or finished
-    return series.status !== "upcoming";
+    const s = allSeries?.find((x) => x.id === sp.series_id);
+    if (!s) return false;
+    if (s.status !== "upcoming") return true;
+    // For upcoming series, show only if first game is locked
+    const seriesGames = games?.filter((g) =>
+      (g.home_team_id === s.team_home_id && g.away_team_id === s.team_away_id) ||
+      (g.home_team_id === s.team_away_id && g.away_team_id === s.team_home_id)
+    ) || [];
+    return seriesGames.some((g) => {
+      const lockTime = new Date(new Date(g.game_date).getTime() - closeMinutes * 60 * 1000);
+      return now >= lockTime;
+    });
   });
 
   // Winner prediction - show if any game has started
