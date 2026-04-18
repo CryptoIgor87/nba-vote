@@ -112,11 +112,20 @@ export async function GET(
   ) || [];
   const correctPreds = predsForFinished.filter((p) => p.points_earned > 0);
 
-  // Daily question picks
-  const { data: dailyPicks } = await supabase
+  // Daily question picks — only show where the game is locked
+  const { data: allDailyPicks } = await supabase
     .from("nba_daily_picks")
     .select("*, question:nba_daily_questions!nba_daily_picks_question_id_fkey(*)")
     .eq("user_id", userId);
+
+  const dailyPicks = allDailyPicks?.filter((dp) => {
+    const q = dp.question as { game_id: number } | null;
+    if (!q) return false;
+    const game = games?.find((g) => g.id === q.game_id);
+    if (!game) return false;
+    const lockTime = new Date(new Date(game.game_date).getTime() - closeMinutes * 60 * 1000);
+    return now >= lockTime;
+  });
 
   // Streak calculation (game predictions + daily questions)
   const gamePredStreaks = (predictions || [])
