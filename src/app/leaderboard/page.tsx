@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  Trophy, Crown, Target, Flame, Crosshair, TrendingUp, Zap,
+  Trophy, Crown, Target, Flame, Crosshair, TrendingUp, Zap, Plus, Minus,
 } from "lucide-react";
 import { getTeamLogoUrl } from "@/lib/utils";
 import type { LeaderboardEntry, NbaTeam } from "@/lib/types";
@@ -180,66 +180,94 @@ export default function LeaderboardPage() {
       )}
 
       {/* Event feed */}
-      {events.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <Zap size={20} className="text-accent" />
-            Лента событий
-          </h2>
-          <div className="space-y-2">
-            {events.map((event) => {
-              const IconComp = ICON_MAP[event.icon] || Zap;
-              const avatar = event.user?.avatar_url || event.user?.image;
-              const date = new Date(event.created_at).toLocaleDateString(
-                "ru-RU",
-                { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }
-              );
+      {events.length > 0 && <EventFeed events={events} />}
+    </div>
+  );
+}
 
-              const userName = event.user?.display_name || event.user?.name || "Игрок";
-              // Remove user name from title to show it as a link separately
-              const rawText = event.title.replace(userName, "").trim();
-              const pointsMatch = rawText.match(/(\+\d+)$/);
-              const eventText = pointsMatch ? rawText.replace(pointsMatch[1], "").trim() : rawText;
-              const pointsText = pointsMatch ? pointsMatch[1] : null;
+function EventFeed({ events }: { events: FeedEvent[] }) {
+  const today = new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", weekday: "short" });
 
-              return (
-                <div
-                  key={event.id}
-                  className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3"
-                >
-                  {/* Avatar */}
-                  <Link href={`/user/${event.user_id}`} className="shrink-0">
-                    <div className="w-8 h-8 rounded-full bg-surface overflow-hidden border border-border">
-                      {avatar ? (
-                        <img src={avatar} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted text-xs font-bold">
-                          {userName[0]}
-                        </div>
-                      )}
-                    </div>
-                  </Link>
+  // Group events by day
+  const days = new Map<string, FeedEvent[]>();
+  events.forEach((e) => {
+    const day = new Date(e.created_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", weekday: "short" });
+    if (!days.has(day)) days.set(day, []);
+    days.get(day)!.push(e);
+  });
 
-                  {/* Icon */}
-                  <IconComp size={16} className="text-accent shrink-0" />
+  return (
+    <div className="mt-8">
+      <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+        <Zap size={20} className="text-accent" />
+        Лента событий
+      </h2>
+      <div className="space-y-3">
+        {[...days.entries()].map(([day, dayEvents]) => (
+          <EventDayGroup key={day} day={day} events={dayEvents} defaultOpen={day === today} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
-                  {/* Name + Text */}
-                  <p className="text-sm flex-1 min-w-0">
-                    <Link href={`/user/${event.user_id}`} className="font-display font-bold uppercase hover:text-accent transition-colors">
-                      {userName}
-                    </Link>{" "}
-                    <span className="text-muted">{eventText}</span>
-                    {pointsText && <span className="text-success font-bold ml-1">{pointsText}</span>}
-                  </p>
-
-                  {/* Date */}
-                  <span className="text-xs text-muted shrink-0">{date}</span>
-                </div>
-              );
-            })}
-          </div>
+function EventDayGroup({ day, events, defaultOpen }: { day: string; events: FeedEvent[]; defaultOpen: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center justify-between w-full px-3 py-1.5 bg-surface rounded-lg text-xs font-bold text-accent uppercase tracking-wider"
+      >
+        <span>{day}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-muted font-normal normal-case tracking-normal">{events.length}</span>
+          {open ? <Minus size={14} className="text-muted" /> : <Plus size={14} className="text-muted" />}
+        </div>
+      </button>
+      {open && (
+        <div className="space-y-2 mt-2">
+          {events.map((event) => (
+            <EventRow key={event.id} event={event} />
+          ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function EventRow({ event }: { event: FeedEvent }) {
+  const IconComp = ICON_MAP[event.icon] || Zap;
+  const avatar = event.user?.avatar_url || event.user?.image;
+  const date = new Date(event.created_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  const userName = event.user?.display_name || event.user?.name || "Игрок";
+  const rawText = event.title.replace(userName, "").trim();
+  const pointsMatch = rawText.match(/(\+\d+)$/);
+  const eventText = pointsMatch ? rawText.replace(pointsMatch[1], "").trim() : rawText;
+  const pointsText = pointsMatch ? pointsMatch[1] : null;
+
+  return (
+    <div className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3">
+      <Link href={`/user/${event.user_id}`} className="shrink-0">
+        <div className="w-8 h-8 rounded-full bg-surface overflow-hidden border border-border">
+          {avatar ? (
+            <img src={avatar} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted text-xs font-bold">
+              {userName[0]}
+            </div>
+          )}
+        </div>
+      </Link>
+      <IconComp size={16} className="text-accent shrink-0" />
+      <p className="text-sm flex-1 min-w-0">
+        <Link href={`/user/${event.user_id}`} className="font-display font-bold uppercase hover:text-accent transition-colors">
+          {userName}
+        </Link>{" "}
+        <span className="text-muted">{eventText}</span>
+        {pointsText && <span className="text-success font-bold ml-1">{pointsText}</span>}
+      </p>
+      <span className="text-xs text-muted shrink-0">{date}</span>
     </div>
   );
 }

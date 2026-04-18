@@ -236,28 +236,34 @@ export async function recalculateScores() {
     // Don't forget the trailing streak (still active)
     if (currentStreak >= 3) streaks.push(currentStreak);
 
-    // Award bonus for each qualifying streak (highest tier per streak)
+    // Award progressive bonuses for each streak: +1 at 3, +2 at 5, +2 at 7
+    const tier3pts = pointsStreak3;
+    const tier5pts = pointsStreak5 - pointsStreak3;
+    const tier7pts = pointsStreak7 - pointsStreak5;
+
     for (const streak of streaks) {
+      if (streak >= 3) {
+        await supabase.from("nba_bonuses").insert({
+          user_id: user.id,
+          bonus_type: "streak",
+          points: tier3pts,
+          description: `Стрик 3 угаданных подряд`,
+        });
+      }
+      if (streak >= 5) {
+        await supabase.from("nba_bonuses").insert({
+          user_id: user.id,
+          bonus_type: "streak",
+          points: tier5pts,
+          description: `Стрик 5 угаданных подряд`,
+        });
+      }
       if (streak >= 7) {
         await supabase.from("nba_bonuses").insert({
           user_id: user.id,
           bonus_type: "streak",
-          points: pointsStreak7,
-          description: `Стрик ${streak} угаданных подряд`,
-        });
-      } else if (streak >= 5) {
-        await supabase.from("nba_bonuses").insert({
-          user_id: user.id,
-          bonus_type: "streak",
-          points: pointsStreak5,
-          description: `Стрик ${streak} угаданных подряд`,
-        });
-      } else {
-        await supabase.from("nba_bonuses").insert({
-          user_id: user.id,
-          bonus_type: "streak",
-          points: pointsStreak3,
-          description: `Стрик ${streak} угаданных подряд`,
+          points: tier7pts,
+          description: `Стрик 7 угаданных подряд`,
         });
       }
     }
