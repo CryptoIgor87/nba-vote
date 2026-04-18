@@ -186,15 +186,11 @@ export default function LeaderboardPage() {
 }
 
 function EventFeed({ events }: { events: FeedEvent[] }) {
-  const today = new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", weekday: "short" });
+  const [olderOpen, setOlderOpen] = useState(false);
+  const todayStr = new Date().toDateString();
 
-  // Group events by day
-  const days = new Map<string, FeedEvent[]>();
-  events.forEach((e) => {
-    const day = new Date(e.created_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", weekday: "short" });
-    if (!days.has(day)) days.set(day, []);
-    days.get(day)!.push(e);
-  });
+  const todayEvents = events.filter((e) => new Date(e.created_at).toDateString() === todayStr);
+  const olderEvents = events.filter((e) => new Date(e.created_at).toDateString() !== todayStr);
 
   return (
     <div className="mt-8">
@@ -202,36 +198,26 @@ function EventFeed({ events }: { events: FeedEvent[] }) {
         <Zap size={20} className="text-accent" />
         Лента событий
       </h2>
-      <div className="space-y-3">
-        {[...days.entries()].map(([day, dayEvents]) => (
-          <EventDayGroup key={day} day={day} events={dayEvents} defaultOpen={day === today} />
+      <div className="space-y-2">
+        {todayEvents.map((event) => (
+          <EventRow key={event.id} event={event} />
+        ))}
+        {todayEvents.length === 0 && olderEvents.length > 0 && !olderOpen && (
+          <p className="text-sm text-muted py-2">Сегодня пока нет событий</p>
+        )}
+        {olderEvents.length > 0 && (
+          <button
+            onClick={() => setOlderOpen(!olderOpen)}
+            className="flex items-center justify-between w-full px-3 py-1.5 bg-surface rounded-lg text-xs font-bold text-muted"
+          >
+            <span>Ранее ({olderEvents.length})</span>
+            {olderOpen ? <Minus size={14} /> : <Plus size={14} />}
+          </button>
+        )}
+        {olderOpen && olderEvents.map((event) => (
+          <EventRow key={event.id} event={event} />
         ))}
       </div>
-    </div>
-  );
-}
-
-function EventDayGroup({ day, events, defaultOpen }: { day: string; events: FeedEvent[]; defaultOpen: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div>
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full px-3 py-1.5 bg-surface rounded-lg text-xs font-bold text-accent uppercase tracking-wider"
-      >
-        <span>{day}</span>
-        <div className="flex items-center gap-2">
-          <span className="text-muted font-normal normal-case tracking-normal">{events.length}</span>
-          {open ? <Minus size={14} className="text-muted" /> : <Plus size={14} className="text-muted" />}
-        </div>
-      </button>
-      {open && (
-        <div className="space-y-2 mt-2">
-          {events.map((event) => (
-            <EventRow key={event.id} event={event} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
