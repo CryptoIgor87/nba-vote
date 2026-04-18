@@ -544,7 +544,7 @@ async function generateEvents() {
     if (maxStreak >= 3) {
       const streakPts = maxStreak >= 7 ? (settings.points_streak_7 ?? 5) : maxStreak >= 5 ? (settings.points_streak_5 ?? 3) : (settings.points_streak_3 ?? 1);
       await addEvent(user.id, `streak_${maxStreak >= 7 ? 7 : maxStreak >= 5 ? 5 : 3}`,
-        `${name} - стрик ${maxStreak} угаданных подряд! (+${streakPts})`, "flame");
+        `${name} - стрик ${maxStreak} угаданных подряд! +${streakPts}`, "flame");
     }
 
     // Bonuses

@@ -197,7 +197,10 @@ export default function LeaderboardPage() {
 
               const userName = event.user?.display_name || event.user?.name || "Игрок";
               // Remove user name from title to show it as a link separately
-              const eventText = event.title.replace(userName, "").trim();
+              const rawText = event.title.replace(userName, "").trim();
+              const pointsMatch = rawText.match(/(\+\d+)$/);
+              const eventText = pointsMatch ? rawText.replace(pointsMatch[1], "").trim() : rawText;
+              const pointsText = pointsMatch ? pointsMatch[1] : null;
 
               return (
                 <div
@@ -226,6 +229,7 @@ export default function LeaderboardPage() {
                       {userName}
                     </Link>{" "}
                     <span className="text-muted">{eventText}</span>
+                    {pointsText && <span className="text-success font-bold ml-1">{pointsText}</span>}
                   </p>
 
                   {/* Date */}
