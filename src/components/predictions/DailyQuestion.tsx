@@ -87,7 +87,7 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
             {game.home_team?.abbreviation} vs {game.away_team?.abbreviation}
           </div>
           <div className="text-[10px] text-accent font-bold mt-1 leading-tight">
-            Кто больше {categoryLabel}?
+            Кто больше забьёт {categoryLabel}?
           </div>
           {!locked && !isFinished && (
             <div className="mt-1">

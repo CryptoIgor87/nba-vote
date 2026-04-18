@@ -470,7 +470,7 @@ export default function UserPage() {
                   <div className="text-xs text-muted mb-2 flex items-center justify-between">
                     <span>
                       {game ? formatGameDate(game.game_date) : q.question_date}
-                      <span className="ml-2 text-accent">Кто больше {categoryLabels[q.category] || q.category}?</span>
+                      <span className="ml-2 text-accent">Кто больше забьёт {categoryLabels[q.category] || q.category}?</span>
                     </span>
                   </div>
                   <div className="flex items-center gap-3">

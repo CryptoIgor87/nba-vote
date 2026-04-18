@@ -313,7 +313,7 @@ function DailyRow({ question, users, picks }: { question: DailyQuestion; users: 
           {game && <img src={getTeamLogoUrl(game.away_team_id)} alt="" className="w-4 h-4" />}
         </div>
         <div className="text-[9px] text-accent font-semibold mt-0.5 leading-tight">
-          Кто больше {categoryLabel}?
+          Кто больше забьёт {categoryLabel}?
         </div>
         {isResolved && question.correct_answer && (
           <div className="text-[9px] text-success font-bold leading-tight">
