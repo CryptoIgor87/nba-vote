@@ -112,7 +112,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Background ambient glow blobs */
+/* Background: large basketball + gradient blobs */
 body::after {
   content: '';
   position: fixed;
@@ -120,10 +120,11 @@ body::after {
   pointer-events: none;
   z-index: -1;
   background:
-    radial-gradient(ellipse 600px 500px at 10% 15%, rgba(255, 106, 0, 0.04), transparent 70%),
-    radial-gradient(ellipse 500px 400px at 85% 70%, rgba(255, 106, 0, 0.03), transparent 70%),
-    radial-gradient(ellipse 400px 350px at 50% 40%, rgba(100, 120, 255, 0.02), transparent 70%),
-    radial-gradient(ellipse 300px 300px at 25% 80%, rgba(0, 230, 118, 0.015), transparent 70%);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' fill='none' stroke='%23ff6a00' stroke-width='2'%3E%3Ccircle cx='100' cy='100' r='90'/%3E%3Cpath d='M10 100Q100 70 190 100'/%3E%3Cpath d='M10 100Q100 130 190 100'/%3E%3Cpath d='M100 10Q70 100 100 190'/%3E%3Cpath d='M100 10Q130 100 100 190'/%3E%3C/svg%3E") no-repeat right 5% top 15% / 350px 350px,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' fill='none' stroke='%23ff6a00' stroke-width='2'%3E%3Ccircle cx='100' cy='100' r='90'/%3E%3Cpath d='M10 100Q100 70 190 100'/%3E%3Cpath d='M10 100Q100 130 190 100'/%3E%3Cpath d='M100 10Q70 100 100 190'/%3E%3Cpath d='M100 10Q130 100 100 190'/%3E%3C/svg%3E") no-repeat left 3% bottom 20% / 250px 250px,
+    radial-gradient(ellipse 700px 600px at 15% 10%, rgba(255, 106, 0, 0.06), transparent 70%),
+    radial-gradient(ellipse 600px 500px at 80% 60%, rgba(255, 106, 0, 0.04), transparent 70%);
+  opacity: 0.5;
 }
 
 /* Accent gradient bar */
@@ -226,7 +227,7 @@ input[type="number"] { -moz-appearance: textfield; }
 /* Selection */
 ::selection { background: var(--accent); color: white; }
 
-/* Basketball ball SVG watermark */
+/* Basketball ball SVG watermark — inline data URI */
 .ball-pattern {
   position: relative;
   overflow: hidden;
@@ -234,16 +235,16 @@ input[type="number"] { -moz-appearance: textfield; }
 .ball-pattern::before {
   content: '';
   position: absolute;
-  right: -15%;
+  right: -10px;
   top: 50%;
   transform: translateY(-50%);
-  width: 120%;
-  max-width: 160px;
-  aspect-ratio: 1;
+  width: 130px;
+  height: 130px;
   pointer-events: none;
-  opacity: 0.07;
-  background: url('/ball.svg') center/contain no-repeat;
-  filter: brightness(0) invert(0.5) sepia(1) saturate(5) hue-rotate(10deg);
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' fill='none' stroke='%23ff6a00' stroke-width='3'%3E%3Ccircle cx='100' cy='100' r='90'/%3E%3Cpath d='M10 100Q100 70 190 100'/%3E%3Cpath d='M10 100Q100 130 190 100'/%3E%3Cpath d='M100 10Q70 100 100 190'/%3E%3Cpath d='M100 10Q130 100 100 190'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 /* Stats/math symbols pattern for daily questions */
