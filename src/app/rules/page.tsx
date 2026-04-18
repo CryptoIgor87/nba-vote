@@ -127,11 +127,11 @@ export default function RulesPage() {
               </p>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs">
                 <span>3 подряд: <strong className="text-accent">+{pts("points_streak_3", 1)}</strong></span>
-                <span>5 подряд: {"ещё "}<strong className="text-accent">+{pts("points_streak_5", 2) - pts("points_streak_3", 1)}</strong></span>
-                <span>7 подряд: {"ещё "}<strong className="text-accent">+{pts("points_streak_7", 3) - pts("points_streak_5", 2)}</strong></span>
+                <span>5 подряд: {"ещё "}<strong className="text-accent">+{pts("points_streak_5", 2)}</strong></span>
+                <span>7 подряд: {"ещё "}<strong className="text-accent">+{pts("points_streak_7", 3)}</strong></span>
               </div>
               <p className="text-xs text-muted mt-1">
-                Новый стрик после проигрыша — бонусы заново.
+                Итого за стрик 7: +{pts("points_streak_3", 1) + pts("points_streak_5", 2) + pts("points_streak_7", 3)}. Новый стрик после проигрыша — бонусы заново.
               </p>
             </div>
           </div>

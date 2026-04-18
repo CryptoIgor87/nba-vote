@@ -32,10 +32,23 @@ export async function GET() {
     : { data: [] };
 
   // Series predictions (for finished/active series)
-  const { data: allSeries } = await supabase
+  const { data: allSeriesRaw } = await supabase
     .from("nba_series")
     .select("*")
     .order("created_at", { ascending: false });
+
+  // Only show series where at least one game has started (locked)
+  const allSeries = (allSeriesRaw || []).filter((s) => {
+    if (s.status !== "upcoming") return true;
+    const seriesGames = games.filter((g) =>
+      (g.home_team_id === s.team_home_id && g.away_team_id === s.team_away_id) ||
+      (g.home_team_id === s.team_away_id && g.away_team_id === s.team_home_id)
+    );
+    return seriesGames.some((g) => {
+      const lockTime = new Date(new Date(g.game_date).getTime() - closeMinutes * 60 * 1000);
+      return now >= lockTime;
+    });
+  });
 
   const { data: seriesPredictions } = await supabase
     .from("nba_series_predictions")

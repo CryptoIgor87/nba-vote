@@ -236,17 +236,13 @@ export async function recalculateScores() {
     // Don't forget the trailing streak (still active)
     if (currentStreak >= 3) streaks.push(currentStreak);
 
-    // Award progressive bonuses for each streak: +1 at 3, +2 at 5, +2 at 7
-    const tier3pts = pointsStreak3;
-    const tier5pts = pointsStreak5 - pointsStreak3;
-    const tier7pts = pointsStreak7 - pointsStreak5;
-
+    // Award progressive bonuses for each streak
     for (const streak of streaks) {
       if (streak >= 3) {
         await supabase.from("nba_bonuses").insert({
           user_id: user.id,
           bonus_type: "streak",
-          points: tier3pts,
+          points: pointsStreak3,
           description: `Стрик 3 угаданных подряд`,
         });
       }
@@ -254,7 +250,7 @@ export async function recalculateScores() {
         await supabase.from("nba_bonuses").insert({
           user_id: user.id,
           bonus_type: "streak",
-          points: tier5pts,
+          points: pointsStreak5,
           description: `Стрик 5 угаданных подряд`,
         });
       }
@@ -262,7 +258,7 @@ export async function recalculateScores() {
         await supabase.from("nba_bonuses").insert({
           user_id: user.id,
           bonus_type: "streak",
-          points: tier7pts,
+          points: pointsStreak7,
           description: `Стрик 7 угаданных подряд`,
         });
       }
