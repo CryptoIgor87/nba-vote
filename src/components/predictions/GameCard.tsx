@@ -131,12 +131,12 @@ function TeamBtn({
       <img src={getTeamLogoUrl(teamId)} alt={abbr}
         className={`w-11 h-11 sm:w-12 sm:h-12 object-contain ${isWinner ? "drop-shadow-[0_0_8px_rgba(0,230,118,0.3)]" : ""}`}
       />
-      <div className="flex flex-col items-start gap-0.5">
-        <span className={`text-sm font-extrabold ${isWinner ? "text-success" : isSelected && !isFinished ? "text-accent" : ""}`}>{abbr}</span>
-        {isSelected && !isFinished && <span className="text-[9px] text-accent font-semibold"><Check size={8} className="inline" /> Выбрано</span>}
-        {isWinner && isSelected && <span className="text-[9px] text-success font-semibold"><Trophy size={8} className="inline" /> Угадал</span>}
-        {!isWinner && isSelected && isFinished && <span className="text-[9px] text-danger font-semibold"><X size={8} className="inline" /> Нет</span>}
-      </div>
+      <span className={`text-sm font-extrabold flex items-center gap-1 ${isWinner ? "text-success" : isSelected && !isFinished ? "text-accent" : ""}`}>
+        {abbr}
+        {isSelected && !isFinished && <Check size={12} className="text-accent" />}
+        {isWinner && isSelected && <Trophy size={12} className="text-success" />}
+        {!isWinner && isSelected && isFinished && <X size={12} className="text-danger" />}
+      </span>
     </button>
   );
 }
