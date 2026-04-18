@@ -221,41 +221,45 @@ export async function recalculateScores() {
     const allStreakItems = [...userPreds, ...userDailyPicks]
       .sort((a, b) => a!.game_date.localeCompare(b!.game_date));
 
-    // Find max streak
-    let maxStreak = 0;
+    // Find all streaks and award bonus for each one that hits a threshold
     let currentStreak = 0;
+    const streaks: number[] = [];
 
     for (const pred of allStreakItems) {
       if (pred!.correct) {
         currentStreak++;
-        maxStreak = Math.max(maxStreak, currentStreak);
       } else {
+        if (currentStreak >= 3) streaks.push(currentStreak);
         currentStreak = 0;
       }
     }
+    // Don't forget the trailing streak (still active)
+    if (currentStreak >= 3) streaks.push(currentStreak);
 
-    // Award streak bonuses (only highest applicable)
-    if (maxStreak >= 7) {
-      await supabase.from("nba_bonuses").insert({
-        user_id: user.id,
-        bonus_type: "streak",
-        points: pointsStreak7,
-        description: `Стрик ${maxStreak} угаданных подряд`,
-      });
-    } else if (maxStreak >= 5) {
-      await supabase.from("nba_bonuses").insert({
-        user_id: user.id,
-        bonus_type: "streak",
-        points: pointsStreak5,
-        description: `Стрик ${maxStreak} угаданных подряд`,
-      });
-    } else if (maxStreak >= 3) {
-      await supabase.from("nba_bonuses").insert({
-        user_id: user.id,
-        bonus_type: "streak",
-        points: pointsStreak3,
-        description: `Стрик ${maxStreak} угаданных подряд`,
-      });
+    // Award bonus for each qualifying streak (highest tier per streak)
+    for (const streak of streaks) {
+      if (streak >= 7) {
+        await supabase.from("nba_bonuses").insert({
+          user_id: user.id,
+          bonus_type: "streak",
+          points: pointsStreak7,
+          description: `Стрик ${streak} угаданных подряд`,
+        });
+      } else if (streak >= 5) {
+        await supabase.from("nba_bonuses").insert({
+          user_id: user.id,
+          bonus_type: "streak",
+          points: pointsStreak5,
+          description: `Стрик ${streak} угаданных подряд`,
+        });
+      } else {
+        await supabase.from("nba_bonuses").insert({
+          user_id: user.id,
+          bonus_type: "streak",
+          points: pointsStreak3,
+          description: `Стрик ${streak} угаданных подряд`,
+        });
+      }
     }
   }
 
