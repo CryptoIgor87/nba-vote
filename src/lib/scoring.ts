@@ -253,8 +253,10 @@ export async function recalculateScores() {
   }
 
   // Bulk insert all bonuses (series + streak) in one go
+  console.log("[scoring] allNewBonuses count:", allNewBonuses.length, JSON.stringify(allNewBonuses));
   if (allNewBonuses.length > 0) {
-    await supabase.from("nba_bonuses").insert(allNewBonuses);
+    const { data: inserted, error } = await supabase.from("nba_bonuses").insert(allNewBonuses).select();
+    console.log("[scoring] inserted:", inserted?.length, "error:", error);
   }
 
   // 4. Tournament winner
