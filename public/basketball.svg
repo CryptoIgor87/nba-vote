@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Outer circle -->
+  <circle cx="50" cy="50" r="48" stroke="currentColor" stroke-width="2"/>
+  <!-- Horizontal seam -->
+  <path d="M2 50 C 25 38, 75 38, 98 50" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M2 50 C 25 62, 75 62, 98 50" stroke="currentColor" stroke-width="1.8"/>
+  <!-- Vertical seam -->
+  <path d="M50 2 C 38 25, 38 75, 50 98" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M50 2 C 62 25, 62 75, 50 98" stroke="currentColor" stroke-width="1.8"/>
+</svg>
