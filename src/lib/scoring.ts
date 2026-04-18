@@ -451,6 +451,7 @@ async function rebuildLeaderboard() {
 }
 
 async function generateEvents() {
+  const settings = await getSettings();
   const { data: users } = await supabase.from("nba_users").select("id, name, display_name");
   const { data: existingEvents } = await supabase.from("nba_events").select("user_id, event_type");
   if (!users) return;
@@ -541,8 +542,9 @@ async function generateEvents() {
     }
 
     if (maxStreak >= 3) {
+      const streakPts = maxStreak >= 7 ? (settings.points_streak_7 ?? 5) : maxStreak >= 5 ? (settings.points_streak_5 ?? 3) : (settings.points_streak_3 ?? 1);
       await addEvent(user.id, `streak_${maxStreak >= 7 ? 7 : maxStreak >= 5 ? 5 : 3}`,
-        `${name} - стрик ${maxStreak} угаданных подряд!`, "flame");
+        `${name} - стрик ${maxStreak} угаданных подряд! (+${streakPts})`, "flame");
     }
 
     // Bonuses

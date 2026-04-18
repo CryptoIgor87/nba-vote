@@ -148,12 +148,19 @@ export async function GET(
   }
 
   const dailyPoints = dailyPicks?.reduce((s, p) => s + (p.points_earned || 0), 0) || 0;
+  const resolvedDailyPicks = dailyPicks?.filter((dp) =>
+    (dp.question as { status: string })?.status === "resolved"
+  ) || [];
+  const correctDailyPicks = resolvedDailyPicks.filter((dp) => dp.points_earned > 0);
+
+  const totalPredictions = predsForFinished.length + resolvedDailyPicks.length;
+  const totalCorrect = correctPreds.length + correctDailyPicks.length;
 
   const stats = {
-    totalPredictions: predsForFinished.length,
-    correctPredictions: correctPreds.length,
-    accuracy: predsForFinished.length > 0
-      ? Math.round((correctPreds.length / predsForFinished.length) * 100)
+    totalPredictions,
+    correctPredictions: totalCorrect,
+    accuracy: totalPredictions > 0
+      ? Math.round((totalCorrect / totalPredictions) * 100)
       : 0,
     maxStreak,
     currentStreak,
