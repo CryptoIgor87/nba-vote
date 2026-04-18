@@ -65,113 +65,125 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
     : 0;
 
   const isCorrectPick = localPick != null && localPick === question.correct_answer;
+  const canSelect = !locked && !isFinished && !saving;
 
   return (
-    <div
-      className={`bg-card border rounded-xl overflow-hidden ${
-        isResolved ? "border-border" : locked ? "border-border opacity-75" : "border-border card-glow"
-      }`}
-    >
-      {/* Left panel + options like GameCard layout */}
-      <div className="flex items-stretch">
-        {/* Left: match info */}
-        <div
-          className={`w-28 sm:w-36 shrink-0 flex flex-col items-center justify-center px-2 py-3 text-center ${
-            isFinished ? "bg-surface" : "bg-accent/10"
-          }`}
-        >
-          <div className="text-[11px] sm:text-xs font-semibold text-foreground leading-tight">
-            {formatGameDate(game.game_date)}
-          </div>
-          <div className="text-[10px] text-muted mt-0.5 leading-tight">
-            {game.home_team?.abbreviation} vs {game.away_team?.abbreviation}
-          </div>
-          <div className="text-[10px] text-accent font-bold mt-1 leading-tight">
+    <div className={`rounded-2xl overflow-hidden ring-1 transition-all duration-200 ${
+      isResolved
+        ? isCorrectPick
+          ? "ring-success/40 shadow-[0_0_20px_rgba(0,230,118,0.08)]"
+          : "ring-border"
+        : locked
+        ? "ring-border opacity-50"
+        : "ring-border hover:ring-accent/50"
+    }`}>
+      {/* Top accent */}
+      {!isResolved && !locked && (
+        <div className="h-[2px] bg-gradient-to-r from-accent/0 via-accent to-accent/0" />
+      )}
+      {isResolved && isCorrectPick && (
+        <div className="h-[2px] bg-gradient-to-r from-success/0 via-success to-success/0" />
+      )}
+
+      {/* Row 1: Question info */}
+      <div className="bg-card px-4 py-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-accent text-sm">❓</span>
+          <span className="text-xs font-bold text-accent">
             Кто больше забьёт {categoryLabel}?
-          </div>
-          {!locked && !isFinished && (
-            <div className="mt-1">
-              <Countdown
-                deadline={new Date(
-                  new Date(game.game_date).getTime() - 30 * 60 * 1000
-                ).toISOString()}
-              />
-            </div>
-          )}
-          {locked && !isFinished && (
-            <div className="flex items-center gap-1 text-[10px] text-muted mt-1">
-              <Lock size={10} />
-              Закрыто
-            </div>
-          )}
-          {isResolved && isCorrectPick && (
-            <div className="flex items-center gap-1 text-[10px] text-success font-bold mt-1">
-              <Trophy size={10} />+{pick?.points_earned ?? 1}
-            </div>
-          )}
-          {saved && (
-            <div className="flex items-center gap-1 text-[10px] text-success font-bold mt-1">
-              <Check size={10} /> OK
-            </div>
-          )}
+          </span>
         </div>
-
-        {/* Right: 5 player options */}
-        <div className="flex-1 grid grid-cols-5 divide-x divide-border">
-          {options.map((opt) => {
-            const isSelected = localPick === opt.name;
-            const isCorrect = isResolved && question.correct_answer === opt.name;
-            const isWrong = isResolved && isSelected && question.correct_answer !== opt.name;
-            const canSelect = !locked && !isFinished && !saving;
-            const count = pickCounts?.[opt.name] ?? 0;
-            const pct = totalPicks > 0 ? Math.round((count / totalPicks) * 100) : 0;
-            const nbaId = opt.nba_id;
-
-            let bg = "";
-            if (isSelected && !isResolved) bg = "bg-accent/20 ring-1 ring-accent/40 ring-inset";
-            else if (isCorrect) bg = "bg-success/10";
-            else if (isWrong) bg = "bg-danger/10";
-
-            return (
-              <button
-                key={opt.name}
-                onClick={() => handlePick(opt.name)}
-                disabled={!canSelect}
-                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-1 transition-all ${
-                  canSelect ? "cursor-pointer hover:bg-surface" : "cursor-default"
-                } ${bg}`}
-              >
-                {nbaId ? (
-                  <img
-                    src={getPlayerHeadshotUrl(nbaId)}
-                    alt={opt.name}
-                    className="w-10 h-8 sm:w-12 sm:h-9 object-cover object-top rounded"
-                  />
-                ) : (
-                  <HelpCircle size={24} className="text-muted" />
-                )}
-                <span className="text-[10px] sm:text-[11px] font-medium leading-tight text-center">
-                  {opt.name === "other" ? "Другой" : opt.name.split(" ").pop()}
-                </span>
-                <div className="h-3 flex items-center">
-                  {isSelected && !isResolved && (
-                    <Check size={10} className="text-accent" />
-                  )}
-                  {isCorrect && (
-                    <span className="text-[9px] text-success font-bold flex items-center gap-0.5">
-                      <Trophy size={8} />
-                      {question.correct_value}
-                    </span>
-                  )}
-                  {isResolved && !isCorrect && (
-                    <span className="text-[9px] text-muted">{pct}%</span>
-                  )}
-                </div>
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[10px] text-foreground-tertiary">
+            {game.home_team?.abbreviation} vs {game.away_team?.abbreviation}
+          </span>
+          {isResolved && isCorrectPick && (
+            <span className="score-badge text-[11px]">+{pick?.points_earned ?? 1}</span>
+          )}
+          {saved && <Check size={12} className="text-success" />}
         </div>
       </div>
+
+      {/* Row 2: Player options */}
+      <div className="border-t border-border grid grid-cols-5">
+        {options.map((opt, idx) => {
+          const isSelected = localPick === opt.name;
+          const isCorrect = isResolved && question.correct_answer === opt.name;
+          const isWrong = isResolved && isSelected && question.correct_answer !== opt.name;
+          const count = pickCounts?.[opt.name] ?? 0;
+          const pct = totalPicks > 0 ? Math.round((count / totalPicks) * 100) : 0;
+          const nbaId = opt.nba_id;
+
+          return (
+            <button
+              key={opt.name}
+              onClick={() => handlePick(opt.name)}
+              disabled={!canSelect}
+              className={`flex flex-col items-center justify-center gap-1 py-3 px-1 transition-all duration-150 ${
+                idx < 4 ? "border-r border-border" : ""
+              } ${
+                canSelect ? "cursor-pointer active:scale-90 hover:bg-card-hover" : "cursor-default"
+              } ${
+                isSelected && !isResolved ? "bg-accent/10" : ""
+              } ${
+                isCorrect ? "bg-success/8" : ""
+              } ${
+                isWrong ? "bg-danger/8" : ""
+              }`}
+            >
+              {nbaId ? (
+                <img
+                  src={getPlayerHeadshotUrl(nbaId)}
+                  alt={opt.name}
+                  className="w-10 h-8 sm:w-12 sm:h-9 object-cover object-top rounded-md"
+                />
+              ) : (
+                <HelpCircle size={24} className="text-foreground-tertiary" />
+              )}
+              <span className={`text-[10px] sm:text-[11px] font-semibold leading-tight text-center ${
+                isCorrect ? "text-success" : isSelected && !isResolved ? "text-accent" : ""
+              }`}>
+                {opt.name === "other" ? "Другой" : opt.name.split(" ").pop()}
+              </span>
+              <div className="h-3 flex items-center">
+                {isSelected && !isResolved && (
+                  <Check size={9} className="text-accent" />
+                )}
+                {isCorrect && (
+                  <span className="text-[9px] text-success font-bold flex items-center gap-0.5">
+                    <Trophy size={7} />
+                    {question.correct_value}
+                  </span>
+                )}
+                {isResolved && !isCorrect && (
+                  <span className="text-[9px] text-foreground-tertiary">{pct}%</span>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Timer / Lock */}
+      {!isFinished && !isResolved && (
+        <div className="bg-surface/50 border-t border-border px-4 py-1.5 flex items-center justify-center text-[10px]">
+          {!locked ? (
+            <Countdown deadline={new Date(new Date(game.game_date).getTime() - 30 * 60 * 1000).toISOString()} />
+          ) : (
+            <span className="flex items-center gap-1 text-foreground-tertiary"><Lock size={9} /> Приём закрыт</span>
+          )}
+        </div>
+      )}
+
+      {/* Resolved: correct answer */}
+      {isResolved && question.correct_answer && (
+        <div className="bg-surface/50 border-t border-border px-4 py-1.5 flex items-center justify-center gap-1 text-[10px]">
+          <Trophy size={9} className="text-success" />
+          <span className="text-foreground-secondary font-medium">
+            {question.correct_answer === "other" ? "Другой" : question.correct_answer}: {question.correct_value} {categoryLabel}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
