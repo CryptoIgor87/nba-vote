@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trophy, Target, Award, Crown, Flame, Crosshair, TrendingUp } from "lucide-react";
+import { Trophy, Target, Award, Crown, Flame, Crosshair, TrendingUp, Rat } from "lucide-react";
 
 export default function RulesPage() {
   const [settings, setSettings] = useState<Record<string, number>>({});
@@ -151,6 +151,39 @@ export default function RulesPage() {
             <p className="text-xs text-muted mt-1">
               Одноразовая ставка до начала первого матча серии.
             </p>
+          </div>
+        </section>
+
+        {/* Anti-rat */}
+        <section className="bg-card border border-danger/30 rounded-xl p-5">
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Rat size={20} className="text-danger" />
+            Анти-крыса
+          </h2>
+          <p className="text-sm text-foreground/80 mb-3">
+            Чтобы никто не подглядывал чужие прогнозы и не копировал их, действуют ограничения:
+          </p>
+          <div className="space-y-2">
+            <div className="bg-background rounded-lg p-3">
+              <p className="text-sm font-medium">Прогнозы на матч</p>
+              <p className="text-xs text-muted mt-1">
+                Становятся видны в профиле игрока и сводной таблице только после начала матча
+                (за {pts("betting_close_minutes", 30)} минут до старта приём прогнозов закрывается).
+              </p>
+            </div>
+            <div className="bg-background rounded-lg p-3">
+              <p className="text-sm font-medium">Прогнозы на серию</p>
+              <p className="text-xs text-muted mt-1">
+                Становятся видны только после начала первого матча серии. До этого момента
+                никто не узнает, на кого вы поставили.
+              </p>
+            </div>
+            <div className="bg-background rounded-lg p-3">
+              <p className="text-sm font-medium">Вопросы дня</p>
+              <p className="text-xs text-muted mt-1">
+                Ответы видны только после начала матча, к которому привязан вопрос.
+              </p>
+            </div>
           </div>
         </section>
 
