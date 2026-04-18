@@ -90,13 +90,19 @@ export default function LeaderboardPage() {
       </div>
 
       {entries.length === 0 ? (
-        <p className="text-center text-muted py-10">
+        <p className="text-center text-foreground-tertiary py-10">
           Пока нет участников. Зарегистрируйтесь и сделайте первые прогнозы!
         </p>
       ) : (
-        <div className="space-y-2">
-          {entries.map((entry, i) => {
-            const rank = i + 1;
+        <div>
+          {/* Podium for top 3 */}
+          {entries.length >= 3 && (
+            <Podium entries={entries.slice(0, 3)} teamsMap={teamsMap} winnerPreds={winnerPreds} />
+          )}
+
+          <div className="space-y-2 mt-4">
+          {entries.slice(entries.length >= 3 ? 3 : 0).map((entry, i) => {
+            const rank = (entries.length >= 3 ? 3 : 0) + i + 1;
             const user = entry.user;
             const avatar = user?.avatar_url || user?.image;
             const name = user?.display_name || user?.name || "Игрок";
@@ -188,6 +194,7 @@ export default function LeaderboardPage() {
               </Link>
             );
           })}
+          </div>
         </div>
       )}
 
@@ -197,6 +204,72 @@ export default function LeaderboardPage() {
   );
 }
 
+function Podium({
+  entries, teamsMap, winnerPreds,
+}: {
+  entries: LeaderboardEntry[];
+  teamsMap: Map<number, NbaTeam>;
+  winnerPreds: WinnerPred[];
+}) {
+  const [first, second, third] = entries;
+  const podium = [
+    { entry: second, rank: 2, height: "h-20", color: "from-gray-400/20 to-gray-600/10", ringColor: "ring-gray-400/40", badge: "bg-gradient-to-br from-gray-300 to-gray-500" },
+    { entry: first, rank: 1, height: "h-28", color: "from-amber-500/20 to-amber-700/10", ringColor: "ring-amber-400/50", badge: "bg-gradient-to-br from-yellow-400 to-amber-600" },
+    { entry: third, rank: 3, height: "h-16", color: "from-amber-700/15 to-amber-900/5", ringColor: "ring-amber-700/30", badge: "bg-gradient-to-br from-amber-600 to-amber-800" },
+  ];
+
+  return (
+    <div className="flex items-end justify-center gap-3 sm:gap-4 mb-2">
+      {podium.map(({ entry, rank, height, color, ringColor, badge }) => {
+        const user = entry.user;
+        const avatar = user?.avatar_url || user?.image;
+        const name = user?.display_name || user?.name || "?";
+        const wp = winnerPreds.find((w) => w.user_id === entry.user_id);
+        const wpTeam = wp ? teamsMap.get(wp.team_id) : null;
+        return (
+          <Link
+            key={entry.user_id}
+            href={`/user/${entry.user_id}`}
+            className={`flex flex-col items-center group ${rank === 1 ? "w-28 sm:w-36" : "w-24 sm:w-32"}`}
+          >
+            {/* Avatar */}
+            <div className="relative mb-2">
+              <div className={`${rank === 1 ? "w-16 h-16 sm:w-20 sm:h-20" : "w-12 h-12 sm:w-16 sm:h-16"} rounded-full overflow-hidden ring-2 ${ringColor} transition-transform group-hover:scale-105`}>
+                {avatar ? (
+                  <img src={avatar} alt={name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-surface flex items-center justify-center text-foreground-tertiary text-lg font-bold">
+                    {name[0]}
+                  </div>
+                )}
+              </div>
+              <div className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-6 h-6 sm:w-7 sm:h-7 ${badge} rounded-full flex items-center justify-center shadow-lg`}>
+                <span className="text-[10px] sm:text-xs font-black text-white">{rank}</span>
+              </div>
+            </div>
+            {/* Name */}
+            <span className="text-xs sm:text-sm font-bold truncate max-w-full text-center group-hover:text-accent transition-colors">
+              {name.split(" ")[0]}
+            </span>
+            {/* Points */}
+            <span className={`text-lg sm:text-xl font-black tabular-nums mt-0.5 ${rank === 1 ? "text-gradient" : "text-accent"}`}>
+              {entry.total_points}
+            </span>
+            {/* Winner pred */}
+            {wpTeam && (
+              <div className="flex items-center gap-1 mt-0.5">
+                <img src={getTeamLogoUrl(wp!.team_id)} alt="" className="w-3.5 h-3.5" />
+                <span className="text-[9px] text-foreground-tertiary">{wpTeam.abbreviation}</span>
+              </div>
+            )}
+            {/* Pedestal */}
+            <div className={`w-full ${height} mt-2 rounded-t-xl bg-gradient-to-t ${color} border-t border-x border-border-subtle`} />
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
 function EventFeed({ events }: { events: FeedEvent[] }) {
   const [olderOpen, setOlderOpen] = useState(false);
   const todayStr = new Date().toDateString();
