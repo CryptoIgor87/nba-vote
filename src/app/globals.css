@@ -112,6 +112,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Background ambient glow blobs */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 600px 500px at 10% 15%, rgba(255, 106, 0, 0.04), transparent 70%),
+    radial-gradient(ellipse 500px 400px at 85% 70%, rgba(255, 106, 0, 0.03), transparent 70%),
+    radial-gradient(ellipse 400px 350px at 50% 40%, rgba(100, 120, 255, 0.02), transparent 70%),
+    radial-gradient(ellipse 300px 300px at 25% 80%, rgba(0, 230, 118, 0.015), transparent 70%);
+}
+
 /* Accent gradient bar */
 body::before {
   content: '';
