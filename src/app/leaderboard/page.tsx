@@ -107,10 +107,10 @@ export default function LeaderboardPage() {
               <Link
                 href={`/user/${entry.user_id}`}
                 key={entry.user_id}
-                className={`block p-4 rounded-xl border transition-colors hover:border-accent/40 ${
+                className={`block p-4 rounded-xl border transition-all hover:shadow-md active:scale-[0.99] ${
                   rank <= 3
-                    ? "bg-card border-accent/30"
-                    : "bg-card border-border"
+                    ? "bg-card border-l-4 border-l-accent border-border-subtle shadow-sm"
+                    : "bg-card border-border-subtle shadow-sm"
                 }`}
               >
                 <div className="flex items-center gap-4">
@@ -146,13 +146,13 @@ export default function LeaderboardPage() {
 
                   {/* Name + predictions */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-display font-bold text-sm truncate uppercase">{name}</p>
+                    <p className="font-semibold text-sm truncate">{name}</p>
                     <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
-                      <span className="text-xs text-muted">
+                      <span className="text-xs text-foreground-tertiary">
                         {entry.total_predictions} прогнозов
                       </span>
                       {wp && wpTeam && (
-                        <span className="text-xs text-muted flex items-center gap-1">
+                        <span className="text-xs text-foreground-tertiary flex items-center gap-1">
                           <Crown size={10} className="text-accent" />
                           <img
                             src={getTeamLogoUrl(wp.team_id)}
@@ -233,7 +233,7 @@ function EventRow({ event }: { event: FeedEvent }) {
   const pointsText = pointsMatch ? pointsMatch[1] : null;
 
   return (
-    <div className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3">
+    <div className="flex items-center gap-3 bg-card border border-border-subtle rounded-xl px-4 py-3 shadow-sm">
       <Link href={`/user/${event.user_id}`} className="shrink-0">
         <div className="w-8 h-8 rounded-full bg-surface overflow-hidden border border-border">
           {avatar ? (
@@ -250,7 +250,7 @@ function EventRow({ event }: { event: FeedEvent }) {
         <Link href={`/user/${event.user_id}`} className="font-display font-bold uppercase hover:text-accent transition-colors">
           {userName}
         </Link>{" "}
-        <span className="text-muted">{eventText}</span>
+        <span className="text-foreground-secondary">{eventText}</span>
         {pointsText && <span className="text-success font-bold ml-1">{pointsText}</span>}
       </p>
       <span className="text-xs text-muted shrink-0">{date}</span>

@@ -55,7 +55,7 @@ export default function LandingPage() {
             <span className="bg-gradient-to-r from-accent to-amber-400 bg-clip-text text-transparent text-4xl sm:text-6xl md:text-7xl tracking-tight">PREDICTIONS</span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-muted max-w-lg mx-auto mb-10 leading-relaxed font-light">
+          <p className="text-lg sm:text-xl text-foreground-secondary max-w-lg mx-auto mb-10 leading-relaxed">
             Делай прогнозы на плей-офф NBA вместе с друзьями.
             Соревнуйся, набирай баллы, стань лучшим.
           </p>
@@ -91,7 +91,7 @@ export default function LandingPage() {
       <section className="max-w-5xl mx-auto px-6 py-20">
         <div className="text-center mb-12">
           <h2 className="font-display text-3xl sm:text-4xl font-bold uppercase tracking-wide mb-2">Как это работает</h2>
-          <p className="text-muted">Три простых шага</p>
+          <p className="text-foreground-tertiary">Три простых шага</p>
         </div>
         <div className="grid sm:grid-cols-3 gap-6">
           <StepCard step={1} icon={Users} title="Регистрация" desc="Войди через Google или Яндекс. Занимает 5 секунд." />
@@ -105,7 +105,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-6 py-20">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl sm:text-4xl font-bold uppercase tracking-wide mb-2">Система баллов</h2>
-            <p className="text-muted">Чем точнее - тем больше</p>
+            <p className="text-foreground-tertiary">Чем точнее - тем больше</p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -122,17 +122,17 @@ export default function LandingPage() {
       {/* Features */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <div className="grid sm:grid-cols-2 gap-6">
-          <div className="bg-card border border-border rounded-2xl p-8 card-glow">
+          <div className="bg-card border border-border-subtle rounded-2xl p-8 shadow-sm">
             <BarChart3 size={28} className="text-accent mb-4" />
-            <h3 className="font-display text-xl font-bold uppercase mb-2">Лидерборд</h3>
-            <p className="text-sm text-muted leading-relaxed">
+            <h3 className="text-xl font-bold mb-2">Лидерборд</h3>
+            <p className="text-sm text-foreground-secondary leading-relaxed">
               Рейтинг обновляется автоматически. Лента достижений, бонусы, стрики. Смотри кто впереди.
             </p>
           </div>
-          <div className="bg-card border border-border rounded-2xl p-8 card-glow">
+          <div className="bg-card border border-border-subtle rounded-2xl p-8 shadow-sm">
             <Target size={28} className="text-accent mb-4" />
-            <h3 className="font-display text-xl font-bold uppercase mb-2">Статистика</h3>
-            <p className="text-sm text-muted leading-relaxed">
+            <h3 className="text-xl font-bold mb-2">Статистика</h3>
+            <p className="text-sm text-foreground-secondary leading-relaxed">
               Детальный профиль: точность, стрики, разбивка баллов, заработанные бонусы.
             </p>
           </div>
@@ -146,7 +146,7 @@ export default function LandingPage() {
           <h2 className="font-display text-3xl sm:text-4xl font-bold uppercase tracking-wide text-foreground mb-3">
             Play-In уже идёт, плей-офф через пару дней
           </h2>
-          <p className="text-muted mb-8 text-lg">
+          <p className="text-foreground-secondary mb-8 text-lg">
             Присоединяйся и делай прогнозы — у новых игроков 24 часа на все ставки
           </p>
           <Link
@@ -164,29 +164,29 @@ export default function LandingPage() {
 
 function StepCard({ step, icon: Icon, title, desc }: { step: number; icon: React.ComponentType<{ size?: number; className?: string }>; title: string; desc: string }) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 text-center card-glow">
+    <div className="bg-card border border-border-subtle rounded-2xl p-6 text-center shadow-sm hover:shadow-md transition-shadow">
       <div className="inline-flex items-center justify-center w-14 h-14 bg-accent/10 rounded-2xl mb-4">
         <Icon size={26} className="text-accent" />
       </div>
       <div className="font-display text-xs text-accent font-bold uppercase tracking-widest mb-2">Шаг {step}</div>
-      <h3 className="font-display text-lg font-bold uppercase mb-1">{title}</h3>
-      <p className="text-sm text-muted">{desc}</p>
+      <h3 className="text-lg font-bold mb-1">{title}</h3>
+      <p className="text-sm text-foreground-secondary">{desc}</p>
     </div>
   );
 }
 
 function ScoreCard({ icon: Icon, title, points, desc, highlight }: { icon: React.ComponentType<{ size?: number; className?: string }>; title: string; points: string; desc: string; highlight?: boolean }) {
   return (
-    <div className={`flex items-start gap-4 p-5 rounded-xl border ${highlight ? "bg-accent/5 border-accent/30 card-glow" : "bg-card border-border card-glow"}`}>
+    <div className={`flex items-start gap-4 p-5 rounded-xl border shadow-sm hover:shadow-md transition-shadow ${highlight ? "bg-accent/5 border-accent/30" : "bg-card border-border-subtle"}`}>
       <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center shrink-0">
         <Icon size={20} className="text-accent" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-0.5">
-          <span className="font-display font-bold text-sm uppercase">{title}</span>
-          <span className="text-accent font-display font-bold text-sm">{points}</span>
+          <span className="font-semibold text-sm">{title}</span>
+          <span className="text-accent font-bold text-sm tabular-nums">{points}</span>
         </div>
-        <p className="text-xs text-muted">{desc}</p>
+        <p className="text-xs text-foreground-tertiary">{desc}</p>
       </div>
     </div>
   );
