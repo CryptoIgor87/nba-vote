@@ -226,22 +226,24 @@ input[type="number"] { -moz-appearance: textfield; }
 /* Selection */
 ::selection { background: var(--accent); color: white; }
 
-/* Basketball ball pattern — repeating ball emoji watermark */
+/* Basketball ball SVG watermark */
 .ball-pattern {
   position: relative;
+  overflow: hidden;
 }
 .ball-pattern::before {
-  content: '🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀 🏀';
+  content: '';
   position: absolute;
-  inset: 0;
+  right: -15%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 120%;
+  max-width: 160px;
+  aspect-ratio: 1;
   pointer-events: none;
-  overflow: hidden;
-  font-size: 28px;
-  letter-spacing: 16px;
-  line-height: 40px;
-  word-break: break-all;
-  opacity: 0.04;
-  padding: 2px 6px;
+  opacity: 0.07;
+  background: url('/ball.svg') center/contain no-repeat;
+  filter: brightness(0) invert(0.5) sepia(1) saturate(5) hue-rotate(10deg);
 }
 
 /* Stats/math symbols pattern for daily questions */

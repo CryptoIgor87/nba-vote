@@ -134,7 +134,7 @@ export default function SeriesPrediction({
                 disabled={isLocked}
                 className={`flex-1 py-1.5 rounded text-xs font-bold transition-all ${
                   selectedScore === key
-                    ? "bg-accent text-white"
+                    ? "bg-accent text-white ball-pattern"
                     : "bg-surface text-foreground hover:bg-card-hover"
                 } ${isLocked ? "opacity-60 cursor-default" : "cursor-pointer"}`}
               >
