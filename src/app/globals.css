@@ -112,7 +112,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Background: centered basketball + gradient atmosphere */
+/* Background: gradient atmosphere */
 body::after {
   content: '';
   position: fixed;
@@ -120,9 +120,9 @@ body::after {
   pointer-events: none;
   z-index: -1;
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23ff6a00' stroke-width='1.5'%3E%3Ccircle cx='50' cy='50' r='48'/%3E%3Cpath d='M2 50C25 38 75 38 98 50'/%3E%3Cpath d='M2 50C25 62 75 62 98 50'/%3E%3Cpath d='M50 2C38 25 38 75 50 98'/%3E%3Cpath d='M50 2C62 25 62 75 50 98'/%3E%3C/svg%3E") no-repeat center center / min(80vw, 500px) min(80vw, 500px),
-    radial-gradient(ellipse 60% 60% at 50% 45%, rgba(255, 106, 0, 0.05), transparent 70%);
-  opacity: 0.7;
+    radial-gradient(ellipse 50% 40% at 50% 0%, rgba(255, 106, 0, 0.07), transparent),
+    radial-gradient(ellipse 40% 30% at 80% 70%, rgba(255, 106, 0, 0.03), transparent),
+    radial-gradient(ellipse 30% 40% at 10% 60%, rgba(100, 130, 255, 0.02), transparent);
 }
 
 /* Accent gradient bar */
@@ -225,24 +225,9 @@ input[type="number"] { -moz-appearance: textfield; }
 /* Selection */
 ::selection { background: var(--accent); color: white; }
 
-/* Basketball ball — centered on card */
+/* Card pattern placeholder */
 .ball-pattern {
   position: relative;
-  overflow: hidden;
-}
-.ball-pattern::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 160px;
-  height: 160px;
-  pointer-events: none;
-  opacity: 0.06;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23ff6a00' stroke-width='2'%3E%3Ccircle cx='50' cy='50' r='48'/%3E%3Cpath d='M2 50C25 38 75 38 98 50'/%3E%3Cpath d='M2 50C25 62 75 62 98 50'/%3E%3Cpath d='M50 2C38 25 38 75 50 98'/%3E%3Cpath d='M50 2C62 25 62 75 50 98'/%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
 }
 
 /* Stats/math symbols pattern for daily questions */
