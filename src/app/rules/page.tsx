@@ -103,50 +103,14 @@ export default function RulesPage() {
                 Вместо +{pts("points_correct_series_winner", 2)}. Например: предсказали 4-2, и серия закончилась 4-2
               </p>
             </div>
+
             <div className="bg-background rounded-lg p-3">
               <div className="flex justify-between text-sm">
                 <span>Вопрос дня</span>
                 <span className="text-accent font-bold">+{pts("points_daily_question", 1)} балл</span>
               </div>
               <p className="text-xs text-muted mt-1">
-                Каждый день — один вопрос по статистике матча: кто наберёт больше очков, трёшек, передач, подборов и т.д. Выберите одного из 4 игроков или &quot;Другой&quot;. Результат определяется автоматически после матча.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Bonuses */}
-        <section className="bg-card border border-accent/30 rounded-xl p-5">
-          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            <Flame size={20} className="text-accent" />
-            Бонусы
-          </h2>
-          <div className="space-y-2">
-            {/* Upset */}
-            <div className="bg-background rounded-lg p-3">
-              <div className="flex justify-between text-sm">
-                <span className="flex items-center gap-1.5">
-                  <TrendingUp size={14} className="text-accent" />
-                  Апсет
-                </span>
-                <span className="text-accent font-bold">+{pts("points_upset_bonus", 3)} балла</span>
-              </div>
-              <p className="text-xs text-muted mt-1">
-                Предсказали победу нижнего сида в серии и он победил. Смелый прогноз вознаграждается!
-              </p>
-            </div>
-
-            {/* Sniper */}
-            <div className="bg-background rounded-lg p-3">
-              <div className="flex justify-between text-sm">
-                <span className="flex items-center gap-1.5">
-                  <Crosshair size={14} className="text-accent" />
-                  Снайпер
-                </span>
-                <span className="text-accent font-bold">+{pts("points_sniper", 3)} балла</span>
-              </div>
-              <p className="text-xs text-muted mt-1">
-                Угадали победителя во ВСЕХ матчах серии (минимум 4 игры). Требует идеальной точности.
+                Каждый день — вопрос по статистике матча: кто наберёт больше очков, трёшек, передач и т.д. Выберите одного из 4 игроков или &quot;Другой&quot;.
               </p>
             </div>
 
@@ -157,18 +121,17 @@ export default function RulesPage() {
                   <Flame size={14} className="text-accent" />
                   Стрик
                 </span>
-                <span className="text-accent font-bold">до +{pts("points_streak_7", 5)} баллов</span>
               </div>
               <p className="text-xs text-muted mt-1">
-                Каждая серия правильных прогнозов подряд награждается. ��онусы суммируются при прохождении порогов:
+                Каждая серия правильных прогнозов подряд награждается. Бонусы суммируются:
               </p>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs">
                 <span>3 подряд: <strong className="text-accent">+{pts("points_streak_3", 1)}</strong></span>
-                <span>5 подряд: <strong className="text-accent">+{pts("points_streak_5", 3) - pts("points_streak_3", 1)}</strong> (ещё)</span>
-                <span>7 подряд: <strong className="text-accent">+{pts("points_streak_7", 5) - pts("points_streak_5", 3)}</strong> (ещё)</span>
+                <span>5 подряд: {"ещё "}<strong className="text-accent">+{pts("points_streak_5", 2) - pts("points_streak_3", 1)}</strong></span>
+                <span>7 подряд: {"ещё "}<strong className="text-accent">+{pts("points_streak_7", 3) - pts("points_streak_5", 2)}</strong></span>
               </div>
               <p className="text-xs text-muted mt-1">
-                Итого за стрик 7: +{pts("points_streak_7", 5)}. Новый стрик после проигрыша — бонусы заново.
+                Новый стрик после проигрыша — бонусы заново.
               </p>
             </div>
           </div>
@@ -186,7 +149,7 @@ export default function RulesPage() {
               <span className="text-accent font-bold">+{pts("points_tournament_winner", 10)} баллов</span>
             </div>
             <p className="text-xs text-muted mt-1">
-              Одноразовая ставка до начала первых матчей. Можно менять до старта play-in.
+              Одноразовая ставка до начала первого матча серии.
             </p>
           </div>
         </section>

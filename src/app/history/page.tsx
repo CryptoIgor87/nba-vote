@@ -183,7 +183,7 @@ export default function HistoryPage() {
         <table className="w-full border-collapse min-w-[600px]">
           <thead>
             <tr>
-              <th className="sticky left-0 z-10 bg-background px-2 py-2 text-left text-xs text-muted font-semibold w-[90px] min-w-[90px] max-w-[90px]">
+              <th className="sticky left-0 z-10 bg-background px-2 py-2 text-left text-xs text-muted font-semibold whitespace-nowrap">
                 Событие
               </th>
               {activeUsers.map((user) => {

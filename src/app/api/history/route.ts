@@ -35,7 +35,6 @@ export async function GET() {
   const { data: allSeries } = await supabase
     .from("nba_series")
     .select("*")
-    .neq("status", "upcoming")
     .order("created_at", { ascending: false });
 
   const { data: seriesPredictions } = await supabase
