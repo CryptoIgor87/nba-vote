@@ -41,15 +41,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <Link href="/predictions" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent to-amber-500 flex items-center justify-center shadow-md shadow-accent/20 group-hover:shadow-accent/40 transition-shadow">
-              <svg viewBox="0 0 36 36" className="w-5 h-5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="18" cy="18" r="16" fill="white" fillOpacity="0.9"/>
-                <path d="M2 18c6-5 22-5 32 0" stroke="white" strokeWidth="2" opacity="0.3"/>
-                <path d="M2 18c6 5 22 5 32 0" stroke="white" strokeWidth="2" opacity="0.3"/>
-                <path d="M18 2c-5 6-5 22 0 32" stroke="white" strokeWidth="2" opacity="0.3"/>
-                <path d="M18 2c5 6 5 22 0 32" stroke="white" strokeWidth="2" opacity="0.3"/>
-              </svg>
-            </div>
+            <span className="text-[28px] leading-none group-hover:scale-110 transition-transform drop-shadow-[0_2px_4px_rgba(255,106,0,0.3)]">🏀</span>
             <div className="hidden sm:flex items-baseline gap-1">
               <span className="font-display font-black text-base tracking-wider uppercase bg-gradient-to-r from-accent to-amber-400 bg-clip-text text-transparent">
                 NBA
