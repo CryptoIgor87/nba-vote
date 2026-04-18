@@ -76,7 +76,7 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
       </div>
 
       {/* Row 2: options */}
-      <div className="grid grid-cols-5 bg-card">
+      <div className="grid grid-cols-5 bg-card stats-pattern">
         {options.map((opt, idx) => {
           const isSelected = localPick === opt.name;
           const isCorrect = isResolved && question.correct_answer === opt.name;

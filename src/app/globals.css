@@ -212,6 +212,42 @@ input[type="number"] { -moz-appearance: textfield; }
 /* Selection */
 ::selection { background: var(--accent); color: white; }
 
+/* Basketball ball pattern — subtle curved lines like ball seams */
+.ball-pattern {
+  position: relative;
+}
+.ball-pattern::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background:
+    radial-gradient(ellipse 120% 100% at 90% 50%, transparent 40%, var(--accent) 40.5%, var(--accent) 41%, transparent 41.5%),
+    radial-gradient(ellipse 120% 100% at 10% 50%, transparent 40%, var(--accent) 40.5%, var(--accent) 41%, transparent 41.5%),
+    linear-gradient(0deg, transparent 49%, var(--accent) 49.5%, var(--accent) 50.5%, transparent 51%);
+}
+
+/* Stats/math symbols pattern for daily questions */
+.stats-pattern {
+  position: relative;
+}
+.stats-pattern::before {
+  content: '? + = % # 3 × ÷ Σ + ? = % 3 # × ÷ Σ + ? = % 3';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 8px;
+  line-height: 20px;
+  word-break: break-all;
+  color: var(--accent);
+  opacity: 0.04;
+  padding: 4px 8px;
+}
+
 /* Court pattern */
 .court-pattern {
   background-image:

@@ -83,7 +83,7 @@ export default function GameCard({ game, prediction, seriesBonuses, onSave }: Pr
       </div>
 
       {/* Row 2: team picks */}
-      <div className="flex bg-card">
+      <div className="flex bg-card ball-pattern">
         <TeamBtn
           teamId={game.home_team_id}
           abbr={game.home_team?.abbreviation || "?"}
