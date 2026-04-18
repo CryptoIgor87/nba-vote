@@ -206,7 +206,7 @@ export async function recalculateScores() {
 
     // Add resolved daily picks to the streak
     const userDailyPicks = (allDailyPicks || [])
-      .filter((dp) => dp.user_id === user.id && (dp.question as { status: string })?.status === "resolved")
+      .filter((dp) => dp.user_id === user.id && (dp.question as unknown as { status: string })?.status === "resolved")
       .map((dp) => {
         const q = dp.question as { game_id: number; status: string; correct_answer: string | null };
         const game = finishedGames.find((g) => g.id === q?.game_id);
@@ -504,21 +504,38 @@ async function generateEvents() {
       }
     }
 
-    // Streak
+    // Streak (games + daily questions)
     const { data: finishedGames } = await supabase
       .from("nba_games")
       .select("id, home_team_id, away_team_id, home_score, away_score, game_date")
       .eq("status", "finished")
       .order("game_date", { ascending: true });
 
+    const { data: userDailyPicks } = await supabase
+      .from("nba_daily_picks")
+      .select("points_earned, question:nba_daily_questions!nba_daily_picks_question_id_fkey(game_id, status)")
+      .eq("user_id", user.id);
+
     let maxStreak = 0;
     let currentStreak = 0;
-    const userPreds = preds?.map((p) => {
+    const gamePredItems = preds?.map((p) => {
       const g = finishedGames?.find((g) => g.id === (p as unknown as { game_id: number }).game_id);
-      return g ? { correct: p.points_earned > 0 } : null;
+      return g ? { game_date: g.game_date, correct: p.points_earned > 0 } : null;
     }).filter(Boolean) || [];
 
-    for (const p of userPreds) {
+    const dailyItems = (userDailyPicks || [])
+      .filter((dp) => (dp.question as unknown as { status: string })?.status === "resolved")
+      .map((dp) => {
+        const q = dp.question as unknown as { game_id: number };
+        const g = finishedGames?.find((g) => g.id === q?.game_id);
+        return g ? { game_date: g.game_date, correct: dp.points_earned > 0 } : null;
+      })
+      .filter(Boolean);
+
+    const allItems = [...gamePredItems, ...dailyItems]
+      .sort((a, b) => a!.game_date.localeCompare(b!.game_date));
+
+    for (const p of allItems) {
       if (p!.correct) { currentStreak++; maxStreak = Math.max(maxStreak, currentStreak); }
       else currentStreak = 0;
     }
@@ -592,7 +609,7 @@ async function checkAchievements() {
       if (totalPreds >= 15 && accuracy >= 0.85) await unlock(user.id, "nostradamus");
     }
 
-    // Streaks
+    // Streaks (games + daily questions)
     let maxStreak = 0;
     let currentStreak = 0;
     const predsWithGames = (preds || [])
@@ -600,10 +617,26 @@ async function checkAchievements() {
         const g = finishedGames?.find((g) => g.id === p.game_id);
         return g ? { date: g.game_date, correct: p.points_earned > 0 } : null;
       })
-      .filter(Boolean)
+      .filter(Boolean);
+
+    const { data: achDailyPicks } = await supabase
+      .from("nba_daily_picks")
+      .select("points_earned, question:nba_daily_questions!nba_daily_picks_question_id_fkey(game_id, status)")
+      .eq("user_id", user.id);
+
+    const achDailyItems = (achDailyPicks || [])
+      .filter((dp) => (dp.question as unknown as { status: string })?.status === "resolved")
+      .map((dp) => {
+        const q = dp.question as unknown as { game_id: number };
+        const g = finishedGames?.find((g) => g.id === q?.game_id);
+        return g ? { date: g.game_date, correct: dp.points_earned > 0 } : null;
+      })
+      .filter(Boolean);
+
+    const achAllItems = [...predsWithGames, ...achDailyItems]
       .sort((a, b) => a!.date.localeCompare(b!.date));
 
-    for (const p of predsWithGames) {
+    for (const p of achAllItems) {
       if (p!.correct) { currentStreak++; maxStreak = Math.max(maxStreak, currentStreak); }
       else currentStreak = 0;
     }

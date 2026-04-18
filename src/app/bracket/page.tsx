@@ -63,18 +63,6 @@ export default function BracketPage() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Плей-офф NBA 2025-26</h1>
 
-      {/* Play-In compact */}
-      {playInGames.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-sm font-semibold text-accent mb-2">Play-In</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
-            {playInGames.map((g) => (
-              <PlayInCard key={g.id} game={g} />
-            ))}
-          </div>
-        </div>
-      )}
-
       <p className="text-xs text-muted mb-2 sm:hidden">Прокрутите вправо для полной сетки &rarr;</p>
       <div className="overflow-x-auto pb-4">
         <div style={{ minWidth: MIN_TOTAL_W }}>
@@ -104,6 +92,18 @@ export default function BracketPage() {
           </div>
         </div>
       </div>
+
+      {/* Play-In compact — below bracket */}
+      {playInGames.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-sm font-semibold text-accent mb-2">Play-In</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+            {playInGames.map((g) => (
+              <PlayInCard key={g.id} game={g} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
