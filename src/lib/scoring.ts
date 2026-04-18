@@ -469,7 +469,7 @@ async function generateEvents() {
     // Predictions count
     const { data: preds } = await supabase
       .from("nba_predictions")
-      .select("points_earned")
+      .select("game_id, points_earned")
       .eq("user_id", user.id);
 
     const total = preds?.length ?? 0;
@@ -519,7 +519,7 @@ async function generateEvents() {
     let maxStreak = 0;
     let currentStreak = 0;
     const gamePredItems = preds?.map((p) => {
-      const g = finishedGames?.find((g) => g.id === (p as unknown as { game_id: number }).game_id);
+      const g = finishedGames?.find((g) => g.id === p.game_id);
       return g ? { game_date: g.game_date, correct: p.points_earned > 0 } : null;
     }).filter(Boolean) || [];
 
