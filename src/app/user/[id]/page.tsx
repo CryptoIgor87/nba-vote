@@ -6,9 +6,10 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   ArrowLeft, Trophy, Crown, Check, X, Flame, Award, Plus, Minus,
-  Crosshair, TrendingUp, Target, BarChart3, Pencil, Trash2,
+  Crosshair, TrendingUp, Target, BarChart3, Pencil, Trash2, HelpCircle,
 } from "lucide-react";
 import { getTeamLogoUrl, formatGameDate, getRoundLabel } from "@/lib/utils";
+import { getPlayerHeadshotUrl } from "@/lib/players";
 import { CATEGORY_LABELS } from "@/lib/achievement-icons";
 import AchievementBadge from "@/components/achievements/AchievementBadge";
 import type { NbaGame, NbaPrediction, NbaTeam } from "@/lib/types";
@@ -40,6 +41,28 @@ interface UserProfileData {
   seriesBonuses: { series_id: string; bonus_type: string; points: number }[];
   bonuses: { bonus_type: string; description: string; points: number; context: string }[];
   winnerPrediction: { team_id: number; points_earned: number } | null;
+  dailyPicks: {
+    id: string;
+    picked_option: string;
+    points_earned: number;
+    question: {
+      id: string;
+      game_id: number;
+      question_date: string;
+      category: string;
+      player1_name: string;
+      player1_nba_id: number | null;
+      player2_name: string;
+      player2_nba_id: number | null;
+      player3_name: string;
+      player3_nba_id: number | null;
+      player4_name: string;
+      player4_nba_id: number | null;
+      correct_answer: string | null;
+      correct_value: number | null;
+      status: string;
+    };
+  }[];
   games: (NbaGame & { home_team?: NbaTeam; away_team?: NbaTeam })[];
   series: {
     id: string;
@@ -103,7 +126,7 @@ export default function UserPage() {
 
   const {
     user, predictions, seriesPredictions, seriesBonuses,
-    bonuses, winnerPrediction, games, series, teams, stats,
+    bonuses, winnerPrediction, dailyPicks, games, series, teams, stats,
   } = data;
   const teamsMap = new Map(teams.map((t) => [t.id, t]));
   const userName = user.display_name || user.name || "Игрок";
@@ -319,7 +342,7 @@ export default function UserPage() {
         </CollapsibleSection>
       )}
 
-      {/* Game predictions */}
+      {/* Game predictions — newest first */}
       <CollapsibleSection
         title="Прогнозы на матчи"
         icon={Target}
@@ -329,7 +352,13 @@ export default function UserPage() {
           <p className="text-muted text-sm py-4">Нет видимых прогнозов</p>
         ) : (
           <div className="space-y-2">
-            {predictions.map((pred) => {
+            {[...predictions]
+              .sort((a, b) => {
+                const ga = games.find((g) => g.id === a.game_id);
+                const gb = games.find((g) => g.id === b.game_id);
+                return (gb?.game_date || "").localeCompare(ga?.game_date || "");
+              })
+              .map((pred) => {
               const game = games.find((g) => g.id === pred.game_id);
               if (!game) return null;
 
@@ -399,6 +428,85 @@ export default function UserPage() {
           </div>
         )}
       </CollapsibleSection>
+
+      {/* Daily question picks */}
+      {dailyPicks && dailyPicks.length > 0 && (
+        <CollapsibleSection
+          title="Вопросы дня"
+          icon={HelpCircle}
+          count={dailyPicks.length}
+        >
+          <div className="space-y-2">
+            {[...dailyPicks]
+              .sort((a, b) => (b.question?.question_date || "").localeCompare(a.question?.question_date || ""))
+              .map((dp) => {
+              const q = dp.question;
+              if (!q) return null;
+              const game = games.find((g) => g.id === q.game_id);
+              const isResolved = q.status === "resolved";
+              const isCorrect = isResolved && dp.points_earned > 0;
+              const isWrong = isResolved && dp.points_earned === 0;
+              const categoryLabels: Record<string, string> = {
+                points: "очков", threes: "трёшек", assists: "передач",
+                rebounds: "подборов", turnovers: "потерь", fouls: "фолов",
+                steals: "перехватов", blocks: "блоков",
+              };
+
+              let pickedNbaId: number | null = null;
+              if (dp.picked_option === q.player1_name) pickedNbaId = q.player1_nba_id;
+              else if (dp.picked_option === q.player2_name) pickedNbaId = q.player2_nba_id;
+              else if (dp.picked_option === q.player3_name) pickedNbaId = q.player3_nba_id;
+              else if (dp.picked_option === q.player4_name) pickedNbaId = q.player4_nba_id;
+
+              return (
+                <div
+                  key={dp.id}
+                  className={`border rounded-xl p-3 ${
+                    isCorrect ? "bg-success/10 border-success/30"
+                    : isWrong ? "bg-danger/10 border-danger/30"
+                    : "bg-background border-border"
+                  }`}
+                >
+                  <div className="text-xs text-muted mb-2 flex items-center justify-between">
+                    <span>
+                      {game ? formatGameDate(game.game_date) : q.question_date}
+                      <span className="ml-2 text-accent">Кто больше {categoryLabels[q.category] || q.category}?</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {game && (
+                      <div className="flex items-center gap-1">
+                        <img src={getTeamLogoUrl(game.home_team_id)} alt="" className="w-5 h-5" />
+                        <span className="text-[10px] text-muted">vs</span>
+                        <img src={getTeamLogoUrl(game.away_team_id)} alt="" className="w-5 h-5" />
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 flex-1">
+                      {pickedNbaId ? (
+                        <img src={getPlayerHeadshotUrl(pickedNbaId)} alt="" className="w-8 h-6 object-cover object-top rounded" />
+                      ) : (
+                        <HelpCircle size={16} className="text-muted" />
+                      )}
+                      <span className="text-sm font-bold">
+                        {dp.picked_option === "other" ? "Другой" : dp.picked_option}
+                      </span>
+                    </div>
+                    {isCorrect && (
+                      <span className="text-xs text-success font-bold">+{dp.points_earned}</span>
+                    )}
+                    {isWrong && <X size={12} className="text-danger" />}
+                    {isResolved && q.correct_answer && (
+                      <span className="text-[10px] text-muted">
+                        Ответ: {q.correct_answer === "other" ? "Другой" : q.correct_answer} ({q.correct_value})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CollapsibleSection>
+      )}
     </div>
   );
 }

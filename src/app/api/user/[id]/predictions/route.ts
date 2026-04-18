@@ -112,14 +112,32 @@ export async function GET(
   ) || [];
   const correctPreds = predsForFinished.filter((p) => p.points_earned > 0);
 
-  // Streak calculation
-  const predsInOrder = (predictions || [])
+  // Daily question picks
+  const { data: dailyPicks } = await supabase
+    .from("nba_daily_picks")
+    .select("*, question:nba_daily_questions!nba_daily_picks_question_id_fkey(*)")
+    .eq("user_id", userId);
+
+  // Streak calculation (game predictions + daily questions)
+  const gamePredStreaks = (predictions || [])
     .map((p) => {
       const game = finishedGames.find((g) => g.id === p.game_id);
       if (!game) return null;
       return { game_date: game.game_date, correct: p.points_earned > 0 };
     })
-    .filter(Boolean)
+    .filter(Boolean);
+
+  const dailyStreaks = (dailyPicks || [])
+    .filter((dp) => (dp.question as { status: string })?.status === "resolved")
+    .map((dp) => {
+      const q = dp.question as { game_id: number };
+      const game = finishedGames.find((g) => g.id === q?.game_id);
+      if (!game) return null;
+      return { game_date: game.game_date, correct: dp.points_earned > 0 };
+    })
+    .filter(Boolean);
+
+  const predsInOrder = [...gamePredStreaks, ...dailyStreaks]
     .sort((a, b) => a!.game_date.localeCompare(b!.game_date));
 
   let maxStreak = 0;
@@ -128,12 +146,6 @@ export async function GET(
     if (p!.correct) { currentStreak++; maxStreak = Math.max(maxStreak, currentStreak); }
     else currentStreak = 0;
   }
-
-  // Daily question picks
-  const { data: dailyPicks } = await supabase
-    .from("nba_daily_picks")
-    .select("*, question:nba_daily_questions!nba_daily_picks_question_id_fkey(*)")
-    .eq("user_id", userId);
 
   const dailyPoints = dailyPicks?.reduce((s, p) => s + (p.points_earned || 0), 0) || 0;
 

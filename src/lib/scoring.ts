@@ -177,7 +177,12 @@ export async function recalculateScores() {
     }
   }
 
-  // 3. Streak bonuses
+  // Load daily picks for streak calculation
+  const { data: allDailyPicks } = await supabase
+    .from("nba_daily_picks")
+    .select("*, question:nba_daily_questions!nba_daily_picks_question_id_fkey(game_id, status, correct_answer)");
+
+  // 3. Streak bonuses (game predictions + daily questions)
   for (const user of users) {
     const userPreds = allPredictions
       .filter((p) => p.user_id === user.id)
@@ -197,14 +202,30 @@ export async function recalculateScores() {
           correct: actualWinner === predictedWinner,
         };
       })
-      .filter(Boolean)
+      .filter(Boolean);
+
+    // Add resolved daily picks to the streak
+    const userDailyPicks = (allDailyPicks || [])
+      .filter((dp) => dp.user_id === user.id && (dp.question as { status: string })?.status === "resolved")
+      .map((dp) => {
+        const q = dp.question as { game_id: number; status: string; correct_answer: string | null };
+        const game = finishedGames.find((g) => g.id === q?.game_id);
+        if (!game) return null;
+        return {
+          game_date: game.game_date,
+          correct: dp.points_earned > 0,
+        };
+      })
+      .filter(Boolean);
+
+    const allStreakItems = [...userPreds, ...userDailyPicks]
       .sort((a, b) => a!.game_date.localeCompare(b!.game_date));
 
     // Find max streak
     let maxStreak = 0;
     let currentStreak = 0;
 
-    for (const pred of userPreds) {
+    for (const pred of allStreakItems) {
       if (pred!.correct) {
         currentStreak++;
         maxStreak = Math.max(maxStreak, currentStreak);
