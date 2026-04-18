@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { getTopPlayersByStat } from "./nba-cdn";
+import { getTopPlayersByStat, findNbaComGameId } from "./nba-cdn";
 import type { DailyQuestionCategory, NbaSetting } from "./types";
 
 export async function getSettings(): Promise<Record<string, number>> {
@@ -302,15 +302,29 @@ async function resolveDailyQuestions(pointsDailyQuestion: number) {
   // Find active questions where the game is finished
   const { data: activeQuestions } = await supabase
     .from("nba_daily_questions")
-    .select("*, game:nba_games!nba_daily_questions_game_id_fkey(status)")
+    .select("*, game:nba_games!nba_daily_questions_game_id_fkey(status, game_date, home_team_id, away_team_id)")
     .eq("status", "active");
 
   if (!activeQuestions) return;
 
+  // Preload teams for abbreviation lookup
+  const { data: allTeams } = await supabase.from("nba_teams").select("id, abbreviation");
+  const teamAbbr = new Map(allTeams?.map((t) => [t.id, t.abbreviation]));
+
   for (const q of activeQuestions) {
-    const game = q.game as { status: string } | null;
+    const game = q.game as { status: string; game_date: string; home_team_id: number; away_team_id: number } | null;
     if (game?.status !== "finished") continue;
-    if (!q.nba_game_id) continue;
+
+    // Auto-resolve nba_game_id if missing
+    if (!q.nba_game_id) {
+      const dateStr = game.game_date.split("T")[0];
+      const homeAbbr = teamAbbr.get(game.home_team_id) || "";
+      const awayAbbr = teamAbbr.get(game.away_team_id) || "";
+      const nbaId = await findNbaComGameId(dateStr, homeAbbr, awayAbbr);
+      if (!nbaId) continue;
+      q.nba_game_id = nbaId;
+      await supabase.from("nba_daily_questions").update({ nba_game_id: nbaId }).eq("id", q.id);
+    }
 
     // Get ALL top players (handles ties)
     const tops = await getTopPlayersByStat(
