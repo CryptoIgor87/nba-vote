@@ -39,8 +39,8 @@ export async function GET(req: NextRequest) {
         .single();
 
       // Guard against duplicates: the API occasionally returns a different id
-      // for the same matchup+date (e.g. play-in games). If we find one, skip
-      // the new id entirely — we already track that game under the existing row.
+      // for the same matchup+date (e.g. play-in games). If we find one, update
+      // the existing row's score/status instead of creating a new one.
       if (!existing) {
         const dayStart = new Date(new Date(gameDate).getTime() - 12 * 60 * 60 * 1000).toISOString();
         const dayEnd = new Date(new Date(gameDate).getTime() + 12 * 60 * 60 * 1000).toISOString();
@@ -52,7 +52,16 @@ export async function GET(req: NextRequest) {
           .gte("game_date", dayStart)
           .lte("game_date", dayEnd)
           .maybeSingle();
-        if (dup) continue;
+        if (dup) {
+          // Propagate score/status from the API duplicate to our existing row
+          await supabase.from("nba_games").update({
+            status: gameStatus,
+            home_score: game.home_team_score > 0 ? game.home_team_score : null,
+            away_score: game.visitor_team_score > 0 ? game.visitor_team_score : null,
+          }).eq("id", dup.id);
+          synced++;
+          continue;
+        }
       }
 
       const round = existing?.round || (game.postseason ? "first_round" : null);
