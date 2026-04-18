@@ -80,6 +80,8 @@ export async function recalculateScores() {
   await supabase.from("nba_series_bonuses").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("nba_bonuses").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
+  const allNewBonuses: { user_id: string; bonus_type: string; points: number; description: string; context?: string }[] = [];
+
   for (const series of finishedSeries) {
     if (!series.winner_id) continue;
 
@@ -151,7 +153,7 @@ export async function recalculateScores() {
 
         // Upset bonus
         if (isUpset) {
-          await supabase.from("nba_bonuses").insert({
+          allNewBonuses.push({
             user_id: user.id,
             bonus_type: "upset",
             points: pointsUpset,
@@ -166,7 +168,7 @@ export async function recalculateScores() {
         correctInSeries === seriesGames.length &&
         seriesGames.length >= 4
       ) {
-        await supabase.from("nba_bonuses").insert({
+        allNewBonuses.push({
           user_id: user.id,
           bonus_type: "sniper",
           points: pointsSniper,
@@ -236,36 +238,23 @@ export async function recalculateScores() {
     // Don't forget the trailing streak (still active)
     if (currentStreak >= 3) streaks.push(currentStreak);
 
-    // Clear any leftover streak bonuses for this user then insert fresh
-    await supabase.from("nba_bonuses").delete().eq("user_id", user.id).eq("bonus_type", "streak");
-
-    // Award progressive bonuses for each streak
+    // Collect streak bonuses for bulk insert later
     for (const streak of streaks) {
       if (streak >= 3) {
-        await supabase.from("nba_bonuses").insert({
-          user_id: user.id,
-          bonus_type: "streak",
-          points: pointsStreak3,
-          description: `Стрик 3 угаданных подряд`,
-        });
+        allNewBonuses.push({ user_id: user.id, bonus_type: "streak", points: pointsStreak3, description: `Стрик 3 угаданных подряд` });
       }
       if (streak >= 5) {
-        await supabase.from("nba_bonuses").insert({
-          user_id: user.id,
-          bonus_type: "streak",
-          points: pointsStreak5,
-          description: `Стрик 5 угаданных подряд`,
-        });
+        allNewBonuses.push({ user_id: user.id, bonus_type: "streak", points: pointsStreak5, description: `Стрик 5 угаданных подряд` });
       }
       if (streak >= 7) {
-        await supabase.from("nba_bonuses").insert({
-          user_id: user.id,
-          bonus_type: "streak",
-          points: pointsStreak7,
-          description: `Стрик 7 угаданных подряд`,
-        });
+        allNewBonuses.push({ user_id: user.id, bonus_type: "streak", points: pointsStreak7, description: `Стрик 7 угаданных подряд` });
       }
     }
+  }
+
+  // Bulk insert all bonuses (series + streak) in one go
+  if (allNewBonuses.length > 0) {
+    await supabase.from("nba_bonuses").insert(allNewBonuses);
   }
 
   // 4. Tournament winner
