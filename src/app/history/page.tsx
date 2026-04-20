@@ -159,7 +159,13 @@ export default function HistoryPage() {
   (dailyQuestions || []).forEach((q) => {
     rows.push({ type: "daily", date: q.game?.game_date || q.question_date, question: q });
   });
-  rows.sort((a, b) => b.date.localeCompare(a.date));
+  // Sort: newest first; within same date, daily BEFORE game (so daily shows above its game)
+  const typeOrder: Record<string, number> = { daily: 0, game: 1 };
+  rows.sort((a, b) => {
+    const dateCmp = b.date.localeCompare(a.date);
+    if (dateCmp !== 0) return dateCmp;
+    return (typeOrder[a.type] ?? 2) - (typeOrder[b.type] ?? 2);
+  });
 
   // Group by day
   const days = new Map<string, Row[]>();
