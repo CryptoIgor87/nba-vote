@@ -446,11 +446,17 @@ export default function UserPage() {
               const isResolved = q.status === "resolved";
               const isCorrect = isResolved && dp.points_earned > 0;
               const isWrong = isResolved && dp.points_earned === 0;
-              const categoryLabels: Record<string, string> = {
-                points: "очков", threes: "трёшек", assists: "передач",
-                rebounds: "подборов", turnovers: "потерь", fouls: "фолов",
-                steals: "перехватов", blocks: "блоков",
+              const categoryLabels: Record<string, { verb: string; stat: string }> = {
+                points: { verb: "забьёт", stat: "очков" },
+                threes: { verb: "забьёт", stat: "трёшек" },
+                assists: { verb: "сделает", stat: "передач" },
+                rebounds: { verb: "соберёт", stat: "подборов" },
+                turnovers: { verb: "совершит", stat: "потерь" },
+                fouls: { verb: "совершит", stat: "фолов" },
+                steals: { verb: "сделает", stat: "перехватов" },
+                blocks: { verb: "сделает", stat: "блоков" },
               };
+              const cat = categoryLabels[q.category] || { verb: "наберёт", stat: q.category };
 
               let pickedNbaId: number | null = null;
               if (dp.picked_option === q.player1_name) pickedNbaId = q.player1_nba_id;
@@ -470,7 +476,7 @@ export default function UserPage() {
                   <div className="text-xs text-muted mb-2 flex items-center justify-between">
                     <span>
                       {game ? formatGameDate(game.game_date) : q.question_date}
-                      <span className="ml-2 text-accent">Кто больше забьёт {categoryLabels[q.category] || q.category}?</span>
+                      <span className="ml-2 text-accent">Кто больше {cat.verb} {cat.stat}?</span>
                     </span>
                   </div>
                   <div className="flex items-center gap-3">

@@ -7,9 +7,15 @@ import { Lock, Check, Trophy, HelpCircle } from "lucide-react";
 import Countdown from "./Countdown";
 import type { NbaDailyQuestion, NbaDailyPick, NbaGame, NbaTeam } from "@/lib/types";
 
-const CATEGORY_LABELS: Record<string, string> = {
-  points: "очков", threes: "трёшек", assists: "передач", rebounds: "подборов",
-  turnovers: "потерь", fouls: "фолов", steals: "перехватов", blocks: "блоков",
+const CATEGORY_LABELS: Record<string, { verb: string; stat: string }> = {
+  points: { verb: "забьёт", stat: "очков" },
+  threes: { verb: "забьёт", stat: "трёшек" },
+  assists: { verb: "сделает", stat: "передач" },
+  rebounds: { verb: "соберёт", stat: "подборов" },
+  turnovers: { verb: "совершит", stat: "потерь" },
+  fouls: { verb: "совершит", stat: "фолов" },
+  steals: { verb: "сделает", stat: "перехватов" },
+  blocks: { verb: "сделает", stat: "блоков" },
 };
 
 interface Props {
@@ -30,7 +36,7 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
   const locked = isGameLocked(game.game_date, 30);
   const isFinished = game.status === "finished";
   const isResolved = question.status === "resolved";
-  const categoryLabel = CATEGORY_LABELS[question.category] || question.category;
+  const cat = CATEGORY_LABELS[question.category] || { verb: "наберёт", stat: question.category };
   const canSelect = !locked && !isFinished && !saving;
   const isCorrectPick = localPick != null && localPick === question.correct_answer;
   const totalPicks = pickCounts ? Object.values(pickCounts).reduce((s, c) => s + c, 0) : 0;
@@ -58,7 +64,7 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
       {/* Row 1: info */}
       <div className="bg-surface/60 px-3 py-2 flex items-center justify-between text-[11px]">
         <div className="flex items-center gap-2">
-          <span className="text-accent font-bold">❓ Кто больше забьёт {categoryLabel}?</span>
+          <span className="text-accent font-bold">❓ Кто больше {cat.verb} {cat.stat}?</span>
           {isResolved && question.correct_answer && (
             <span className="text-foreground-secondary">
               — {question.correct_answer === "other" ? "Другой" : question.correct_answer} ({question.correct_value})

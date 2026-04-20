@@ -6,15 +6,15 @@ import { ArrowLeft, X, Minus } from "lucide-react";
 import { getTeamLogoUrl, getRoundLabel } from "@/lib/utils";
 import { getPlayerHeadshotUrl } from "@/lib/players";
 
-const CATEGORY_LABELS: Record<string, string> = {
-  points: "очков",
-  threes: "трёшек",
-  assists: "передач",
-  rebounds: "подборов",
-  turnovers: "потерь",
-  fouls: "фолов",
-  steals: "перехватов",
-  blocks: "блоков",
+const CATEGORY_LABELS: Record<string, { verb: string; stat: string }> = {
+  points: { verb: "забьёт", stat: "очков" },
+  threes: { verb: "забьёт", stat: "трёшек" },
+  assists: { verb: "сделает", stat: "передач" },
+  rebounds: { verb: "соберёт", stat: "подборов" },
+  turnovers: { verb: "совершит", stat: "потерь" },
+  fouls: { verb: "совершит", stat: "фолов" },
+  steals: { verb: "сделает", stat: "перехватов" },
+  blocks: { verb: "сделает", stat: "блоков" },
 };
 
 interface User {
@@ -307,7 +307,7 @@ function GameRow({ game, users, picks }: { game: Game; users: User[]; picks: Rec
 
 function DailyRow({ question, users, picks }: { question: DailyQuestion; users: User[]; picks: Record<string, DailyPick> }) {
   const isResolved = question.status === "resolved";
-  const categoryLabel = CATEGORY_LABELS[question.category] || question.category;
+  const cat = CATEGORY_LABELS[question.category] || { verb: "наберёт", stat: question.category };
   const game = question.game;
 
   return (
@@ -319,7 +319,7 @@ function DailyRow({ question, users, picks }: { question: DailyQuestion; users: 
           {game && <img src={getTeamLogoUrl(game.away_team_id)} alt="" className="w-4 h-4" />}
         </div>
         <div className="text-[9px] text-accent font-semibold mt-0.5 leading-tight">
-          Кто больше забьёт {categoryLabel}?
+          Кто больше {cat.verb} {cat.stat}?
         </div>
         {isResolved && question.correct_answer && (
           <div className="text-[9px] text-success font-bold leading-tight">
