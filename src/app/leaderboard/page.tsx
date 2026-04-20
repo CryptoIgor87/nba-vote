@@ -300,17 +300,20 @@ function EventFeed({ events }: { events: FeedEvent[] }) {
           </button>
         )}
         {olderOpen && olderEvents.map((event) => (
-          <EventRow key={event.id} event={event} />
+          <EventRow key={event.id} event={event} showDate />
         ))}
       </div>
     </div>
   );
 }
 
-function EventRow({ event }: { event: FeedEvent }) {
+function EventRow({ event, showDate }: { event: FeedEvent; showDate?: boolean }) {
   const IconComp = ICON_MAP[event.icon] || Zap;
   const avatar = event.user?.avatar_url || event.user?.image;
-  const date = new Date(event.created_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  const d = new Date(event.created_at);
+  const date = showDate
+    ? d.toLocaleDateString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+    : d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
   const userName = event.user?.display_name || event.user?.name || "Игрок";
   const rawText = event.title.replace(userName, "").trim();
   const pointsMatch = rawText.match(/(\+\d+)$/);
