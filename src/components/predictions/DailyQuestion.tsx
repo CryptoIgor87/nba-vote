@@ -41,12 +41,17 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
   const isCorrectPick = localPick != null && localPick === question.correct_answer;
   const totalPicks = pickCounts ? Object.values(pickCounts).reduce((s, c) => s + c, 0) : 0;
 
+  const allSameTeam =
+    question.player1_team_id === question.player2_team_id &&
+    question.player2_team_id === question.player3_team_id &&
+    question.player3_team_id === question.player4_team_id;
+
   const options = [
     { name: question.player1_name, nba_id: question.player1_nba_id },
     { name: question.player2_name, nba_id: question.player2_nba_id },
     { name: question.player3_name, nba_id: question.player3_nba_id },
     { name: question.player4_name, nba_id: question.player4_nba_id },
-    { name: "other", nba_id: null },
+    ...(!allSameTeam ? [{ name: "other" as const, nba_id: null as number | null }] : []),
   ];
 
   const handlePick = async (option: string) => {
@@ -82,7 +87,7 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
       </div>
 
       {/* Row 2: options */}
-      <div className="grid grid-cols-5 bg-card stats-pattern">
+      <div className={`grid ${allSameTeam ? "grid-cols-4" : "grid-cols-5"} bg-card stats-pattern`}>
         {options.map((opt, idx) => {
           const isSelected = localPick === opt.name;
           const isCorrect = isResolved && question.correct_answer === opt.name;
