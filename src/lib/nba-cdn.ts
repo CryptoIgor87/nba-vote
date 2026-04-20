@@ -69,6 +69,19 @@ const CATEGORY_TO_STAT: Record<DailyQuestionCategory, string> = {
   fouls: "foulsPersonal",
 };
 
+// ESPN stat labels → index mapping
+const ESPN_LABELS = ['MIN', 'PTS', 'FG', '3PT', 'FT', 'REB', 'AST', 'TO', 'STL', 'BLK', 'OREB', 'DREB', 'PF', '+/-'];
+const CATEGORY_TO_ESPN_LABEL: Record<DailyQuestionCategory, string> = {
+  points: "PTS",
+  threes: "3PT",
+  rebounds: "REB",
+  assists: "AST",
+  steals: "STL",
+  blocks: "BLK",
+  turnovers: "TO",
+  fouls: "PF",
+};
+
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {
     const res = await fetch(url, {
@@ -137,43 +150,125 @@ export async function fetchBoxScore(nbaComGameId: string) {
  */
 export async function getTopPlayersByStat(
   nbaComGameId: string,
-  category: DailyQuestionCategory
+  category: DailyQuestionCategory,
+  espnGameId?: string | null
 ): Promise<{ name: string; value: number; teamTricode: string }[]> {
+  // Try NBA CDN first
   const box = await fetchBoxScore(nbaComGameId);
-  if (!box?.game) return [];
+  if (box?.game) {
+    const statKey = CATEGORY_TO_STAT[category] as keyof NbaCdnPlayer["statistics"];
+    const allPlayers = [
+      ...box.game.homeTeam.players.map((p) => ({
+        ...p,
+        teamTricode: box.game.homeTeam.teamTricode,
+      })),
+      ...box.game.awayTeam.players.map((p) => ({
+        ...p,
+        teamTricode: box.game.awayTeam.teamTricode,
+      })),
+    ];
 
-  const statKey = CATEGORY_TO_STAT[category] as keyof NbaCdnPlayer["statistics"];
-  const allPlayers = [
-    ...box.game.homeTeam.players.map((p) => ({
-      ...p,
-      teamTricode: box.game.homeTeam.teamTricode,
-    })),
-    ...box.game.awayTeam.players.map((p) => ({
-      ...p,
-      teamTricode: box.game.awayTeam.teamTricode,
-    })),
-  ];
-
-  let bestValue = -1;
-  for (const p of allPlayers) {
-    const raw = p.statistics?.[statKey] ?? 0;
-    const val = typeof raw === "string" ? parseInt(raw) || 0 : raw;
-    if (val > bestValue) bestValue = val;
-  }
-
-  if (bestValue <= 0) return [];
-
-  return allPlayers
-    .filter((p) => {
+    let bestValue = -1;
+    for (const p of allPlayers) {
       const raw = p.statistics?.[statKey] ?? 0;
       const val = typeof raw === "string" ? parseInt(raw) || 0 : raw;
-      return val === bestValue;
-    })
-    .map((p) => ({
-      name: `${p.firstName} ${p.familyName}`,
-      value: bestValue,
-      teamTricode: p.teamTricode,
-    }));
+      if (val > bestValue) bestValue = val;
+    }
+
+    if (bestValue > 0) {
+      return allPlayers
+        .filter((p) => {
+          const raw = p.statistics?.[statKey] ?? 0;
+          const val = typeof raw === "string" ? parseInt(raw) || 0 : raw;
+          return val === bestValue;
+        })
+        .map((p) => ({
+          name: `${p.firstName} ${p.familyName}`,
+          value: bestValue,
+          teamTricode: p.teamTricode,
+        }));
+    }
+  }
+
+  // Fallback: ESPN API
+  return getTopPlayersFromEspn(category, espnGameId);
+}
+
+/**
+ * Find ESPN game ID by searching the scoreboard for a given date.
+ */
+export async function findEspnGameId(
+  date: string,
+  homeTeamAbbr: string,
+  awayTeamAbbr: string
+): Promise<string | null> {
+  const dateCompact = date.replace(/-/g, ""); // "2026-04-19" → "20260419"
+  const data = await fetchJson<{
+    events?: { id: string; competitions?: { competitors?: { team?: { abbreviation: string } }[] }[] }[];
+  }>(`https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${dateCompact}`);
+
+  for (const ev of data?.events || []) {
+    const teams = ev.competitions?.[0]?.competitors?.map((c) => c.team?.abbreviation) || [];
+    if (teams.includes(homeTeamAbbr) && teams.includes(awayTeamAbbr)) {
+      return ev.id;
+    }
+    // Try common abbreviation differences (PHX/PHO, BKN/BRK)
+    const normalize = (a: string) => a === "PHO" ? "PHX" : a === "BRK" ? "BKN" : a === "GS" ? "GSW" : a === "SA" ? "SAS" : a === "NY" ? "NYK" : a === "NO" ? "NOP" : a;
+    const normTeams = teams.map((t) => normalize(t || ""));
+    if (normTeams.includes(normalize(homeTeamAbbr)) && normTeams.includes(normalize(awayTeamAbbr))) {
+      return ev.id;
+    }
+  }
+  return null;
+}
+
+async function getTopPlayersFromEspn(
+  category: DailyQuestionCategory,
+  espnGameId?: string | null
+): Promise<{ name: string; value: number; teamTricode: string }[]> {
+  if (!espnGameId) return [];
+
+  const data = await fetchJson<{
+    boxscore?: {
+      players?: {
+        team: { abbreviation: string };
+        statistics?: {
+          labels?: string[];
+          athletes?: {
+            athlete: { displayName: string };
+            stats?: string[];
+          }[];
+        }[];
+      }[];
+    };
+  }>(`https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=${espnGameId}`);
+
+  if (!data?.boxscore?.players) return [];
+
+  const targetLabel = CATEGORY_TO_ESPN_LABEL[category];
+  const results: { name: string; value: number; teamTricode: string }[] = [];
+
+  for (const team of data.boxscore.players) {
+    const tricode = team.team.abbreviation;
+    for (const sg of team.statistics || []) {
+      const labels = sg.labels || ESPN_LABELS;
+      const idx = labels.indexOf(targetLabel);
+      if (idx < 0) continue;
+
+      for (const ath of sg.athletes || []) {
+        const raw = ath.stats?.[idx] || "0";
+        // Handle "4-8" format (made-attempted) → take first number
+        const val = parseInt(raw.split("-")[0]) || 0;
+        if (val > 0) {
+          results.push({ name: ath.athlete.displayName, value: val, teamTricode: tricode });
+        }
+      }
+    }
+  }
+
+  if (results.length === 0) return [];
+  const best = Math.max(...results.map((r) => r.value));
+  return results.filter((r) => r.value === best);
 }
 
 /** Backward-compat: single top player */
