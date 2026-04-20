@@ -181,6 +181,23 @@ async function updateSeriesFromGames() {
 
   if (!series) return;
 
+  // Auto-fill game_number for games missing it
+  for (const s of series) {
+    const { data: allGames } = await supabase
+      .from("nba_games")
+      .select("id, game_number, game_date")
+      .eq("series_id", s.id)
+      .order("game_date");
+
+    if (allGames?.some((g) => !g.game_number)) {
+      for (let i = 0; i < allGames.length; i++) {
+        if (allGames[i].game_number !== i + 1) {
+          await supabase.from("nba_games").update({ game_number: i + 1 }).eq("id", allGames[i].id);
+        }
+      }
+    }
+  }
+
   for (const s of series) {
     const { data: games } = await supabase
       .from("nba_games")
