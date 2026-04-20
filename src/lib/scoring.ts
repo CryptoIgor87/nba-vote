@@ -557,9 +557,13 @@ async function generateEvents() {
     }
 
     if (maxStreak >= 3) {
-      const streakPts = maxStreak >= 7 ? (settings.points_streak_7 ?? 5) : maxStreak >= 5 ? (settings.points_streak_5 ?? 3) : (settings.points_streak_3 ?? 1);
-      await addEvent(user.id, `streak_${maxStreak >= 7 ? 7 : maxStreak >= 5 ? 5 : 3}`,
-        `${name} - стрик ${maxStreak} угаданных подряд! +${streakPts}`, "flame");
+      await addEvent(user.id, "streak_3", `${name} - стрик 3 угаданных подряд!`, "flame");
+    }
+    if (maxStreak >= 5) {
+      await addEvent(user.id, "streak_5", `${name} - стрик 5 угаданных подряд!`, "flame");
+    }
+    if (maxStreak >= 7) {
+      await addEvent(user.id, "streak_7", `${name} - стрик 7 угаданных подряд!`, "flame");
     }
 
     // Bonuses
