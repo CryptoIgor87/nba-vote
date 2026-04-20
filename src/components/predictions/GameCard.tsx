@@ -48,7 +48,7 @@ export default function GameCard({ game, prediction, seriesBonuses, onSave }: Pr
   const canSelect = isUpcoming && !locked && !saving;
 
   return (
-    <div className={`rounded-2xl overflow-hidden ring-1 transition-all duration-200 ${
+    <div className={`rounded-2xl overflow-hidden ring-1 transition-all duration-200 h-full flex flex-col ${
       correctPrediction ? "ring-success/40" : isFinished ? "ring-border" : locked ? "ring-border opacity-50" : "ring-border hover:ring-accent/50"
     }`}>
       {/* Row 1: info bar */}
@@ -83,7 +83,7 @@ export default function GameCard({ game, prediction, seriesBonuses, onSave }: Pr
       </div>
 
       {/* Row 2: team picks */}
-      <div className="flex bg-card ball-pattern">
+      <div className="flex bg-card ball-pattern flex-1">
         <TeamBtn
           teamId={game.home_team_id}
           abbr={game.home_team?.abbreviation || "?"}

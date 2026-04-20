@@ -63,7 +63,7 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
   };
 
   return (
-    <div className={`rounded-2xl overflow-hidden ring-1 transition-all duration-200 ${
+    <div className={`rounded-2xl overflow-hidden ring-1 transition-all duration-200 h-full flex flex-col ${
       isResolved ? isCorrectPick ? "ring-success/40" : "ring-border" : locked ? "ring-border opacity-50" : "ring-border hover:ring-accent/50"
     }`}>
       {/* Row 1: info */}
@@ -87,7 +87,7 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
       </div>
 
       {/* Row 2: options */}
-      <div className={`grid ${allSameTeam ? "grid-cols-4" : "grid-cols-5"} bg-card stats-pattern`}>
+      <div className={`grid ${allSameTeam ? "grid-cols-4" : "grid-cols-5"} bg-card stats-pattern flex-1`}>
         {options.map((opt, idx) => {
           const isSelected = localPick === opt.name;
           const isCorrect = isResolved && question.correct_answer === opt.name;
