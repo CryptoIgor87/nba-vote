@@ -315,29 +315,30 @@ async function resolveDailyQuestions(pointsDailyQuestion: number) {
     const game = q.game as { status: string; game_date: string; home_team_id: number; away_team_id: number } | null;
     if (game?.status !== "finished") continue;
 
-    // Auto-resolve nba_game_id if missing
-    if (!q.nba_game_id) {
-      const dateStr = game.game_date.split("T")[0];
-      const homeAbbr = teamAbbr.get(game.home_team_id) || "";
-      const awayAbbr = teamAbbr.get(game.away_team_id) || "";
-      const nbaId = await findNbaComGameId(dateStr, homeAbbr, awayAbbr);
-      if (!nbaId) continue;
-      q.nba_game_id = nbaId;
-      await supabase.from("nba_daily_questions").update({ nba_game_id: nbaId }).eq("id", q.id);
-    }
-
-    // Find ESPN game ID as fallback
     const dateStr = game.game_date.split("T")[0];
     const homeAbbr = teamAbbr.get(game.home_team_id) || "";
     const awayAbbr = teamAbbr.get(game.away_team_id) || "";
-    const espnId = await findEspnGameId(dateStr, homeAbbr, awayAbbr);
 
-    // Get ALL top players (handles ties) — tries NBA CDN first, ESPN fallback
+    // Auto-resolve nba_game_id if missing (NBA CDN)
+    if (!q.nba_game_id) {
+      const nbaId = await findNbaComGameId(dateStr, homeAbbr, awayAbbr);
+      if (nbaId) {
+        q.nba_game_id = nbaId;
+        await supabase.from("nba_daily_questions").update({ nba_game_id: nbaId }).eq("id", q.id);
+      }
+    }
+
+    // Find ESPN game ID as fallback
+    const espnId = await findEspnGameId(dateStr, homeAbbr, awayAbbr);
+    console.log(`[daily-resolve] ${q.id.substring(0, 8)} ${homeAbbr}-${awayAbbr} nba=${q.nba_game_id} espn=${espnId}`);
+
+    // Get ALL top players — tries NBA CDN first, ESPN fallback
     const tops = await getTopPlayersByStat(
-      q.nba_game_id,
+      q.nba_game_id || "none",
       q.category as DailyQuestionCategory,
       espnId
     );
+    console.log(`[daily-resolve] tops: ${tops.map(t => t.name + '=' + t.value).join(', ') || 'EMPTY'}`);
     if (tops.length === 0) continue;
 
     const topValue = tops[0].value;
