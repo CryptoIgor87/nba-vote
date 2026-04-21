@@ -261,6 +261,9 @@ export default function HistoryPage() {
               <CollapsibleSeriesRows seriesRows={seriesRows} users={activeUsers} seriesPredictions={seriesPredictions} />
             )}
 
+            {seriesRows.length > 0 && (
+              <tr><td colSpan={activeUsers.length + 1} className="h-3" /></tr>
+            )}
             {/* Game + daily rows */}
             {flatRows.map((row, rowIdx) => {
               if (row.type === "game") return (
