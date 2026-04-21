@@ -175,6 +175,49 @@ export default function HistoryPage() {
     days.get(day)!.push(r);
   });
 
+  // Build streak map per user: for each row index, mark if it's part of a qualifying streak (3+)
+  // Rows are newest-first, so we reverse for chronological streak detection, then map back
+  const flatRows = [...days.values()].flat();
+  const streakMap: Record<string, Record<number, "top" | "mid" | "bot" | "solo">> = {};
+
+  for (const user of activeUsers) {
+    // Get correct/incorrect per row in chronological order (oldest first)
+    const chronoResults: { rowIdx: number; correct: boolean }[] = [];
+    for (let i = flatRows.length - 1; i >= 0; i--) {
+      const row = flatRows[i];
+      let correct: boolean | null = null;
+      if (row.type === "game") {
+        const pick = gamePredictions[row.game.id]?.[user.id];
+        if (pick && row.game.status === "finished") correct = !!pick.correct;
+      } else if (row.type === "daily") {
+        const pick = dailyPicks?.[row.question.id]?.[user.id];
+        if (pick && row.question.status === "resolved") correct = pick.points > 0;
+      }
+      if (correct !== null) chronoResults.push({ rowIdx: i, correct });
+    }
+
+    // Find streaks of 3+
+    const userStreaks: Record<number, "top" | "mid" | "bot" | "solo"> = {};
+    let streakStart = 0;
+    for (let i = 0; i <= chronoResults.length; i++) {
+      if (i < chronoResults.length && chronoResults[i].correct) continue;
+      // streak from streakStart to i-1
+      const len = i - streakStart;
+      if (len >= 3) {
+        for (let j = streakStart; j < i; j++) {
+          const ri = chronoResults[j].rowIdx;
+          // In the table rows are newest-first, so first in chrono = bottom in display
+          if (len === 1) userStreaks[ri] = "solo";
+          else if (j === streakStart) userStreaks[ri] = "bot";
+          else if (j === i - 1) userStreaks[ri] = "top";
+          else userStreaks[ri] = "mid";
+        }
+      }
+      streakStart = i + 1;
+    }
+    streakMap[user.id] = userStreaks;
+  }
+
   return (
     <div className="max-w-full mx-auto">
       <div className="flex items-center justify-between mb-4 px-4">
@@ -242,11 +285,12 @@ export default function HistoryPage() {
                 </tr>
 
                 {dayRows.map((row) => {
+                  const rowIdx = flatRows.indexOf(row);
                   if (row.type === "game") return (
-                    <GameRow key={`g-${row.game.id}`} game={row.game} users={activeUsers} picks={gamePredictions[row.game.id] || {}} />
+                    <GameRow key={`g-${row.game.id}`} game={row.game} users={activeUsers} picks={gamePredictions[row.game.id] || {}} streakMap={streakMap} rowIdx={rowIdx} />
                   );
                   return (
-                    <DailyRow key={`d-${(row as { question: DailyQuestion }).question.id}`} question={(row as { question: DailyQuestion }).question} users={activeUsers} picks={dailyPicks?.[(row as { question: DailyQuestion }).question.id] || {}} />
+                    <DailyRow key={`d-${(row as { question: DailyQuestion }).question.id}`} question={(row as { question: DailyQuestion }).question} users={activeUsers} picks={dailyPicks?.[(row as { question: DailyQuestion }).question.id] || {}} streakMap={streakMap} rowIdx={rowIdx} />
                   );
                 })}
               </>
@@ -266,7 +310,16 @@ function BackLink() {
   );
 }
 
-function GameRow({ game, users, picks }: { game: Game; users: User[]; picks: Record<string, GamePick> }) {
+function streakBorder(pos: "top" | "mid" | "bot" | "solo" | undefined): string {
+  if (!pos) return "";
+  const base = "border-l-2 border-r-2 border-success/50";
+  if (pos === "solo") return `${base} border-t-2 border-b-2 rounded`;
+  if (pos === "top") return `${base} border-t-2`;
+  if (pos === "bot") return `${base} border-b-2`;
+  return base; // mid
+}
+
+function GameRow({ game, users, picks, streakMap, rowIdx }: { game: Game; users: User[]; picks: Record<string, GamePick>; streakMap: Record<string, Record<number, "top" | "mid" | "bot" | "solo">>; rowIdx: number }) {
   const isFinished = game.status === "finished";
   return (
     <tr className="border-t border-border">
@@ -286,10 +339,11 @@ function GameRow({ game, users, picks }: { game: Game; users: User[]; picks: Rec
       </td>
       {users.map((user) => {
         const pick = picks[user.id];
+        const sp = streakMap[user.id]?.[rowIdx];
         if (!pick) return <td key={user.id} className="px-1 py-2 text-center"><Minus size={12} className="text-border mx-auto" /></td>;
         const pickedAbbr = pick.picked_team_id === game.home_team_id ? game.home_team?.abbreviation : game.away_team?.abbreviation;
         return (
-          <td key={user.id} className={`px-1 py-2 text-center ${isFinished ? pick.correct ? "bg-success/10" : "bg-danger/10" : ""}`}>
+          <td key={user.id} className={`px-1 py-2 text-center ${isFinished ? pick.correct ? "bg-success/10" : "bg-danger/10" : ""} ${streakBorder(sp)}`}>
             <div className="flex flex-col items-center gap-0.5">
               <img src={getTeamLogoUrl(pick.picked_team_id)} alt="" className="w-5 h-5" />
               <span className="text-[9px] font-bold">{pickedAbbr}</span>
@@ -305,7 +359,7 @@ function GameRow({ game, users, picks }: { game: Game; users: User[]; picks: Rec
   );
 }
 
-function DailyRow({ question, users, picks }: { question: DailyQuestion; users: User[]; picks: Record<string, DailyPick> }) {
+function DailyRow({ question, users, picks, streakMap, rowIdx }: { question: DailyQuestion; users: User[]; picks: Record<string, DailyPick>; streakMap: Record<string, Record<number, "top" | "mid" | "bot" | "solo">>; rowIdx: number }) {
   const isResolved = question.status === "resolved";
   const cat = CATEGORY_LABELS[question.category] || { verb: "наберёт", stat: question.category };
   const game = question.game;
@@ -329,6 +383,7 @@ function DailyRow({ question, users, picks }: { question: DailyQuestion; users: 
       </td>
       {users.map((user) => {
         const pick = picks[user.id];
+        const sp = streakMap[user.id]?.[rowIdx];
         if (!pick) return <td key={user.id} className="px-1 py-2 text-center"><Minus size={12} className="text-border mx-auto" /></td>;
 
         const isCorrect = isResolved && pick.points > 0;
@@ -342,7 +397,7 @@ function DailyRow({ question, users, picks }: { question: DailyQuestion; users: 
         else if (pick.picked_option === question.player4_name) nbaId = question.player4_nba_id;
 
         return (
-          <td key={user.id} className={`px-1 py-2 text-center ${isCorrect ? "bg-success/10" : isWrong ? "bg-danger/10" : ""}`}>
+          <td key={user.id} className={`px-1 py-2 text-center ${isCorrect ? "bg-success/10" : isWrong ? "bg-danger/10" : ""} ${streakBorder(sp)}`}>
             <div className="flex flex-col items-center gap-0.5">
               {nbaId ? (
                 <img src={getPlayerHeadshotUrl(nbaId)} alt="" className="w-6 h-5 object-cover object-top rounded" />
