@@ -202,21 +202,29 @@ export async function findEspnGameId(
   homeTeamAbbr: string,
   awayTeamAbbr: string
 ): Promise<string | null> {
-  const dateCompact = date.replace(/-/g, ""); // "2026-04-19" → "20260419"
-  const data = await fetchJson<{
-    events?: { id: string; competitions?: { competitors?: { team?: { abbreviation: string } }[] }[] }[];
-  }>(`https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${dateCompact}`);
+  // Search both the given date and previous day (UTC vs US timezone offset)
+  const d = new Date(date + "T12:00:00Z");
+  const prev = new Date(d.getTime() - 24 * 60 * 60 * 1000);
+  const dates = [
+    date.replace(/-/g, ""),
+    prev.toISOString().split("T")[0].replace(/-/g, ""),
+  ];
 
-  for (const ev of data?.events || []) {
-    const teams = ev.competitions?.[0]?.competitors?.map((c) => c.team?.abbreviation) || [];
-    if (teams.includes(homeTeamAbbr) && teams.includes(awayTeamAbbr)) {
-      return ev.id;
-    }
-    // Try common abbreviation differences (PHX/PHO, BKN/BRK)
+  for (const dateCompact of dates) {
+    const data = await fetchJson<{
+      events?: { id: string; competitions?: { competitors?: { team?: { abbreviation: string } }[] }[] }[];
+    }>(`https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${dateCompact}`);
+
     const normalize = (a: string) => a === "PHO" ? "PHX" : a === "BRK" ? "BKN" : a === "GS" ? "GSW" : a === "SA" ? "SAS" : a === "NY" ? "NYK" : a === "NO" ? "NOP" : a;
-    const normTeams = teams.map((t) => normalize(t || ""));
-    if (normTeams.includes(normalize(homeTeamAbbr)) && normTeams.includes(normalize(awayTeamAbbr))) {
-      return ev.id;
+    for (const ev of data?.events || []) {
+      const teams = ev.competitions?.[0]?.competitors?.map((c) => c.team?.abbreviation) || [];
+      if (teams.includes(homeTeamAbbr) && teams.includes(awayTeamAbbr)) {
+        return ev.id;
+      }
+      const normTeams = teams.map((t) => normalize(t || ""));
+      if (normTeams.includes(normalize(homeTeamAbbr)) && normTeams.includes(normalize(awayTeamAbbr))) {
+        return ev.id;
+      }
     }
   }
   return null;
