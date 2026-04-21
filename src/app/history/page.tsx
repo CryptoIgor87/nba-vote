@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, X, Minus } from "lucide-react";
+import { ArrowLeft, X, Minus, ChevronDown, ChevronUp } from "lucide-react";
 import { getTeamLogoUrl, getRoundLabel } from "@/lib/utils";
 import { getPlayerHeadshotUrl } from "@/lib/players";
 
@@ -256,21 +256,9 @@ export default function HistoryPage() {
           </thead>
 
           <tbody>
-            {/* Series predictions — separate block at top */}
+            {/* Series predictions — collapsed by default */}
             {seriesRows.length > 0 && (
-              <>
-                <tr>
-                  <td
-                    colSpan={activeUsers.length + 1}
-                    className="sticky left-0 z-10 bg-surface px-3 py-1.5 text-xs font-bold text-accent uppercase tracking-wider"
-                  >
-                    Серии
-                  </td>
-                </tr>
-                {seriesRows.map((row) => (
-                  <SeriesRow key={`s-${(row as { series: Series }).series.id}`} series={(row as { series: Series }).series} users={activeUsers} picks={seriesPredictions[(row as { series: Series }).series.id] || {}} />
-                ))}
-              </>
+              <CollapsibleSeriesRows seriesRows={seriesRows} users={activeUsers} seriesPredictions={seriesPredictions} />
             )}
 
             {/* Game + daily rows */}
@@ -294,6 +282,29 @@ function BackLink() {
     <Link href="/leaderboard" className="flex items-center gap-1 text-sm text-muted hover:text-foreground py-2">
       <ArrowLeft size={16} /> Рейтинг
     </Link>
+  );
+}
+
+function CollapsibleSeriesRows({ seriesRows, users, seriesPredictions }: { seriesRows: Row[]; users: User[]; seriesPredictions: Record<string, Record<string, SeriesPick>> }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <tr>
+        <td
+          colSpan={users.length + 1}
+          className="sticky left-0 z-10 bg-surface px-3 py-1.5 cursor-pointer"
+          onClick={() => setOpen(!open)}
+        >
+          <div className="flex items-center justify-between text-xs font-bold text-accent uppercase tracking-wider">
+            <span>Серии</span>
+            {open ? <ChevronUp size={14} className="text-muted" /> : <ChevronDown size={14} className="text-muted" />}
+          </div>
+        </td>
+      </tr>
+      {open && seriesRows.map((row) => (
+        <SeriesRow key={`s-${(row as { series: Series }).series.id}`} series={(row as { series: Series }).series} users={users} picks={seriesPredictions[(row as { series: Series }).series.id] || {}} />
+      ))}
+    </>
   );
 }
 
