@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, type ReactNode } from "react";
+import { ChevronDown, ChevronUp, Trophy } from "lucide-react";
 import { useSession } from "next-auth/react";
 import GameCard from "@/components/predictions/GameCard";
 import WinnerPicker from "@/components/predictions/WinnerPicker";
@@ -221,10 +222,9 @@ export default function PredictionsPage() {
           : undefined}
       />
 
-      {/* Series predictions */}
+      {/* Series predictions — collapsed by default */}
       {playoffSeries.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">Прогнозы на серии</h2>
+        <SeriesSection>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {playoffSeries.map((s) => {
               // Find earliest game in this series
@@ -246,7 +246,7 @@ export default function PredictionsPage() {
               );
             })}
           </div>
-        </div>
+        </SeriesSection>
       )}
 
       <h2 className="text-lg font-semibold mb-3">Прогнозы на матчи</h2>
@@ -287,6 +287,23 @@ export default function PredictionsPage() {
           Нет матчей для отображения
         </p>
       )}
+    </div>
+  );
+}
+
+function SeriesSection({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mb-6">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 text-lg font-semibold mb-3 hover:text-accent transition-colors"
+      >
+        <Trophy size={18} className="text-accent" />
+        Прогнозы на серии
+        {open ? <ChevronUp size={18} className="text-muted" /> : <ChevronDown size={18} className="text-muted" />}
+      </button>
+      {open && children}
     </div>
   );
 }

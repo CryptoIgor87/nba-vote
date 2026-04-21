@@ -273,29 +273,15 @@ export default function HistoryPage() {
               </>
             )}
 
-            {/* Game + daily rows by day */}
-            {[...days.entries()].map(([day, dayRows]) => (
-              <>
-                <tr key={`day-${day}`}>
-                  <td
-                    colSpan={activeUsers.length + 1}
-                    className="sticky left-0 z-10 bg-surface px-3 py-1.5 text-xs font-bold text-accent uppercase tracking-wider"
-                  >
-                    {day}
-                  </td>
-                </tr>
-
-                {dayRows.map((row) => {
-                  const rowIdx = flatRows.indexOf(row);
-                  if (row.type === "game") return (
-                    <GameRow key={`g-${row.game.id}`} game={row.game} users={activeUsers} picks={gamePredictions[row.game.id] || {}} streakMap={streakMap} rowIdx={rowIdx} />
-                  );
-                  return (
-                    <DailyRow key={`d-${(row as { question: DailyQuestion }).question.id}`} question={(row as { question: DailyQuestion }).question} users={activeUsers} picks={dailyPicks?.[(row as { question: DailyQuestion }).question.id] || {}} streakMap={streakMap} rowIdx={rowIdx} />
-                  );
-                })}
-              </>
-            ))}
+            {/* Game + daily rows */}
+            {flatRows.map((row, rowIdx) => {
+              if (row.type === "game") return (
+                <GameRow key={`g-${row.game.id}`} game={row.game} users={activeUsers} picks={gamePredictions[row.game.id] || {}} streakMap={streakMap} rowIdx={rowIdx} />
+              );
+              return (
+                <DailyRow key={`d-${(row as { question: DailyQuestion }).question.id}`} question={(row as { question: DailyQuestion }).question} users={activeUsers} picks={dailyPicks?.[(row as { question: DailyQuestion }).question.id] || {}} streakMap={streakMap} rowIdx={rowIdx} />
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -334,8 +320,9 @@ function GameRow({ game, users, picks, streakMap, rowIdx }: { game: Game; users:
           )}
           <img src={getTeamLogoUrl(game.away_team_id)} alt="" className="w-5 h-5" />
         </div>
-        <div className="text-[9px] text-muted mt-0.5">
-          {game.round && <span className="text-accent">{game.round === "play_in" ? "Play-In" : `Игра ${game.game_number || ""}`}</span>}
+        <div className="text-[9px] text-muted mt-0.5 flex items-center gap-1.5">
+          <span>{new Date(game.game_date).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}</span>
+          {game.round && <span className="text-accent">{game.round === "play_in" ? "Play-In" : `И${game.game_number || ""}`}</span>}
         </div>
       </td>
       {users.map((user) => {
