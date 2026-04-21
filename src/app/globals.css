@@ -257,6 +257,19 @@ input[type="number"] { -moz-appearance: textfield; }
     repeating-linear-gradient(0deg, rgba(255, 106, 0, 0.02) 0px, rgba(255, 106, 0, 0.02) 1px, transparent 1px, transparent 20px);
 }
 
+/* Streak highlight borders — gradient green→emerald */
+.streak-border-lr {
+  border-left: 2px solid;
+  border-right: 2px solid;
+  border-image: linear-gradient(to bottom, #00e676, #10b981) 1;
+}
+.streak-border-t {
+  border-top: 2px solid #00e676;
+}
+.streak-border-b {
+  border-bottom: 2px solid #10b981;
+}
+
 /* Marquee */
 @keyframes marquee {
   0% { transform: translateX(0); }

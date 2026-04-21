@@ -196,20 +196,21 @@ export default function HistoryPage() {
       if (correct !== null) chronoResults.push({ rowIdx: i, correct });
     }
 
-    // Find streaks of 3+
+    // Find bonus streaks: mark only the first 3, 5, or 7 cells of each streak
     const userStreaks: Record<number, "top" | "mid" | "bot" | "solo"> = {};
     let streakStart = 0;
     for (let i = 0; i <= chronoResults.length; i++) {
       if (i < chronoResults.length && chronoResults[i].correct) continue;
-      // streak from streakStart to i-1
       const len = i - streakStart;
-      if (len >= 3) {
-        for (let j = streakStart; j < i; j++) {
+      // Mark cells for each bonus threshold reached
+      const thresholds = [3, 5, 7].filter(t => len >= t);
+      for (const t of thresholds) {
+        for (let j = streakStart; j < streakStart + t; j++) {
           const ri = chronoResults[j].rowIdx;
-          // In the table rows are newest-first, so first in chrono = bottom in display
-          if (len === 1) userStreaks[ri] = "solo";
+          // In table rows are newest-first, so first in chrono = bottom in display
+          if (t === 1) userStreaks[ri] = "solo";
           else if (j === streakStart) userStreaks[ri] = "bot";
-          else if (j === i - 1) userStreaks[ri] = "top";
+          else if (j === streakStart + t - 1) userStreaks[ri] = "top";
           else userStreaks[ri] = "mid";
         }
       }
@@ -312,10 +313,10 @@ function BackLink() {
 
 function streakBorder(pos: "top" | "mid" | "bot" | "solo" | undefined): string {
   if (!pos) return "";
-  const base = "border-l-2 border-r-2 border-success/50";
-  if (pos === "solo") return `${base} border-t-2 border-b-2 rounded`;
-  if (pos === "top") return `${base} border-t-2`;
-  if (pos === "bot") return `${base} border-b-2`;
+  const base = "streak-border-lr";
+  if (pos === "solo") return `${base} streak-border-t streak-border-b`;
+  if (pos === "top") return `${base} streak-border-t`;
+  if (pos === "bot") return `${base} streak-border-b`;
   return base; // mid
 }
 
