@@ -509,24 +509,7 @@ async function generateEvents() {
       await addEvent(user.id, "first_point", `${name} набрал первый балл!`, "trophy");
     }
 
-    // Milestones
-    if (correct >= 10) {
-      await addEvent(user.id, "correct_10", `${name} угадал 10 матчей`, "target");
-    }
-    if (correct >= 20) {
-      await addEvent(user.id, "correct_20", `${name} угадал 20 матчей`, "target");
-    }
-    if (correct >= 30) {
-      await addEvent(user.id, "correct_30", `${name} угадал 30 матчей!`, "target");
-    }
-
-    // Accuracy
-    if (total >= 10) {
-      const accuracy = Math.round((correct / total) * 100);
-      if (accuracy >= 80) {
-        await addEvent(user.id, "accuracy_80", `${name} - точность прогнозов выше 80%!`, "crosshair");
-      }
-    }
+    // Milestones and accuracy — disabled, too noisy
 
     // Streak (games + daily questions)
     const { data: finishedGames } = await supabase
