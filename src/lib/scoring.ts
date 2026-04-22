@@ -344,12 +344,20 @@ async function resolveDailyQuestions(pointsDailyQuestion: number) {
     const topValue = tops[0].value;
     const topNames = tops.map((t) => t.name);
 
-    // Determine correct answers — any of the tied leaders + "other" if any leader is outside 4 options
+    // Determine correct answers
     const playerNames = [q.player1_name, q.player2_name, q.player3_name, q.player4_name];
+    const allSameTeam = q.player1_team_id === q.player2_team_id &&
+      q.player2_team_id === q.player3_team_id &&
+      q.player3_team_id === q.player4_team_id;
+
     const correctOptions = playerNames.filter((name) => topNames.includes(name));
-    // "other" is correct if ANY leader is not among the 4 options
-    const hasOutsideLeader = topNames.some((name) => !playerNames.includes(name));
-    if (hasOutsideLeader || correctOptions.length === 0) correctOptions.push("other");
+
+    if (!allSameTeam) {
+      // "other" is correct if ANY leader is not among the 4 options
+      const hasOutsideLeader = topNames.some((name) => !playerNames.includes(name));
+      if (hasOutsideLeader || correctOptions.length === 0) correctOptions.push("other");
+    }
+    // allSameTeam + nobody from 4 is leader → correctOptions stays empty → nobody wins
 
     // Store the first correct answer for display
     const correctAnswer = correctOptions[0];
