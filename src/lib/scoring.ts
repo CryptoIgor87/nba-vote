@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { getTopPlayersByStat, findNbaComGameId, findEspnGameId } from "./nba-cdn";
+import { getTopPlayersByStat, getAllPlayersByStat, findNbaComGameId, findEspnGameId } from "./nba-cdn";
 import type { DailyQuestionCategory, NbaSetting } from "./types";
 
 export async function getSettings(): Promise<Record<string, number>> {
@@ -350,14 +350,23 @@ async function resolveDailyQuestions(pointsDailyQuestion: number) {
       q.player2_team_id === q.player3_team_id &&
       q.player3_team_id === q.player4_team_id;
 
-    const correctOptions = playerNames.filter((name) => topNames.includes(name));
+    let correctOptions: string[];
 
-    if (!allSameTeam) {
-      // "other" is correct if ANY leader is not among the 4 options
+    if (allSameTeam) {
+      // No "other" option — find best among the 4 players only
+      const allPlayers = await getAllPlayersByStat(q.nba_game_id || "none", q.category as DailyQuestionCategory, espnId);
+      const fourStats = allPlayers.filter((p) => playerNames.includes(p.name));
+      if (fourStats.length > 0) {
+        const bestVal = Math.max(...fourStats.map((p) => p.value));
+        correctOptions = fourStats.filter((p) => p.value === bestVal).map((p) => p.name);
+      } else {
+        correctOptions = [];
+      }
+    } else {
+      correctOptions = playerNames.filter((name) => topNames.includes(name));
       const hasOutsideLeader = topNames.some((name) => !playerNames.includes(name));
       if (hasOutsideLeader || correctOptions.length === 0) correctOptions.push("other");
     }
-    // allSameTeam + nobody from 4 is leader → correctOptions stays empty → nobody wins
 
     // Store the first correct answer for display
     const correctAnswer = correctOptions[0];

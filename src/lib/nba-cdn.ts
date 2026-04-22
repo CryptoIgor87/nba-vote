@@ -148,6 +148,33 @@ export async function fetchBoxScore(nbaComGameId: string) {
  * Get ALL top players (tied for first) for a given stat category in a game.
  * Returns array of { name, value, teamTricode }.
  */
+export async function getAllPlayersByStat(
+  nbaComGameId: string,
+  category: DailyQuestionCategory,
+  espnGameId?: string | null
+): Promise<{ name: string; value: number; teamTricode: string }[]> {
+  // Try ESPN API (more reliable from server)
+  if (espnGameId) {
+    const results = await getAllPlayersFromEspn(category, espnGameId);
+    if (results.length > 0) return results;
+  }
+  // Fallback to NBA CDN
+  const box = await fetchBoxScore(nbaComGameId);
+  if (!box?.game) return [];
+  const statKey = CATEGORY_TO_STAT[category] as keyof NbaCdnPlayer["statistics"];
+  const allPlayers = [
+    ...box.game.homeTeam.players.map((p) => ({ ...p, teamTricode: box.game.homeTeam.teamTricode })),
+    ...box.game.awayTeam.players.map((p) => ({ ...p, teamTricode: box.game.awayTeam.teamTricode })),
+  ];
+  return allPlayers.map((p) => {
+    const raw = p.statistics?.[statKey] ?? 0;
+    return { name: `${p.firstName} ${p.familyName}`, value: typeof raw === "string" ? parseInt(raw) || 0 : raw, teamTricode: p.teamTricode };
+  }).filter((p) => p.value > 0).sort((a, b) => b.value - a.value);
+}
+
+/**
+ * Get ALL top players (tied for first) for a given stat category in a game.
+ */
 export async function getTopPlayersByStat(
   nbaComGameId: string,
   category: DailyQuestionCategory,
@@ -228,6 +255,32 @@ export async function findEspnGameId(
     }
   }
   return null;
+}
+
+async function getAllPlayersFromEspn(
+  category: DailyQuestionCategory,
+  espnGameId: string
+): Promise<{ name: string; value: number; teamTricode: string }[]> {
+  const data = await fetchJson<{
+    boxscore?: { players?: { team: { abbreviation: string }; statistics?: { labels?: string[]; athletes?: { athlete: { displayName: string }; stats?: string[] }[] }[] }[] };
+  }>(`https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event=${espnGameId}`);
+  if (!data?.boxscore?.players) return [];
+  const targetLabel = CATEGORY_TO_ESPN_LABEL[category];
+  const results: { name: string; value: number; teamTricode: string }[] = [];
+  for (const team of data.boxscore.players) {
+    const tricode = team.team.abbreviation;
+    for (const sg of team.statistics || []) {
+      const labels = sg.labels || ESPN_LABELS;
+      const idx = labels.indexOf(targetLabel);
+      if (idx < 0) continue;
+      for (const ath of sg.athletes || []) {
+        const raw = ath.stats?.[idx] || "0";
+        const val = parseInt(raw.split("-")[0]) || 0;
+        results.push({ name: ath.athlete.displayName, value: val, teamTricode: tricode });
+      }
+    }
+  }
+  return results.sort((a, b) => b.value - a.value);
 }
 
 async function getTopPlayersFromEspn(
