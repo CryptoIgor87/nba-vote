@@ -95,6 +95,7 @@ export const NBA_PLAYERS: NbaPlayer[] = [
 import type { DailyQuestionCategory } from "./types";
 
 const CATEGORY_FILTERS: Record<DailyQuestionCategory, (p: NbaPlayer) => boolean> = {
+  total: () => false,
   points: (p) => p.tags.includes("scorer"),
   threes: (p) => p.tags.includes("shooter"),
   rebounds: (p) => p.pos === "C" || p.pos === "F" || p.tags.includes("rebounder"),

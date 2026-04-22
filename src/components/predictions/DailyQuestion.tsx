@@ -8,6 +8,7 @@ import Countdown from "./Countdown";
 import type { NbaDailyQuestion, NbaDailyPick, NbaGame, NbaTeam } from "@/lib/types";
 
 const CATEGORY_LABELS: Record<string, { verb: string; stat: string }> = {
+  total: { verb: "", stat: "Тотал матча" },
   points: { verb: "забьёт", stat: "очков" },
   threes: { verb: "забьёт", stat: "трёшек" },
   assists: { verb: "сделает", stat: "передач" },
@@ -69,7 +70,9 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
       {/* Row 1: info */}
       <div className="bg-surface/60 px-3 py-2 flex items-center justify-between text-[11px]">
         <div className="flex items-center gap-2">
-          <span className="text-accent font-bold">❓ Кто больше {cat.verb} {cat.stat}?</span>
+          <span className="text-accent font-bold">
+            {question.category === "total" ? `🏀 ${cat.stat}?` : `❓ Кто больше ${cat.verb} ${cat.stat}?`}
+          </span>
           {isResolved && question.correct_answer && (
             <span className="text-foreground-secondary">
               — {question.correct_answer === "other" ? "Другой" : question.correct_answer} ({question.correct_value})
@@ -106,17 +109,27 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
                 isSelected && !isResolved ? "bg-accent/10" : ""
               } ${isCorrect ? "bg-success/8" : ""} ${isWrong ? "bg-danger/8" : ""}`}
             >
-              {opt.nba_id ? (
-                <img src={getPlayerHeadshotUrl(opt.nba_id)} alt={opt.name}
-                  className="w-10 h-8 sm:w-12 sm:h-9 object-cover object-top rounded-md" />
+              {question.category === "total" ? (
+                <span className={`text-sm sm:text-base font-black tabular-nums ${
+                  isCorrect ? "text-success" : isSelected && !isResolved ? "text-accent" : ""
+                }`}>
+                  {opt.name}
+                </span>
               ) : (
-                <HelpCircle size={24} className="text-foreground-tertiary" />
+                <>
+                  {opt.nba_id ? (
+                    <img src={getPlayerHeadshotUrl(opt.nba_id)} alt={opt.name}
+                      className="w-10 h-8 sm:w-12 sm:h-9 object-cover object-top rounded-md" />
+                  ) : (
+                    <HelpCircle size={24} className="text-foreground-tertiary" />
+                  )}
+                  <span className={`text-[10px] sm:text-[11px] font-semibold leading-tight text-center ${
+                    isCorrect ? "text-success" : isSelected && !isResolved ? "text-accent" : ""
+                  }`}>
+                    {opt.name === "other" ? "Другой" : opt.name.split(" ").pop()}
+                  </span>
+                </>
               )}
-              <span className={`text-[10px] sm:text-[11px] font-semibold leading-tight text-center ${
-                isCorrect ? "text-success" : isSelected && !isResolved ? "text-accent" : ""
-              }`}>
-                {opt.name === "other" ? "Другой" : opt.name.split(" ").pop()}
-              </span>
               <div className="h-3 flex items-center">
                 {isSelected && !isResolved && <Check size={9} className="text-accent" />}
                 {isCorrect && <span className="text-[9px] text-success font-bold"><Trophy size={7} className="inline" /> {question.correct_value}</span>}

@@ -447,6 +447,7 @@ export default function UserPage() {
               const isCorrect = isResolved && dp.points_earned > 0;
               const isWrong = isResolved && dp.points_earned === 0;
               const categoryLabels: Record<string, { verb: string; stat: string }> = {
+                total: { verb: "", stat: "Тотал матча" },
                 points: { verb: "забьёт", stat: "очков" },
                 threes: { verb: "забьёт", stat: "трёшек" },
                 assists: { verb: "сделает", stat: "передач" },
@@ -476,7 +477,7 @@ export default function UserPage() {
                   <div className="text-xs text-muted mb-2 flex items-center justify-between">
                     <span>
                       {game ? formatGameDate(game.game_date) : q.question_date}
-                      <span className="ml-2 text-accent">Кто больше {cat.verb} {cat.stat}?</span>
+                      <span className="ml-2 text-accent">{q.category === "total" ? `🏀 ${cat.stat}?` : `Кто больше ${cat.verb} ${cat.stat}?`}</span>
                     </span>
                   </div>
                   <div className="flex items-center gap-3">

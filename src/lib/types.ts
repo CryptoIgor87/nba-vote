@@ -117,7 +117,8 @@ export type DailyQuestionCategory =
   | "turnovers"
   | "fouls"
   | "steals"
-  | "blocks";
+  | "blocks"
+  | "total";
 
 export interface NbaDailyQuestion {
   id: string;

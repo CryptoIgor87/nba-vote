@@ -330,42 +330,65 @@ async function resolveDailyQuestions(pointsDailyQuestion: number) {
 
     // Find ESPN game ID as fallback
     const espnId = await findEspnGameId(dateStr, homeAbbr, awayAbbr);
-    console.log(`[daily-resolve] ${q.id.substring(0, 8)} ${homeAbbr}-${awayAbbr} nba=${q.nba_game_id} espn=${espnId}`);
+    console.log(`[daily-resolve] ${q.id.substring(0, 8)} ${homeAbbr}-${awayAbbr} cat=${q.category} nba=${q.nba_game_id} espn=${espnId}`);
 
-    // Get ALL top players — tries NBA CDN first, ESPN fallback
-    const tops = await getTopPlayersByStat(
-      q.nba_game_id || "none",
-      q.category as DailyQuestionCategory,
-      espnId
-    );
-    console.log(`[daily-resolve] tops: ${tops.map(t => t.name + '=' + t.value).join(', ') || 'EMPTY'}`);
-    if (tops.length === 0) continue;
-
-    const topValue = tops[0].value;
-    const topNames = tops.map((t) => t.name);
-
-    // Determine correct answers
     const playerNames = [q.player1_name, q.player2_name, q.player3_name, q.player4_name];
     const allSameTeam = q.player1_team_id === q.player2_team_id &&
       q.player2_team_id === q.player3_team_id &&
       q.player3_team_id === q.player4_team_id;
 
     let correctOptions: string[];
+    let topValue: number;
 
-    if (allSameTeam) {
-      // No "other" option — find best among the 4 players only
-      const allPlayers = await getAllPlayersByStat(q.nba_game_id || "none", q.category as DailyQuestionCategory, espnId);
-      const fourStats = allPlayers.filter((p) => playerNames.includes(p.name));
-      if (fourStats.length > 0) {
-        const bestVal = Math.max(...fourStats.map((p) => p.value));
-        correctOptions = fourStats.filter((p) => p.value === bestVal).map((p) => p.name);
-      } else {
-        correctOptions = [];
+    if (q.category === "total") {
+      // Total = home_score + away_score from our DB
+      const { data: gameData } = await supabase.from("nba_games").select("home_score, away_score").eq("id", q.game_id).single();
+      const total = (gameData?.home_score || 0) + (gameData?.away_score || 0);
+      topValue = total;
+      console.log(`[daily-resolve] total: ${total}`);
+
+      // Find which range matches
+      correctOptions = [];
+      for (const name of playerNames) {
+        const rangeMatch = name.match(/^(\d+)-(\d+)$/);
+        if (rangeMatch) {
+          const lo = parseInt(rangeMatch[1]);
+          const hi = parseInt(rangeMatch[2]);
+          if (total >= lo && total <= hi) correctOptions.push(name);
+        }
+      }
+      // If no range matched, check for "Другой" among options
+      if (correctOptions.length === 0) {
+        const otherOpt = playerNames.find((n) => n === "Другой" || n === "other");
+        if (otherOpt) correctOptions.push(otherOpt);
       }
     } else {
-      correctOptions = playerNames.filter((name) => topNames.includes(name));
-      const hasOutsideLeader = topNames.some((name) => !playerNames.includes(name));
-      if (hasOutsideLeader || correctOptions.length === 0) correctOptions.push("other");
+      // Player stat questions
+      const tops = await getTopPlayersByStat(
+        q.nba_game_id || "none",
+        q.category as DailyQuestionCategory,
+        espnId
+      );
+      console.log(`[daily-resolve] tops: ${tops.map(t => t.name + '=' + t.value).join(', ') || 'EMPTY'}`);
+      if (tops.length === 0) continue;
+
+      topValue = tops[0].value;
+      const topNames = tops.map((t) => t.name);
+
+      if (allSameTeam) {
+        const allPlayers = await getAllPlayersByStat(q.nba_game_id || "none", q.category as DailyQuestionCategory, espnId);
+        const fourStats = allPlayers.filter((p) => playerNames.includes(p.name));
+        if (fourStats.length > 0) {
+          const bestVal = Math.max(...fourStats.map((p) => p.value));
+          correctOptions = fourStats.filter((p) => p.value === bestVal).map((p) => p.name);
+        } else {
+          correctOptions = [];
+        }
+      } else {
+        correctOptions = playerNames.filter((name) => topNames.includes(name));
+        const hasOutsideLeader = topNames.some((name) => !playerNames.includes(name));
+        if (hasOutsideLeader || correctOptions.length === 0) correctOptions.push("other");
+      }
     }
 
     // Store the first correct answer for display

@@ -7,6 +7,7 @@ import { getTeamLogoUrl, getRoundLabel } from "@/lib/utils";
 import { getPlayerHeadshotUrl } from "@/lib/players";
 
 const CATEGORY_LABELS: Record<string, { verb: string; stat: string }> = {
+  total: { verb: "", stat: "Тотал матча" },
   points: { verb: "забьёт", stat: "очков" },
   threes: { verb: "забьёт", stat: "трёшек" },
   assists: { verb: "сделает", stat: "передач" },
@@ -375,7 +376,7 @@ function DailyRow({ question, users, picks, streakMap, rowIdx }: { question: Dai
           {game && <img src={getTeamLogoUrl(game.away_team_id)} alt="" className="w-4 h-4" />}
         </div>
         <div className="text-[9px] text-accent font-semibold mt-0.5 leading-tight">
-          Кто больше {cat.verb} {cat.stat}?
+          {question.category === "total" ? `🏀 ${cat.stat}?` : `Кто больше ${cat.verb} ${cat.stat}?`}
         </div>
         {isResolved && question.correct_answer && (
           <div className="text-[9px] text-success font-bold leading-tight">
