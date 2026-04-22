@@ -134,6 +134,33 @@ export default function RulesPage() {
                 Итого за стрик 7: +{pts("points_streak_3", 1) + pts("points_streak_5", 2) + pts("points_streak_7", 3)}. Новый стрик после проигрыша — бонусы заново.
               </p>
             </div>
+          {/* Bonus: Upset */}
+          <div className="bg-background rounded-lg p-3">
+            <div className="flex justify-between text-sm">
+              <span className="flex items-center gap-1.5">
+                <TrendingUp size={14} className="text-accent" />
+                Апсет
+              </span>
+              <span className="text-accent font-bold">+{pts("points_upset_bonus", 3)} балла</span>
+            </div>
+            <p className="text-xs text-muted mt-1">
+              Предсказали победу нижнего сида (гостевой команды) в серии — и она победила.
+            </p>
+          </div>
+
+          {/* Bonus: Sniper */}
+          <div className="bg-background rounded-lg p-3">
+            <div className="flex justify-between text-sm">
+              <span className="flex items-center gap-1.5">
+                <Crosshair size={14} className="text-accent" />
+                Снайпер
+              </span>
+              <span className="text-accent font-bold">+{pts("points_sniper", 3)} балла</span>
+            </div>
+            <p className="text-xs text-muted mt-1">
+              Угадали победителя во всех матчах серии (минимум 4 матча). Ни одной ошибки.
+            </p>
+          </div>
           </div>
         </section>
 
