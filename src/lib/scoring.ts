@@ -587,14 +587,18 @@ async function generateEvents() {
       else currentStreak = 0;
     }
 
-    if (maxStreak >= 3) {
-      await addEvent(user.id, "streak_3", `${name} - стрик 3 угаданных подряд!`, "flame");
+    // Streak events: based on CURRENT live streak (not max), recreated each run
+    // Delete old streak events for this user
+    await supabase.from("nba_events").delete().eq("user_id", user.id).like("event_type", "streak_%");
+
+    if (currentStreak >= 3) {
+      await supabase.from("nba_events").insert({ user_id: user.id, event_type: "streak_3", title: `${name} - стрик ${currentStreak} угаданных подряд!`, icon: "flame" });
     }
-    if (maxStreak >= 5) {
-      await addEvent(user.id, "streak_5", `${name} - стрик 5 угаданных подряд!`, "flame");
+    if (currentStreak >= 5) {
+      await supabase.from("nba_events").insert({ user_id: user.id, event_type: "streak_5", title: `${name} - стрик ${currentStreak} угаданных подряд!`, icon: "flame" });
     }
-    if (maxStreak >= 7) {
-      await addEvent(user.id, "streak_7", `${name} - стрик 7 угаданных подряд!`, "flame");
+    if (currentStreak >= 7) {
+      await supabase.from("nba_events").insert({ user_id: user.id, event_type: "streak_7", title: `${name} - стрик ${currentStreak} угаданных подряд!`, icon: "flame" });
     }
 
     // Bonuses
