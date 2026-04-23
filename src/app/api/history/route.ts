@@ -138,6 +138,13 @@ export async function GET() {
     }
   }
 
+  // Leaderboard for user sorting
+  const { data: leaderboard } = await supabase
+    .from("nba_leaderboard")
+    .select("user_id, total_points");
+  const lbMap: Record<string, number> = {};
+  leaderboard?.forEach((l) => { lbMap[l.user_id] = l.total_points; });
+
   return NextResponse.json({
     games: enrichedGames,
     series: enrichedSeries,
@@ -146,5 +153,6 @@ export async function GET() {
     seriesPredictions: seriesPreds,
     dailyQuestions: visibleDailyQuestions,
     dailyPicks: dailyPicksMap,
+    leaderboard: lbMap,
   });
 }

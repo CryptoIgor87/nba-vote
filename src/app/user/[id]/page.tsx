@@ -72,6 +72,7 @@ interface UserProfileData {
     team_away_id: number;
     home_wins: number;
     away_wins: number;
+    winner_id: number | null;
     status: string;
   }[];
   teams: NbaTeam[];
@@ -314,27 +315,48 @@ export default function UserPage() {
               const bonus = seriesBonuses?.find(
                 (b) => b.series_id === sp.series_id
               );
+              const isFinished = s.status === "finished";
+              const isActive = s.status === "active";
+              const scoreDead = sp.predicted_home_wins < s.home_wins || sp.predicted_away_wins < s.away_wins;
+              const gamesLeft = 7 - s.home_wins - s.away_wins;
+              const winnerDead = (sp.predicted_winner_id === s.team_home_id && s.home_wins + gamesLeft < 4) ||
+                (sp.predicted_winner_id === s.team_away_id && s.away_wins + gamesLeft < 4);
+              const winnerCorrect = isFinished && s.winner_id === sp.predicted_winner_id;
+              const scoreCorrect = isFinished && s.home_wins === sp.predicted_home_wins && s.away_wins === sp.predicted_away_wins;
+
+              let border = "border-border";
+              if (isFinished && scoreCorrect) border = "border-success/50";
+              else if (isFinished && winnerCorrect) border = "border-success/30";
+              else if (isFinished || winnerDead) border = "border-danger/30";
+              else if (scoreDead) border = "border-amber-500/30";
 
               return (
                 <div
                   key={sp.series_id}
-                  className="bg-background border border-border rounded-xl p-3 flex items-center gap-3"
+                  className={`bg-background border ${border} rounded-xl p-3 flex items-center gap-3`}
                 >
-                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                    {homeTeam && (
-                      <img src={getTeamLogoUrl(homeTeam.id)} alt="" className="w-6 h-6" />
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    {homeTeam && <img src={getTeamLogoUrl(homeTeam.id)} alt="" className="w-6 h-6" />}
+                    {(isActive || isFinished) ? (
+                      <span className="text-[10px] font-bold text-foreground-tertiary">{s.home_wins}-{s.away_wins}</span>
+                    ) : (
+                      <span className="text-xs text-muted">vs</span>
                     )}
-                    <span className="text-xs text-muted">vs</span>
-                    {awayTeam && (
-                      <img src={getTeamLogoUrl(awayTeam.id)} alt="" className="w-6 h-6" />
-                    )}
+                    {awayTeam && <img src={getTeamLogoUrl(awayTeam.id)} alt="" className="w-6 h-6" />}
                   </div>
-                  <div className="text-sm font-semibold">
-                    {winnerTeam?.abbreviation} {sp.predicted_home_wins} - {sp.predicted_away_wins}
+                  <div className="flex-1 flex items-center gap-2">
+                    <img src={getTeamLogoUrl(sp.predicted_winner_id)} alt="" className={`w-5 h-5 ${winnerDead ? "opacity-30 grayscale" : ""}`} />
+                    <span className={`text-sm font-semibold ${scoreDead ? "line-through text-foreground-tertiary" : ""}`}>
+                      {winnerTeam?.abbreviation} {sp.predicted_home_wins}-{sp.predicted_away_wins}
+                    </span>
                   </div>
-                  {bonus && (
-                    <span className="text-success font-bold text-sm">+{bonus.points}</span>
-                  )}
+                  <div className="shrink-0 text-right">
+                    {bonus && <span className="text-success font-bold text-sm">+{bonus.points}</span>}
+                    {scoreDead && !winnerDead && <span className="text-[9px] text-amber-400 block">счёт ✗</span>}
+                    {winnerDead && <span className="text-[9px] text-danger block">✗</span>}
+                    {isFinished && scoreCorrect && <span className="text-[9px] text-success font-bold block">точно!</span>}
+                    {isFinished && winnerCorrect && !scoreCorrect && <span className="text-[9px] text-success block">✓ побед.</span>}
+                  </div>
                 </div>
               );
             })}

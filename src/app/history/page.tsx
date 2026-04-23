@@ -48,6 +48,7 @@ interface Series {
   team_away_id: number;
   home_wins: number;
   away_wins: number;
+  winner_id: number | null;
   status: string;
   created_at: string;
   home_team?: { abbreviation: string };
@@ -100,6 +101,7 @@ interface HistoryData {
   seriesPredictions: Record<string, Record<string, SeriesPick>>;
   dailyQuestions: DailyQuestion[];
   dailyPicks: Record<string, Record<string, DailyPick>>;
+  leaderboard: Record<string, number>;
 }
 
 type Row = {
@@ -139,14 +141,16 @@ export default function HistoryPage() {
     );
   }
 
-  const { games, series, users, gamePredictions, seriesPredictions, dailyQuestions, dailyPicks } = data;
+  const { games, series, users, gamePredictions, seriesPredictions, dailyQuestions, dailyPicks, leaderboard } = data;
 
-  // Active users (have at least one prediction)
-  const activeUsers = users.filter((u) =>
-    games.some((g) => gamePredictions[g.id]?.[u.id]) ||
-    series.some((s) => seriesPredictions[s.id]?.[u.id]) ||
-    (dailyQuestions || []).some((q) => dailyPicks?.[q.id]?.[u.id])
-  );
+  // Active users (have at least one prediction), sorted by points desc
+  const activeUsers = users
+    .filter((u) =>
+      games.some((g) => gamePredictions[g.id]?.[u.id]) ||
+      series.some((s) => seriesPredictions[s.id]?.[u.id]) ||
+      (dailyQuestions || []).some((q) => dailyPicks?.[q.id]?.[u.id])
+    )
+    .sort((a, b) => (leaderboard?.[b.id] ?? 0) - (leaderboard?.[a.id] ?? 0));
 
   // Series rows — shown separately at top
   const seriesRows: Row[] = [];
@@ -422,12 +426,13 @@ function DailyRow({ question, users, picks, streakMap, rowIdx }: { question: Dai
 
 function SeriesRow({ series, users, picks }: { series: Series; users: User[]; picks: Record<string, SeriesPick> }) {
   const isFinished = series.status === "finished";
+  const isActive = series.status === "active";
   return (
     <tr className="border-t border-accent/20">
       <td className="sticky left-0 z-10 bg-card px-2 py-2">
         <div className="flex items-center gap-1.5">
           <img src={getTeamLogoUrl(series.team_home_id)} alt="" className="w-5 h-5" />
-          {isFinished ? (
+          {(isFinished || isActive) ? (
             <span className="text-xs font-black">{series.home_wins}-{series.away_wins}</span>
           ) : (
             <span className="text-[10px] text-muted">vs</span>
@@ -441,11 +446,34 @@ function SeriesRow({ series, users, picks }: { series: Series; users: User[]; pi
       {users.map((user) => {
         const pick = picks[user.id];
         if (!pick) return <td key={user.id} className="px-1 py-2 text-center"><Minus size={12} className="text-border mx-auto" /></td>;
+
+        // Check if predicted score is still possible
+        const [pH, pA] = pick.score.split("-").map(Number);
+        const scoreDead = pH < series.home_wins || pA < series.away_wins;
+        // Check if predicted winner is still possible
+        const gamesLeft = 7 - series.home_wins - series.away_wins;
+        const winnerDead = (pick.picked_winner_id === series.team_home_id && series.home_wins + gamesLeft < 4) ||
+          (pick.picked_winner_id === series.team_away_id && series.away_wins + gamesLeft < 4);
+        // Finished series
+        const winnerCorrect = isFinished && series.winner_id === pick.picked_winner_id;
+        const scoreCorrect = isFinished && series.home_wins === pH && series.away_wins === pA;
+
+        let bg = "";
+        if (isFinished && scoreCorrect) bg = "bg-success/15";
+        else if (isFinished && winnerCorrect) bg = "bg-success/8";
+        else if (isFinished) bg = "bg-danger/10";
+        else if (winnerDead) bg = "bg-danger/10";
+        else if (scoreDead) bg = "bg-amber-500/8";
+
         return (
-          <td key={user.id} className="px-1 py-2 text-center">
+          <td key={user.id} className={`px-1 py-2 text-center ${bg}`}>
             <div className="flex flex-col items-center gap-0.5">
-              <img src={getTeamLogoUrl(pick.picked_winner_id)} alt="" className="w-5 h-5" />
-              <span className="text-[9px] font-bold">{pick.score}</span>
+              <img src={getTeamLogoUrl(pick.picked_winner_id)} alt="" className={`w-5 h-5 ${winnerDead ? "opacity-30 grayscale" : ""}`} />
+              <span className={`text-[9px] font-bold ${scoreDead ? "line-through text-foreground-tertiary" : ""}`}>{pick.score}</span>
+              {scoreDead && !winnerDead && <span className="text-[8px] text-amber-400">счёт ✗</span>}
+              {winnerDead && <span className="text-[8px] text-danger">✗</span>}
+              {isFinished && scoreCorrect && <span className="text-[8px] text-success font-bold">точно!</span>}
+              {isFinished && winnerCorrect && !scoreCorrect && <span className="text-[8px] text-success">✓</span>}
             </div>
           </td>
         );
