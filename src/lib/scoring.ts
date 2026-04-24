@@ -587,17 +587,34 @@ async function generateEvents() {
       else currentStreak = 0;
     }
 
-    // Streak events: based on CURRENT live streak, recreated each run
-    // Only show events for bonus thresholds (3, 5, 7)
-    console.log(`[events] ${name}: currentStreak=${currentStreak} maxStreak=${maxStreak} items=${allItems.length} gamePreds=${gamePredItems.length} daily=${dailyItems.length}`);
-    await supabase.from("nba_events").delete().eq("user_id", user.id).like("event_type", "streak_%");
-
-    if (currentStreak >= 7) {
-      await supabase.from("nba_events").insert({ user_id: user.id, event_type: "streak_7", title: `${name} - стрик 7 угаданных подряд!`, icon: "flame" });
-    } else if (currentStreak >= 5) {
-      await supabase.from("nba_events").insert({ user_id: user.id, event_type: "streak_5", title: `${name} - стрик 5 угаданных подряд!`, icon: "flame" });
-    } else if (currentStreak >= 3) {
-      await supabase.from("nba_events").insert({ user_id: user.id, event_type: "streak_3", title: `${name} - стрик 3 угаданных подряд!`, icon: "flame" });
+    // Streak events: create when streak REACHES a threshold, persist forever
+    // Track each streak run by the date of the item that triggered the threshold
+    let runStreak = 0;
+    for (const p of allItems) {
+      if (p!.correct) {
+        runStreak++;
+        const streakDate = p!.game_date.split("T")[0];
+        if (runStreak === 3) {
+          const evType = `streak_3_${streakDate}`;
+          if (!hasEvent(user.id, evType)) {
+            await supabase.from("nba_events").insert({ user_id: user.id, event_type: evType, title: `${name} - стрик 3 угаданных подряд!`, icon: "flame" });
+          }
+        }
+        if (runStreak === 5) {
+          const evType = `streak_5_${streakDate}`;
+          if (!hasEvent(user.id, evType)) {
+            await supabase.from("nba_events").insert({ user_id: user.id, event_type: evType, title: `${name} - стрик 5 угаданных подряд!`, icon: "flame" });
+          }
+        }
+        if (runStreak === 7) {
+          const evType = `streak_7_${streakDate}`;
+          if (!hasEvent(user.id, evType)) {
+            await supabase.from("nba_events").insert({ user_id: user.id, event_type: evType, title: `${name} - стрик 7 угаданных подряд!`, icon: "flame" });
+          }
+        }
+      } else {
+        runStreak = 0;
+      }
     }
 
     // Bonuses
