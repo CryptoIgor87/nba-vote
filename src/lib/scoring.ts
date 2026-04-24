@@ -589,6 +589,7 @@ async function generateEvents() {
 
     // Streak events: based on CURRENT live streak, recreated each run
     // Only show events for bonus thresholds (3, 5, 7)
+    console.log(`[events] ${name}: currentStreak=${currentStreak} maxStreak=${maxStreak} items=${allItems.length} gamePreds=${gamePredItems.length} daily=${dailyItems.length}`);
     await supabase.from("nba_events").delete().eq("user_id", user.id).like("event_type", "streak_%");
 
     if (currentStreak >= 7) {
