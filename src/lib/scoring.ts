@@ -594,22 +594,17 @@ async function generateEvents() {
       if (p!.correct) {
         runStreak++;
         const streakDate = p!.game_date.split("T")[0];
-        if (runStreak === 3) {
-          const evType = `streak_3_${streakDate}`;
-          if (!hasEvent(user.id, evType)) {
-            await supabase.from("nba_events").insert({ user_id: user.id, event_type: evType, title: `${name} - стрик 3 угаданных подряд!`, icon: "flame" });
-          }
-        }
-        if (runStreak === 5) {
-          const evType = `streak_5_${streakDate}`;
-          if (!hasEvent(user.id, evType)) {
-            await supabase.from("nba_events").insert({ user_id: user.id, event_type: evType, title: `${name} - стрик 5 угаданных подряд!`, icon: "flame" });
-          }
-        }
-        if (runStreak === 7) {
-          const evType = `streak_7_${streakDate}`;
-          if (!hasEvent(user.id, evType)) {
-            await supabase.from("nba_events").insert({ user_id: user.id, event_type: evType, title: `${name} - стрик 7 угаданных подряд!`, icon: "flame" });
+        for (const threshold of [3, 5, 7]) {
+          if (runStreak === threshold) {
+            const evType = `streak_${threshold}_${streakDate}`;
+            if (!hasEvent(user.id, evType)) {
+              await supabase.from("nba_events").insert({
+                user_id: user.id, event_type: evType,
+                title: `${name} - стрик ${threshold} угаданных подряд!`,
+                icon: "flame",
+                created_at: new Date(p!.game_date).toISOString(),
+              });
+            }
           }
         }
       } else {
