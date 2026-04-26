@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Settings, Save } from "lucide-react";
+import { Settings, Save, RefreshCw } from "lucide-react";
 import type { NbaSetting } from "@/lib/types";
 
 const LABELS: Record<string, string> = {
@@ -23,6 +23,8 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -75,6 +77,39 @@ export default function AdminSettingsPage() {
         <Settings size={24} className="text-accent" />
         Настройки
       </h1>
+
+      {/* Sync button */}
+      <div className="bg-card border border-accent/20 rounded-xl p-4 mb-6">
+        <p className="text-sm text-foreground-secondary mb-3">
+          Синхронизация результатов матчей, пересчёт баллов, обновление стриков и вопросов дня
+        </p>
+        <button
+          onClick={async () => {
+            setSyncing(true);
+            setSyncResult(null);
+            try {
+              const res = await fetch("/api/admin/sync", { method: "POST" });
+              const data = await res.json();
+              if (res.ok) {
+                setSyncResult(`Sync: ${data.sync?.synced ?? "?"} игр | Scores: ${data.scores?.ok ? "OK" : "?"}`);
+              } else {
+                setSyncResult("Ошибка: " + (data.error || res.status));
+              }
+            } catch (e) {
+              setSyncResult("Ошибка: " + String(e));
+            }
+            setSyncing(false);
+          }}
+          disabled={syncing}
+          className="w-full py-2.5 bg-accent hover:bg-accent-hover text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          <RefreshCw size={16} className={syncing ? "animate-spin" : ""} />
+          {syncing ? "Синхронизация..." : "Обновить результаты"}
+        </button>
+        {syncResult && (
+          <p className="text-xs text-foreground-secondary mt-2 text-center">{syncResult}</p>
+        )}
+      </div>
 
       <div className="bg-card border border-border rounded-xl p-6 space-y-4">
         {settings.map((setting) => (
