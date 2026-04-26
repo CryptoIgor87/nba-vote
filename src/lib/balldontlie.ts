@@ -4,31 +4,29 @@ const api = new BalldontlieAPI({
   apiKey: process.env.BALLDONTLIE_API_KEY!,
 });
 
-export async function fetchPlayoffGames(startDate: string, endDate: string) {
-  // Fetch postseason games
-  const postseason = await api.nba.getGames({
-    seasons: [2025],
-    postseason: true,
-    start_date: startDate,
-    end_date: endDate,
-  });
+export async function fetchPlayoffGames(_startDate: string, _endDate: string) {
+  // Only fetch a narrow window (yesterday → 3 days ahead) to avoid rate limits
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+  const ahead = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+  const fmt = (d: Date) => d.toISOString().split("T")[0];
 
-  // Also fetch play-in period games (marked as regular by API)
-  const playIn = await api.nba.getGames({
-    seasons: [2025],
-    start_date: "2026-04-14", // play-in starts Apr 14
-    end_date: "2026-04-18", // play-in ends before first round
-  });
-
-  // Combine, deduplicate by ID
-  const allGames = [...postseason.data];
-  const existingIds = new Set(allGames.map((g) => g.id));
-  for (const g of playIn.data) {
-    if (!existingIds.has(g.id)) {
-      allGames.push(g);
+  try {
+    const postseason = await api.nba.getGames({
+      seasons: [2025],
+      postseason: true,
+      start_date: fmt(yesterday),
+      end_date: fmt(ahead),
+    });
+    return postseason.data;
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("Too many") || msg.includes("429")) {
+      console.error("Balldontlie rate limited, skipping sync");
+      return [];
     }
+    throw err;
   }
-  return allGames;
 }
 
 export async function fetchGameById(gameId: number) {
