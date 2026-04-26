@@ -5,9 +5,9 @@ const api = new BalldontlieAPI({
 });
 
 export async function fetchPlayoffGames(_startDate: string, _endDate: string) {
-  // Only fetch a narrow window (yesterday → 3 days ahead) to avoid rate limits
+  // Fetch 3 days back → 3 days ahead (extra day back for US/UTC timezone offset)
   const now = new Date();
-  const yesterday = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+  const yesterday = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
   const ahead = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
   const fmt = (d: Date) => d.toISOString().split("T")[0];
 
