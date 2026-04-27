@@ -360,7 +360,10 @@ async function checkLeaderboard() {
 
   let bestIdx = 0, worstIdx = 0, midIdx = 0, s3Idx = 0, s5Idx = 0, s7Idx = 0;
 
-  for (const uid of top4Ids) {
+  // Sort by daily pts desc
+  const sortedIds = [...top4Ids].sort((a, b) => getDayTotal(b) - getDayTotal(a));
+
+  for (const uid of sortedIds) {
     const st = dailyStats[uid] || { correct: 0, wrong: 0, total: 0, pts: 0 };
     const streak = streaks[uid] || 0;
     const name = uname(uid);
