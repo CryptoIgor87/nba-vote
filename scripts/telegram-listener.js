@@ -10,7 +10,7 @@
  */
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const OPENAI_KEY = process.env.OPENAI_API_KEY;
+const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 const SYSTEM_PROMPT = `Ты — бот "Гей Предсказатель" в чате друзей о баскетболе NBA.
@@ -57,14 +57,14 @@ async function sendReply(chatId, text, replyToId) {
 
 async function askAI(userMessage, userName) {
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_KEY}`,
+        Authorization: `Bearer ${OPENROUTER_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: `${userName} написал: ${userMessage}` },
@@ -111,8 +111,8 @@ async function processUpdate(update) {
 async function main() {
   console.log("🏳️‍🌈 Гей Предсказатель listener started...");
 
-  if (!BOT_TOKEN || !OPENAI_KEY) {
-    console.error("Missing TELEGRAM_BOT_TOKEN or OPENAI_API_KEY");
+  if (!BOT_TOKEN || !OPENROUTER_KEY) {
+    console.error("Missing TELEGRAM_BOT_TOKEN or OPENROUTER_API_KEY");
     process.exit(1);
   }
 
