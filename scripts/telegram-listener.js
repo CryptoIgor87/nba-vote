@@ -9,9 +9,14 @@
  * Env: TELEGRAM_BOT_TOKEN, OPENAI_API_KEY, TELEGRAM_CHAT_ID
  */
 
+const { createClient } = require("@supabase/supabase-js");
+
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const db = process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
+  : null;
 
 const SYSTEM_PROMPT = `Ты — бот "Гей Предсказатель" в чате друзей о баскетболе NBA.
 Твой стиль: дерзкий, наглый, с гей-подколками. Ты обращаешься ко всем как к пидорам и геям (это дружеский юмор, все в курсе).
@@ -31,13 +36,10 @@ const SYSTEM_PROMPT = `Ты — бот "Гей Предсказатель" в ч
 - Отвечай КОРОТКО: 2-3 предложения максимум. Не пиши простыни
 - Обращайся к тому кто написал, а не к другим участникам. Если пишет Дима — отвечай Диме, а не Мирону
 - Мы говорим ТОЛЬКО про баскетбол NBA. НИКОГДА не упоминай хоккей, НХЛ, футбол, соккер или другие виды спорта. Если в результатах поиска попадается хоккей или другой спорт — ИГНОРИРУЙ это полностью. Бостон = Boston Celtics (NBA), НЕ Bruins. Лейкерс, Селтикс, Никс — это NBA команды. Если человек спрашивает "когда играет Бостон" — это ВСЕГДА про Celtics в NBA
-- Сейчас 28 апреля 2026. Идёт ПЛЕЙ-ОФФ NBA 2025-26, ПЕРВЫЙ РАУНД. Регулярка давно кончилась.
-- ЗАПРЕЩЕНО упоминать: НХЛ, хоккей, Баффало, Брюинз, футбол, соккер. Ты НЕ ЗНАЕШЬ ничего кроме NBA. Если в поиске попалось что-то про хоккей — НЕ ИСПОЛЬЗУЙ это.
-- Серии (до 4 побед):
-  BOS 2-2 PHI | CLE 3-0 TOR | NYK 2-1 ATL | DET 1-2 ORL
-  OKC 3-0 PHX | LAL 2-2 HOU | DEN 1-3 MIN | SAS 2-1 POR
-- Каждая команда играет ТОЛЬКО со своим соперником по серии. Лейкерс — только с Хьюстоном. Бостон — только с Филадельфией. Никаких других матчей.
-- Если не знаешь точную дату/время следующего матча — скажи "зайди на nba.nagaev.dev, пидор, там всё расписание"
+- Идёт ПЛЕЙ-ОФФ NBA 2025-26, ПЕРВЫЙ РАУНД. Регулярка давно кончилась.
+- ЗАПРЕЩЕНО: НХЛ, хоккей, Баффало, Брюинз, Bruins, hockey, футбол. Слово "Бостон" = ТОЛЬКО Boston Celtics. НИКОГДА не спрашивай "ты про хоккей или баскетбол?" — ВСЕГДА про баскетбол NBA.
+- Каждая команда играет ТОЛЬКО со своим соперником по серии. Актуальные счета серий даны ниже — используй ИХ, не ищи в интернете.
+- Если не знаешь дату/время — "зайди на nba.nagaev.dev, пидор"
 
 Твои убеждения (всегда отстаивай):
 - Boston Celtics — лучшая команда NBA. Они ебут всех. Тейтум — бог. Браун — зверь. Они чемпионы и будут чемпионами. Если кто-то спорит — он тупой пидор который ничего не понимает в баскетболе.
@@ -78,8 +80,31 @@ async function sendReply(chatId, text, replyToId) {
   });
 }
 
+async function getLiveContext() {
+  if (!db) return "";
+  try {
+    const { data: teams } = await db.from("nba_teams").select("id, abbreviation");
+    const tmap = new Map(teams.map(t => [t.id, t.abbreviation]));
+    const { data: series } = await db.from("nba_series").select("*").eq("round", "first_round");
+    const { data: lb } = await db.from("nba_leaderboard").select("user_id, total_points").order("total_points", { ascending: false }).limit(4);
+    const { data: users } = await db.from("nba_users").select("id, display_name, name");
+    const uname = (id) => users?.find(u => u.id === id)?.display_name || "?";
+
+    let ctx = "\nАКТУАЛЬНЫЕ СЧЕТА СЕРИЙ ПРЯМО СЕЙЧАС:\n";
+    series?.forEach(sr => {
+      ctx += `${tmap.get(sr.team_home_id)} ${sr.home_wins}-${sr.away_wins} ${tmap.get(sr.team_away_id)}${sr.status === "finished" ? " (серия окончена)" : ""}\n`;
+    });
+    ctx += "\nРЕЙТИНГ ТУРНИРА:\n";
+    lb?.forEach((l, i) => {
+      ctx += `${i + 1}. ${uname(l.user_id)} — ${l.total_points} очков\n`;
+    });
+    return ctx;
+  } catch { return ""; }
+}
+
 async function askAI(userMessage, userName) {
   try {
+    const liveCtx = await getLiveContext();
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -89,7 +114,7 @@ async function askAI(userMessage, userName) {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: SYSTEM_PROMPT + liveCtx },
           { role: "user", content: `${userName} написал: ${userMessage}` },
         ],
         max_tokens: 300,
