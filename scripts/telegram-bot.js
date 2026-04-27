@@ -299,17 +299,17 @@ async function checkLeaderboard() {
     const name = uname(uid);
 
     if (st.total === 0) {
-      msg += `${name} — вообще не играл. Видимо хуи пинал весь день 🍆\n`;
+      msg += `${name} — вообще не играл. Видимо хуи пинал весь день 🍆`;
     } else if (st.correct === st.total && st.total >= 2) {
-      msg += `${name} — ${st.correct}/${st.total} ВСЕ ВЕРНО! Ебать красавчик, не ожидал от такого пидора 🔥\n`;
+      msg += `${name} — ${st.correct}/${st.total} ВСЕ ВЕРНО! Ебать красавчик, не ожидал от такого пидора 🔥`;
     } else if (st.correct === 0) {
-      msg += `${name} — ${st.correct}/${st.total} всё мимо! Гнойный пидр, ни одного верного. Иди нахуй 💩\n`;
+      msg += `${name} — ${st.correct}/${st.total} всё мимо! Гнойный пидр, ни одного верного. Иди нахуй 💩`;
     } else if (uid === bestUid && st.pts > 0) {
-      msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Лучший пидор дня! Красавчик, хуле 💪\n`;
+      msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Лучший пидор дня! Красавчик, хуле 💪`;
     } else if (uid === worstUid) {
-      msg += `${name} — ${st.correct}/${st.total}. Самый тупой пидор дня. Позорище 🤮\n`;
+      msg += `${name} — ${st.correct}/${st.total}. Самый тупой пидор дня. Позорище 🤮`;
     } else {
-      msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Серединка на половинку, как всегда 😐\n`;
+      msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Серединка на половинку, как всегда 😐`;
     }
 
     // Streak commentary — only at bonus thresholds, unique per user
@@ -332,12 +332,13 @@ async function checkLeaderboard() {
       `🔥🔥🔥 СТРИК 7! АБСОЛЮТНЫЙ ПИДОР-ЧЕМПИОН! Семь нахуй подряд!`,
     ];
     if (streak >= 7) {
-      msg += `  ${pick(STREAK_7)}\n`;
+      msg += `\n${pick(STREAK_7)}`;
     } else if (streak >= 5) {
-      msg += `  ${pick(STREAK_5)}\n`;
+      msg += `\n${pick(STREAK_5)}`;
     } else if (streak >= 3) {
-      msg += `  ${pick(STREAK_3)}\n`;
+      msg += `\n${pick(STREAK_3)}`;
     }
+    msg += "\n\n";
   }
 
   // Check for exact series score predictions
