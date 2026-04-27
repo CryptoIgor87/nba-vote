@@ -267,11 +267,14 @@ async function checkLeaderboard() {
   });
 
   // Daily questions resolved recently
-  const { data: resolvedDQ } = await s.from("nba_daily_questions")
-    .select("*, game:nba_games!nba_daily_questions_game_id_fkey(home_team_id, away_team_id)")
-    .eq("status", "resolved")
-    .gte("created_at", dayStart)
-    .lte("created_at", dayEnd);
+  // Daily questions whose game was in the report window
+  const recentGameIds = (recentGames || []).map((g) => g.id);
+  const { data: resolvedDQ } = recentGameIds.length > 0
+    ? await s.from("nba_daily_questions")
+        .select("*, game:nba_games!nba_daily_questions_game_id_fkey(home_team_id, away_team_id)")
+        .eq("status", "resolved")
+        .in("game_id", recentGameIds)
+    : { data: [] };
   if (resolvedDQ && resolvedDQ.length > 0) {
     const CATEGORY_NAMES = { points: "очки", threes: "трёшки", assists: "передачи", rebounds: "подборы", total: "тотал" };
     msg += "\n❓ <b>Ставки дня:</b>\n";
