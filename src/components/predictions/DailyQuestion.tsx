@@ -71,7 +71,9 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
       <div className="bg-surface/60 px-3 py-2 flex items-center justify-between text-[11px]">
         <div className="flex items-center gap-2">
           <span className="text-accent font-bold">
-            {question.category === "total" ? `🏀 ${cat.stat}?` : `❓ Кто больше ${cat.verb} ${cat.stat}?`}
+            {question.category === "total"
+              ? `🏀 ${cat.stat} ${game.home_team?.abbreviation}-${game.away_team?.abbreviation}?`
+              : `❓ Кто больше ${cat.verb} ${cat.stat}?`}
           </span>
           {isResolved && question.correct_answer && (
             <span className="text-foreground-secondary">
