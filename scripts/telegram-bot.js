@@ -267,30 +267,25 @@ async function checkLeaderboard() {
   });
 
   // Daily questions resolved recently
-  // Daily questions whose game was in the report window
+  // Daily questions — include in per-user stats (no separate block)
   const recentGameIds = (recentGames || []).map((g) => g.id);
   const { data: resolvedDQ } = recentGameIds.length > 0
-    ? await s.from("nba_daily_questions")
-        .select("*, game:nba_games!nba_daily_questions_game_id_fkey(home_team_id, away_team_id)")
-        .eq("status", "resolved")
-        .in("game_id", recentGameIds)
+    ? await s.from("nba_daily_questions").select("id, game_id").eq("status", "resolved").in("game_id", recentGameIds)
     : { data: [] };
-  if (resolvedDQ && resolvedDQ.length > 0) {
-    const CATEGORY_NAMES = { points: "очки", threes: "трёшки", assists: "передачи", rebounds: "подборы", total: "тотал" };
-    msg += "\n❓ <b>Ставки дня:</b>\n";
-    for (const q of resolvedDQ) {
-      const g = q.game;
-      const match = g ? `${tmap.get(g.home_team_id)}-${tmap.get(g.away_team_id)}` : "";
-      msg += `${CATEGORY_NAMES[q.category] || q.category} ${match}: <b>${q.correct_answer}</b> (${q.correct_value})\n`;
-      // Who got it right
-      const { data: picks } = await s.from("nba_daily_picks").select("user_id, points_earned").eq("question_id", q.id);
-      const winners = (picks || []).filter(p => p.points_earned > 0).map(p => uname(p.user_id));
-      if (winners.length > 0) {
-        msg += `  ✅ Угадали: ${winners.join(", ")}\n`;
-      } else {
-        msg += `  💩 Никто не угадал, пидоры тупые\n`;
-      }
-    }
+  const { data: allDailyPicks } = resolvedDQ && resolvedDQ.length > 0
+    ? await s.from("nba_daily_picks").select("user_id, points_earned, question_id").in("question_id", resolvedDQ.map(q => q.id))
+    : { data: [] };
+
+  // Add daily picks to per-user daily stats
+  for (const uid of top4Ids) {
+    const dp = (allDailyPicks || []).filter(p => p.user_id === uid);
+    const dpCorrect = dp.filter(p => p.points_earned > 0).length;
+    const dpWrong = dp.filter(p => p.points_earned === 0).length;
+    const dpPts = dp.reduce((s, p) => s + (p.points_earned || 0), 0);
+    dailyStats[uid].correct += dpCorrect;
+    dailyStats[uid].wrong += dpWrong;
+    dailyStats[uid].total += dpCorrect + dpWrong;
+    dailyStats[uid].pts += dpPts;
   }
 
   // Per-user roasts based on daily performance
