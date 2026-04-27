@@ -90,9 +90,12 @@ async function getLiveContext() {
     const { data: users } = await db.from("nba_users").select("id, display_name, name");
     const uname = (id) => users?.find(u => u.id === id)?.display_name || "?";
 
-    let ctx = "\nАКТУАЛЬНЫЕ СЧЕТА СЕРИЙ ПРЯМО СЕЙЧАС:\n";
+    let ctx = "\nАКТУАЛЬНЫЕ СЧЕТА СЕРИЙ ПРЯМО СЕЙЧАС (первая команда ВЕДЁТ если её число больше):\n";
     series?.forEach(sr => {
-      ctx += `${tmap.get(sr.team_home_id)} ${sr.home_wins}-${sr.away_wins} ${tmap.get(sr.team_away_id)}${sr.status === "finished" ? " (серия окончена)" : ""}\n`;
+      const h = tmap.get(sr.team_home_id);
+      const a = tmap.get(sr.team_away_id);
+      const leader = sr.home_wins > sr.away_wins ? h : sr.away_wins > sr.home_wins ? a : "ничья";
+      ctx += `${h} ${sr.home_wins}-${sr.away_wins} ${a} (${leader} ведёт${sr.home_wins === sr.away_wins ? " — серия равная" : ""})${sr.status === "finished" ? " СЕРИЯ ОКОНЧЕНА" : ""}\n`;
     });
     ctx += "\nРЕЙТИНГ ТУРНИРА:\n";
     lb?.forEach((l, i) => {
