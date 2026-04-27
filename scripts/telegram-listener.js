@@ -100,10 +100,12 @@ async function processUpdate(update) {
 
   if (!isOurChat && !isDirectMessage) return;
 
-  // In group chat, only respond when mentioned or replied to
-  if (isOurChat && !mentionsBot && !isReplyToBot && !isDirectMessage) {
-    // Also respond to questions (messages ending with ?)
-    if (!msg.text.trim().endsWith("?")) return;
+  // In group chat, respond when:
+  const isQuestion = msg.text.trim().endsWith("?");
+  const hasBotKeyword = /бот|предсказатель|гей.?предс/i.test(msg.text);
+
+  if (isOurChat && !mentionsBot && !isReplyToBot && !isDirectMessage && !isQuestion && !hasBotKeyword) {
+    return;
   }
 
   const userName = msg.from?.first_name || msg.from?.username || "пидор";
