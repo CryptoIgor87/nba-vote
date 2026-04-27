@@ -84,7 +84,7 @@ async function askAI(userMessage, userName) {
         Authorization: `Bearer ${OPENROUTER_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "anthropic/claude-sonnet-4",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: `${userName} написал: ${userMessage}` },
