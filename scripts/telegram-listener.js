@@ -81,8 +81,9 @@ async function askAI(userMessage, userName) {
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: `${userName} написал: ${userMessage}` },
         ],
-        max_tokens: 200,
+        max_tokens: 300,
         temperature: 0.9,
+        plugins: [{ id: "web" }],
       }),
     });
     const data = await res.json();
