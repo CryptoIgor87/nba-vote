@@ -294,6 +294,31 @@ async function checkLeaderboard() {
     }
   }
 
+  // Check for exact series score predictions
+  const { data: seriesBonuses } = await s.from("nba_series_bonuses").select("user_id, series_id, bonus_type, points")
+    .eq("bonus_type", "series_exact");
+  if (seriesBonuses && seriesBonuses.length > 0) {
+    const { data: allSeries } = await s.from("nba_series").select("*");
+    const EXACT_ROASTS = [
+      (name, sr) => `ЕБАТЬ!!! ${name} угадал ТОЧНЫЙ СЧЁТ серии ${sr}!!! Это вообще как?! Пидор-экстрасенс! 🔮🏆`,
+      (name, sr) => `Ни хуя себе! ${name} попал в точный счёт ${sr}! У этого пидора третий глаз на жопе! 👁️🍑`,
+      (name, sr) => `СЕНСАЦИЯ! ${name} — точный счёт серии ${sr}! Остальные пидоры нервно курят в сторонке 🚬`,
+      (name, sr) => `Бля, ${name} РЕАЛЬНО угадал счёт ${sr}! Я в ахуе! Этот гомосек — ёбаный Нострадамус! 🧙‍♂️`,
+      (name, sr) => `ТОЧНЫЙ СЧЁТ! ${name} разъебал серию ${sr}! Пидор-снайпер! Остальные — жалкие дилетанты! 🎯`,
+      (name, sr) => `Ох-у-еть! ${name} и точный счёт ${sr}! Даже не верится что такой пидор может быть таким умным! 🧠`,
+      (name, sr) => `${name} УГАДАЛ СЧЁТ ${sr}! Пидорский гений! Мамка бы гордилась, если бы знала чем ты тут занимаешься! 👨‍🎓`,
+      (name, sr) => `БОМБА! Точный счёт серии ${sr} от ${name}! Этот пидор либо из будущего, либо сосёт у баскетбольного бога! 🏀✨`,
+      (name, sr) => `${name} — ТОЧНЫЙ СЧЁТ ${sr}!!! Жирнейший бонус! Пока остальные пидоры гадают, этот уже знает! 💰`,
+      (name, sr) => `Невероятно! ${name} попал в яблочко — ${sr} точный счёт! Пидор года! Нет, пидор десятилетия! 🏅`,
+    ];
+    for (const b of seriesBonuses) {
+      const sr = allSeries?.find((x) => x.id === b.series_id);
+      if (!sr) continue;
+      const srText = `${tmap.get(sr.team_home_id)} ${sr.home_wins}-${sr.away_wins} ${tmap.get(sr.team_away_id)}`;
+      msg += `\n${pick(EXACT_ROASTS)(uname(b.user_id), srText)}`;
+    }
+  }
+
   // Tight races
   for (let i = 0; i < top4.length - 1; i++) {
     const diff = top4[i].total_points - top4[i + 1].total_points;
