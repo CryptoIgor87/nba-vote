@@ -16,6 +16,14 @@ const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 const s = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
+// Telegram usernames for mentions (tag them to get attention)
+const TG_USERNAMES = {
+  "1d53fcd7-a779-4bdc-8ae5-6424d110e095": "@honeybadgermike", // Honeybadger / gerasim
+  "b889c3a4-6425-42d7-8878-d72236be3c40": "@pfif_762",        // Lakers Nation
+  "32818bf6-6094-4fc7-a88a-4f0e9e9ea21e": "@ba1udze",         // Medved
+  "bc4a5143-d342-4b7f-bd85-693f770d4701": "@Miron70",         // MIRON 13
+};
+
 // ============ GAY ROASTS FOR MISSED BETS ============
 const MISSED_ROASTS = [
   (name, match) => `${name}, сладкий мой, ты опять забыл поставить на ${match}? Завтра будешь плакать в подушку, как всегда 💅`,
@@ -79,7 +87,7 @@ async function checkMissedPredictions() {
   const { data: lb } = await s.from("nba_leaderboard").select("user_id, total_points").order("total_points", { ascending: false }).limit(4);
   const userIds = lb.map((l) => l.user_id);
   const { data: users } = await s.from("nba_users").select("id, display_name, name").in("id", userIds);
-  const uname = (id) => { const u = users.find((u) => u.id === id); return u?.display_name || u?.name || "Аноним"; };
+  const uname = (id) => TG_USERNAMES[id] || users.find((u) => u.id === id)?.display_name || "Аноним";
 
   // Upcoming games in next 24h
   const now = new Date();
@@ -148,7 +156,7 @@ async function checkLeaderboard() {
   // Current leaderboard
   const { data: lb } = await s.from("nba_leaderboard").select("user_id, total_points").order("total_points", { ascending: false });
   const { data: users } = await s.from("nba_users").select("id, display_name, name");
-  const uname = (id) => { const u = users.find((u) => u.id === id); return u?.display_name || u?.name || "Аноним"; };
+  const uname = (id) => TG_USERNAMES[id] || users.find((u) => u.id === id)?.display_name || "Аноним";
 
   if (!lb || lb.length < 2) return;
 
