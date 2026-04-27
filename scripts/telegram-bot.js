@@ -11,6 +11,8 @@
  */
 
 const { createClient } = require("@supabase/supabase-js");
+const fs = require("fs");
+const FLAG_DIR = "/tmp/tg-bot-flags";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -145,6 +147,13 @@ async function checkMissedPredictions() {
   }
 
   if (messages.length === 0) {
+    // Only send "all done" once per day
+    const today = new Date().toISOString().split("T")[0];
+    const flagFile = `${FLAG_DIR}/all_done_${today}`;
+    if (!fs.existsSync(FLAG_DIR)) fs.mkdirSync(FLAG_DIR, { recursive: true });
+    if (fs.existsSync(flagFile)) { console.log("All done already sent today"); return; }
+    fs.writeFileSync(flagFile, "1");
+
     const ALL_DONE = [
       "Охуеть, все поставили! Ни одного ленивого пидора сегодня. Чудо блять 🌈✅",
       "Все четыре пидраса сделали прогнозы! Видимо наконец вытащили хуи из рук и зашли на сайт 👏",
