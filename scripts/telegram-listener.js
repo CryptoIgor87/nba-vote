@@ -130,12 +130,20 @@ async function askAI(userMessage, userName) {
     });
     const data = await res.json();
     let reply = data.choices?.[0]?.message?.content || "Чё? Повтори, пидор, я не расслышал 🤷";
-    // Aggressively strip ALL links, domains, markdown refs
-    reply = reply.replace(/\[[^\]]*\]\([^)]*\)/g, "");        // [text](url)
-    reply = reply.replace(/\[[^\]]*\]/g, "");                  // [leftover brackets]
-    reply = reply.replace(/https?:\/\/\S+/g, "");             // raw URLs
-    reply = reply.replace(/\b\S+\.\S{2,6}\/\S*/g, "");        // domain.com/path
-    reply = reply.replace(/\b\S+\.(com|ru|org|net|io|dev|ai|today|info|pro|cc)\b\S*/gi, ""); // bare domains
+    // Strip links, domains, markdown
+    reply = reply.replace(/\[[^\]]*\]\([^)]*\)/g, "");
+    reply = reply.replace(/\[[^\]]*\]/g, "");
+    reply = reply.replace(/https?:\/\/\S+/g, "");
+    reply = reply.replace(/\b\S+\.\S{2,6}\/\S*/g, "");
+    reply = reply.replace(/\b\S+\.(com|ru|org|net|io|dev|ai|today|info|pro|cc)\b\S*/gi, "");
+    // Strip markdown formatting (Telegram plain text doesn't render it)
+    reply = reply.replace(/\*\*([^*]+)\*\*/g, "$1");
+    reply = reply.replace(/\*([^*]+)\*/g, "$1");
+    reply = reply.replace(/__([^_]+)__/g, "$1");
+    reply = reply.replace(/_([^_]+)_/g, "$1");
+    reply = reply.replace(/```[^`]*```/g, "");
+    reply = reply.replace(/`([^`]+)`/g, "$1");
+    reply = reply.replace(/#+\s/g, "");
     reply = reply.replace(/\s{2,}/g, " ").trim();
     return reply.trim();
   } catch (err) {
