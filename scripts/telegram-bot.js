@@ -311,50 +311,72 @@ async function checkLeaderboard() {
   const bestPts = dailyStats[sorted[0]]?.pts || 0;
   const worstPts = dailyStats[sorted[sorted.length - 1]]?.pts || 0;
 
+  // Pre-shuffle all roast variants for unique per-user texts
+  const BEST_ROASTS = pickUnique([
+    (n, s) => `${n} — ${s}. Лучший пидор дня! Красавчик, хуле 💪`,
+    (n, s) => `${n} — ${s}. Топ-пидор! Жги дальше, гомосек! 🔥`,
+    (n, s) => `${n} — ${s}. Альфа-пидор дня! Все остальные в тени 👑`,
+    (n, s) => `${n} — ${s}. Царь горы! Этот п��дор сегодня на коне 🐎`,
+  ], 4);
+  const WORST_ROASTS = pickUnique([
+    (n, s) => `${n} — ${s}. Самый тупой пидор дня. Позорище 🤮`,
+    (n, s) => `${n} — ${s}. Лох дня! Пидор без мозгов 🧠❌`,
+    (n, s) => `${n} — ${s}. Днище. Даже для пидора это жалко 📉`,
+    (n, s) => `${n} — ${s}. Позор гей-клуба! Хуже не бывает 💩`,
+  ], 4);
+  const MID_ROASTS = pickUnique([
+    (n, s) => `${n} — ${s}. Серединка на половинку, как всегда 😐`,
+    (n, s) => `${n} — ${s}. Ни рыба ни мясо, типичный пидор 🐟`,
+    (n, s) => `${n} — ${s}. Нормально, но от пидора ждали большего 🤷`,
+    (n, s) => `${n} — ${s}. Средний результат для среднего гомосека 📊`,
+  ], 4);
+  const STREAK_3_SHUFFLED = pickUnique([
+    `🔥 СТРИК 3! Потянуло на бонусы, пидрила!`,
+    `🔥 СТРИК 3! Три подряд! Для такого пидора это уже достижение!`,
+    `🔥 СТРИК 3! Начинаешь разбираться в баскетболе, гомосек!`,
+    `🔥 СТРИК 3! Даже слепой пидор иногда попадает!`,
+  ], 4);
+  const STREAK_5_SHUFFLED = pickUnique([
+    `🔥🔥 СТРИК 5! Пять подряд! Этот пидор опасен!`,
+    `🔥🔥 СТРИК 5! Неплохо для гомосека! Жирный бонус!`,
+    `🔥🔥 СТРИК 5! Пидор в ударе! Остальные завидуют!`,
+    `🔥🔥 СТРИК 5! Пять из пяти! Пидорский снайпер!`,
+  ], 4);
+  const STREAK_7_SHUFFLED = pickUnique([
+    `🔥🔥🔥 СТРИК 7! МАШИНА! Даже для пидора это ахуенно!`,
+    `🔥🔥🔥 СТРИК 7! ЛЕГЕНДА! Семь подряд! Пидор-терминатор!`,
+    `🔥🔥🔥 СТРИК 7! НЕ ОСТАНОВИТЬ! Этот гомосек — бог прогнозов!`,
+    `🔥🔥🔥 СТРИК 7! АБСОЛЮТНЫЙ ПИДОР-ЧЕМПИОН! Семь нахуй подряд!`,
+  ], 4);
+
+  let bestIdx = 0, worstIdx = 0, midIdx = 0, s3Idx = 0, s5Idx = 0, s7Idx = 0;
+
   for (const uid of top4Ids) {
     const st = dailyStats[uid] || { correct: 0, wrong: 0, total: 0, pts: 0 };
     const streak = streaks[uid] || 0;
     const name = uname(uid);
+    const score = `${st.correct}/${st.total} (+${st.pts})`;
 
     if (st.total === 0) {
       msg += `${name} — вообще не играл. Видимо хуи пинал весь день 🍆`;
     } else if (st.correct === st.total && st.total >= 2) {
-      msg += `${name} — ${st.correct}/${st.total} (+${st.pts}) ВСЕ ВЕРНО! Ебать красавчик, не ожидал от такого пидора 🔥`;
+      msg += `${name} — ${score} ВСЕ ВЕРНО! Ебать красавчик, не ожидал от такого пидора 🔥`;
     } else if (st.correct === 0) {
       msg += `${name} — ${st.correct}/${st.total} всё мимо! Гнойный пидр, ни одного верного. Иди нахуй 💩`;
     } else if (st.pts === bestPts && bestPts > worstPts) {
-      msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Лучший пидор дня! Красавчик, хуле 💪`;
-    } else if (st.pts === worstPts && bestPts > worstPts && st.pts < bestPts) {
-      msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Самый тупой пидор дня. Позорище 🤮`;
+      msg += BEST_ROASTS[bestIdx++ % BEST_ROASTS.length](name, score);
+    } else if (st.pts === worstPts && bestPts > worstPts) {
+      msg += WORST_ROASTS[worstIdx++ % WORST_ROASTS.length](name, score);
     } else {
-      msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Серединка на половинку, как всегда 😐`;
+      msg += MID_ROASTS[midIdx++ % MID_ROASTS.length](name, score);
     }
 
-    // Streak commentary — only at bonus thresholds, unique per user
-    const STREAK_3 = [
-      `🔥 СТРИК 3! Потянуло на бонусы, пидрила!`,
-      `🔥 СТРИК 3! Три подряд! Для такого пидора это уже достижение!`,
-      `🔥 СТРИК 3! Начинаешь разбираться в баскетболе, гомосек!`,
-      `🔥 СТРИК 3! Даже слепой пидор иногда попадает!`,
-    ];
-    const STREAK_5 = [
-      `🔥🔥 СТРИК 5! Пять подряд! Этот пидор опасен!`,
-      `🔥🔥 СТРИК 5! Неплохо для гомосека! Жирный бонус!`,
-      `🔥🔥 СТРИК 5! Пидор в ударе! Остальные завидуют!`,
-      `🔥🔥 СТРИК 5! Пять из пяти! Пидорский снайпер!`,
-    ];
-    const STREAK_7 = [
-      `🔥🔥🔥 СТРИК 7! МАШИНА! Даже для пидора это ахуенно!`,
-      `🔥🔥🔥 СТРИК 7! ЛЕГЕНДА! Семь подряд! Пидор-терминатор!`,
-      `🔥🔥🔥 СТРИК 7! НЕ ОСТАНОВИТЬ! Этот гомосек — бог прогнозов!`,
-      `🔥🔥🔥 СТРИК 7! АБСОЛЮТНЫЙ ПИДОР-ЧЕМПИОН! Семь нахуй подряд!`,
-    ];
     if (streak >= 7) {
-      msg += `\n${pick(STREAK_7)}`;
+      msg += `\n${STREAK_7_SHUFFLED[s7Idx++ % STREAK_7_SHUFFLED.length]}`;
     } else if (streak >= 5) {
-      msg += `\n${pick(STREAK_5)}`;
+      msg += `\n${STREAK_5_SHUFFLED[s5Idx++ % STREAK_5_SHUFFLED.length]}`;
     } else if (streak >= 3) {
-      msg += `\n${pick(STREAK_3)}`;
+      msg += `\n${STREAK_3_SHUFFLED[s3Idx++ % STREAK_3_SHUFFLED.length]}`;
     }
     msg += "\n\n";
   }
