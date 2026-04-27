@@ -119,7 +119,7 @@ async function askAI(userMessage, userName) {
         Authorization: `Bearer ${OPENROUTER_KEY}`,
       },
       body: JSON.stringify({
-        model: "anthropic/claude-sonnet-4",
+        model: "perplexity/sonar-pro",
         messages: [
           { role: "system", content: SYSTEM_PROMPT + dateCtx + liveCtx },
           { role: "user", content: `${userName} написал: ${userMessage}` },
