@@ -67,6 +67,12 @@ function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Pick N unique items from array (shuffle + slice)
+function pickUnique(arr, n) {
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, n);
+}
+
 async function sendMessage(text) {
   if (!BOT_TOKEN || !CHAT_ID) {
     console.log("[DRY RUN]", text);
@@ -311,12 +317,14 @@ async function checkLeaderboard() {
       (name, sr) => `${name} — ТОЧНЫЙ СЧЁТ ${sr}!!! Жирнейший бонус! Пока остальные пидоры гадают, этот уже знает! 💰`,
       (name, sr) => `Невероятно! ${name} попал в яблочко — ${sr} точный счёт! Пидор года! Нет, пидор десятилетия! 🏅`,
     ];
-    for (const b of seriesBonuses) {
+    const shuffledRoasts = pickUnique(EXACT_ROASTS, seriesBonuses.length);
+    seriesBonuses.forEach((b, i) => {
       const sr = allSeries?.find((x) => x.id === b.series_id);
-      if (!sr) continue;
+      if (!sr) return;
       const srText = `${tmap.get(sr.team_home_id)} ${sr.home_wins}-${sr.away_wins} ${tmap.get(sr.team_away_id)}`;
-      msg += `\n${pick(EXACT_ROASTS)(uname(b.user_id), srText)}`;
-    }
+      const roastFn = shuffledRoasts[i] || pick(EXACT_ROASTS);
+      msg += `\n${roastFn(uname(b.user_id), srText)}`;
+    });
   }
 
   // Tight races
