@@ -306,8 +306,10 @@ async function checkLeaderboard() {
 
   // Per-user roasts based on daily performance
   msg += "\n";
-  const bestUid = top4Ids.reduce((a, b) => (dailyStats[a]?.pts || 0) >= (dailyStats[b]?.pts || 0) ? a : b);
-  const worstUid = top4Ids.reduce((a, b) => (dailyStats[a]?.correct || 0) <= (dailyStats[b]?.correct || 0) ? a : b);
+  // Sort by pts desc to find actual best/worst
+  const sorted = [...top4Ids].sort((a, b) => (dailyStats[b]?.pts || 0) - (dailyStats[a]?.pts || 0));
+  const bestPts = dailyStats[sorted[0]]?.pts || 0;
+  const worstPts = dailyStats[sorted[sorted.length - 1]]?.pts || 0;
 
   for (const uid of top4Ids) {
     const st = dailyStats[uid] || { correct: 0, wrong: 0, total: 0, pts: 0 };
@@ -317,13 +319,13 @@ async function checkLeaderboard() {
     if (st.total === 0) {
       msg += `${name} — вообще не играл. Видимо хуи пинал весь день 🍆`;
     } else if (st.correct === st.total && st.total >= 2) {
-      msg += `${name} — ${st.correct}/${st.total} ВСЕ ВЕРНО! Ебать красавчик, не ожидал от такого пидора 🔥`;
+      msg += `${name} — ${st.correct}/${st.total} (+${st.pts}) ВСЕ ВЕРНО! Ебать красавчик, не ожидал от такого пидора 🔥`;
     } else if (st.correct === 0) {
       msg += `${name} — ${st.correct}/${st.total} всё мимо! Гнойный пидр, ни одного верного. Иди нахуй 💩`;
-    } else if (uid === bestUid && st.pts > 0) {
+    } else if (st.pts === bestPts && bestPts > worstPts) {
       msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Лучший пидор дня! Красавчик, хуле 💪`;
-    } else if (uid === worstUid) {
-      msg += `${name} — ${st.correct}/${st.total}. Самый тупой пидор дня. Позорище 🤮`;
+    } else if (st.pts === worstPts && bestPts > worstPts && st.pts < bestPts) {
+      msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Самый тупой пидор дня. Позорище 🤮`;
     } else {
       msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Серединка на половинку, как всегда 😐`;
     }
