@@ -108,8 +108,10 @@ async function getLiveContext() {
 async function askAI(userMessage, userName) {
   try {
     const liveCtx = await getLiveContext();
-    const today = new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Tomsk" });
-    const dateCtx = `\nСЕГОДНЯ: ${today}. Используй эту дату, не придумывай другую.`;
+    const now = new Date();
+    const tomskDate = now.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric", weekday: "long", timeZone: "Asia/Tomsk" });
+    const tomskTime = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tomsk" });
+    const dateCtx = `\nСЕЙЧАС: ${tomskDate}, ${tomskTime} по Томску. Это ТОЧНЫЕ дата и время, не придумывай другие.`;
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
