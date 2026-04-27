@@ -236,6 +236,7 @@ async function checkLeaderboard() {
   const { data: allDP } = await s.from("nba_daily_picks")
     .select("user_id, points_earned, question:nba_daily_questions!nba_daily_picks_question_id_fkey(game_id, status)");
 
+  // Find streaks that were active TODAY (hit threshold 3/5/7 on a game from report day)
   const streaks = {};
   for (const uid of top4Ids) {
     const items = [];
@@ -250,9 +251,24 @@ async function checkLeaderboard() {
       if (g) items.push({ date: g.game_date, correct: dp.points_earned > 0 });
     }
     items.sort((a, b) => a.date.localeCompare(b.date));
+    // Find highest streak threshold reached on a report-day game
     let cur = 0;
-    for (const i of items) { if (i.correct) cur++; else cur = 0; }
-    streaks[uid] = cur;
+    let bestTodayThreshold = 0;
+    for (const i of items) {
+      if (i.correct) {
+        cur++;
+        // Check if this item is from report day
+        const isToday = i.date >= dayStart && i.date <= dayEnd;
+        if (isToday) {
+          if (cur >= 7) bestTodayThreshold = Math.max(bestTodayThreshold, 7);
+          else if (cur >= 5) bestTodayThreshold = Math.max(bestTodayThreshold, 5);
+          else if (cur >= 3) bestTodayThreshold = Math.max(bestTodayThreshold, 3);
+        }
+      } else {
+        cur = 0;
+      }
+    }
+    streaks[uid] = bestTodayThreshold;
   }
 
   // ====== BUILD MESSAGE ======
