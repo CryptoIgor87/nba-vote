@@ -200,8 +200,8 @@ async function checkLeaderboard() {
   const uname = (id) => TG_USERNAMES[id] || users.find((u) => u.id === id)?.display_name || "Аноним";
   if (!lb || lb.length < 2) return;
 
-  // Yesterday's finished games (last 24h)
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  // Yesterday's finished games (last 36h to catch US evening games)
+  const yesterday = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
   const { data: recentGames } = await s.from("nba_games").select("*")
     .eq("status", "finished").gte("game_date", yesterday);
 
@@ -258,11 +258,26 @@ async function checkLeaderboard() {
     msg += `${medal} ${uname(entry.user_id)} — <b>${entry.total_points}</b> очков\n`;
   });
 
-  // Yesterday results
-  if (recentGames && recentGames.length > 0) {
-    msg += "\n🏀 <b>Результаты:</b>\n";
-    for (const g of recentGames) {
-      msg += `${tmap.get(g.home_team_id)} ${g.home_score}-${g.away_score} ${tmap.get(g.away_team_id)}\n`;
+  // Daily questions resolved recently
+  const { data: resolvedDQ } = await s.from("nba_daily_questions")
+    .select("*, game:nba_games!nba_daily_questions_game_id_fkey(home_team_id, away_team_id)")
+    .eq("status", "resolved")
+    .gte("created_at", yesterday);
+  if (resolvedDQ && resolvedDQ.length > 0) {
+    const CATEGORY_NAMES = { points: "очки", threes: "трёшки", assists: "передачи", rebounds: "подборы", total: "тотал" };
+    msg += "\n❓ <b>Ставки дня:</b>\n";
+    for (const q of resolvedDQ) {
+      const g = q.game;
+      const match = g ? `${tmap.get(g.home_team_id)}-${tmap.get(g.away_team_id)}` : "";
+      msg += `${CATEGORY_NAMES[q.category] || q.category} ${match}: <b>${q.correct_answer}</b> (${q.correct_value})\n`;
+      // Who got it right
+      const { data: picks } = await s.from("nba_daily_picks").select("user_id, points_earned").eq("question_id", q.id);
+      const winners = (picks || []).filter(p => p.points_earned > 0).map(p => uname(p.user_id));
+      if (winners.length > 0) {
+        msg += `  ✅ Угадали: ${winners.join(", ")}\n`;
+      } else {
+        msg += `  💩 Никто не угадал, пидоры тупые\n`;
+      }
     }
   }
 
