@@ -119,14 +119,13 @@ async function askAI(userMessage, userName) {
         Authorization: `Bearer ${OPENROUTER_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "anthropic/claude-sonnet-4",
         messages: [
           { role: "system", content: SYSTEM_PROMPT + dateCtx + liveCtx },
           { role: "user", content: `${userName} написал: ${userMessage}` },
         ],
-        max_tokens: 300,
+        max_tokens: 200,
         temperature: 0.9,
-        plugins: [{ id: "web" }],
       }),
     });
     const data = await res.json();
