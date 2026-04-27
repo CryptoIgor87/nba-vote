@@ -108,6 +108,8 @@ async function getLiveContext() {
 async function askAI(userMessage, userName) {
   try {
     const liveCtx = await getLiveContext();
+    const today = new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Tomsk" });
+    const dateCtx = `\nСЕГОДНЯ: ${today}. Используй эту дату, не придумывай другую.`;
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -117,7 +119,7 @@ async function askAI(userMessage, userName) {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT + liveCtx },
+          { role: "system", content: SYSTEM_PROMPT + dateCtx + liveCtx },
           { role: "user", content: `${userName} написал: ${userMessage}` },
         ],
         max_tokens: 300,
