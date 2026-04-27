@@ -161,31 +161,123 @@ async function checkMissedPredictions() {
   }
 }
 
-// ============ LEADERBOARD CHANGES ============
+// ============ DAILY SUMMARY (13:00 Tomsk) ============
 async function checkLeaderboard() {
-  // Current leaderboard
+  const { data: teams } = await s.from("nba_teams").select("id, abbreviation");
+  const tmap = new Map(teams.map((t) => [t.id, t.abbreviation]));
   const { data: lb } = await s.from("nba_leaderboard").select("user_id, total_points").order("total_points", { ascending: false });
   const { data: users } = await s.from("nba_users").select("id, display_name, name");
   const uname = (id) => TG_USERNAMES[id] || users.find((u) => u.id === id)?.display_name || "Аноним";
-
   if (!lb || lb.length < 2) return;
 
-  // Check if top positions are close or changed (send summary)
+  // Yesterday's finished games (last 24h)
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data: recentGames } = await s.from("nba_games").select("*")
+    .eq("status", "finished").gte("game_date", yesterday);
+
+  // Get predictions for recent games
+  const { data: preds } = recentGames?.length
+    ? await s.from("nba_predictions").select("user_id, game_id, points_earned")
+        .in("game_id", recentGames.map((g) => g.id))
+    : { data: [] };
+
+  // Per-user daily stats
+  const top4Ids = lb.slice(0, 4).map((l) => l.user_id);
+  const dailyStats = {};
+  for (const uid of top4Ids) {
+    const userPreds = (preds || []).filter((p) => p.user_id === uid);
+    const correct = userPreds.filter((p) => p.points_earned > 0).length;
+    const wrong = userPreds.filter((p) => p.points_earned === 0).length;
+    const pts = userPreds.reduce((s, p) => s + (p.points_earned || 0), 0);
+    dailyStats[uid] = { correct, wrong, total: correct + wrong, pts };
+  }
+
+  // Current streaks
+  const { data: allPreds } = await s.from("nba_predictions").select("user_id, game_id, points_earned");
+  const { data: finGames } = await s.from("nba_games").select("id, game_date").eq("status", "finished").order("game_date");
+  const { data: allDP } = await s.from("nba_daily_picks")
+    .select("user_id, points_earned, question:nba_daily_questions!nba_daily_picks_question_id_fkey(game_id, status)");
+
+  const streaks = {};
+  for (const uid of top4Ids) {
+    const items = [];
+    for (const p of (allPreds || []).filter((p) => p.user_id === uid)) {
+      const g = finGames.find((g) => g.id === p.game_id);
+      if (g) items.push({ date: g.game_date, correct: p.points_earned > 0 });
+    }
+    for (const dp of (allDP || []).filter((d) => d.user_id === uid)) {
+      const q = dp.question;
+      if (!q || q.status !== "resolved") continue;
+      const g = finGames.find((g) => g.id === q.game_id);
+      if (g) items.push({ date: g.game_date, correct: dp.points_earned > 0 });
+    }
+    items.sort((a, b) => a.date.localeCompare(b.date));
+    let cur = 0;
+    for (const i of items) { if (i.correct) cur++; else cur = 0; }
+    streaks[uid] = cur;
+  }
+
+  // ====== BUILD MESSAGE ======
   const top4 = lb.slice(0, 4);
-  let msg = "🏆 <b>Рейтинг после вчерашних матчей:</b>\n\n";
+  let msg = "📊 <b>ДНЕВНОЙ ОТЧЁТ ПИДОРОВ</b>\n\n";
+
+  // Leaderboard
+  msg += "🏆 <b>Рейтинг:</b>\n";
   top4.forEach((entry, i) => {
     const medal = i === 0 ? "👑" : i === 1 ? "🥈" : i === 2 ? "🥉" : "4️⃣";
-    msg += `${medal} <b>${uname(entry.user_id)}</b> — ${entry.total_points} очков\n`;
+    msg += `${medal} ${uname(entry.user_id)} — <b>${entry.total_points}</b> очков\n`;
   });
 
-  // Check tight races
+  // Yesterday results
+  if (recentGames && recentGames.length > 0) {
+    msg += "\n🏀 <b>Результаты:</b>\n";
+    for (const g of recentGames) {
+      msg += `${tmap.get(g.home_team_id)} ${g.home_score}-${g.away_score} ${tmap.get(g.away_team_id)}\n`;
+    }
+  }
+
+  // Per-user roasts based on daily performance
+  msg += "\n";
+  const bestUid = top4Ids.reduce((a, b) => (dailyStats[a]?.pts || 0) >= (dailyStats[b]?.pts || 0) ? a : b);
+  const worstUid = top4Ids.reduce((a, b) => (dailyStats[a]?.correct || 0) <= (dailyStats[b]?.correct || 0) ? a : b);
+
+  for (const uid of top4Ids) {
+    const st = dailyStats[uid] || { correct: 0, wrong: 0, total: 0, pts: 0 };
+    const streak = streaks[uid] || 0;
+    const name = uname(uid);
+
+    if (st.total === 0) {
+      msg += `${name} — вообще не играл. Видимо хуи пинал весь день 🍆\n`;
+    } else if (st.correct === st.total && st.total >= 2) {
+      msg += `${name} — ${st.correct}/${st.total} ВСЕ ВЕРНО! Ебать красавчик, не ожидал от такого пидора 🔥\n`;
+    } else if (st.correct === 0) {
+      msg += `${name} — ${st.correct}/${st.total} всё мимо! Гнойный пидр, ни одного верного. Иди нахуй 💩\n`;
+    } else if (uid === bestUid && st.pts > 0) {
+      msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Лучший пидор дня! Красавчик, хуле 💪\n`;
+    } else if (uid === worstUid) {
+      msg += `${name} — ${st.correct}/${st.total}. Самый тупой пидор дня. Позорище 🤮\n`;
+    } else {
+      msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Серединка на половинку, как всегда 😐\n`;
+    }
+
+    // Streak commentary
+    if (streak >= 7) {
+      msg += `  🔥🔥🔥 СТРИК ${streak}! МАШИНА! Даже для пидора это ахуенно!\n`;
+    } else if (streak >= 5) {
+      msg += `  🔥🔥 Стрик ${streak}! Неплохо для гомосека!\n`;
+    } else if (streak >= 3) {
+      msg += `  🔥 Стрик ${streak}. Потянуло на бонусы, пидрила!\n`;
+    }
+  }
+
+  // Tight races
   for (let i = 0; i < top4.length - 1; i++) {
     const diff = top4[i].total_points - top4[i + 1].total_points;
     if (diff <= 2 && diff > 0) {
-      msg += `\n🔥 ${uname(top4[i].user_id)} опережает ${uname(top4[i + 1].user_id)} всего на ${diff}! Один промах и тебя выебут, пидор!`;
+      msg += `\n⚡ ${uname(top4[i].user_id)} впереди ${uname(top4[i + 1].user_id)} на ${diff}! Один промах и тебя нагнут!`;
     }
     if (diff === 0) {
-      msg += `\n⚡ ${uname(top4[i].user_id)} и ${uname(top4[i + 1].user_id)} наравне! Кто кого нагнёт первым? Пидорская интрига! 🍆`;
+      msg += `\n⚡ ${uname(top4[i].user_id)} и ${uname(top4[i + 1].user_id)} наравне! Пидорская битва за место!`;
     }
   }
 
