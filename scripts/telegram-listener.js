@@ -92,9 +92,11 @@ async function askAI(userMessage, userName) {
     });
     const data = await res.json();
     let reply = data.choices?.[0]?.message?.content || "Чё? Повтори, пидор, я не расслышал 🤷";
-    // Strip all links — markdown [text](url) and raw URLs
-    reply = reply.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
+    // Strip all links and domains
+    reply = reply.replace(/\[([^\]]*)\]\([^)]*\)/g, "");
     reply = reply.replace(/https?:\/\/\S+/g, "");
+    reply = reply.replace(/\b\w+\.(com|ru|org|net|io|dev|ai)\b\S*/gi, "");
+    reply = reply.replace(/\s{2,}/g, " ");
     return reply.trim();
   } catch (err) {
     console.error("AI error:", err);
