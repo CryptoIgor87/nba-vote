@@ -312,13 +312,13 @@ async function checkLeaderboard() {
       msg += `${name} — ${st.correct}/${st.total} (+${st.pts}). Серединка на половинку, как всегда 😐\n`;
     }
 
-    // Streak commentary
+    // Streak commentary — only at bonus thresholds (3, 5, 7)
     if (streak >= 7) {
-      msg += `  🔥🔥🔥 СТРИК ${streak}! МАШИНА! Даже для пидора это ахуенно!\n`;
+      msg += `  🔥🔥🔥 СТРИК 7! МАШИНА! Даже для пидора это ахуенно!\n`;
     } else if (streak >= 5) {
-      msg += `  🔥🔥 Стрик ${streak}! Неплохо для гомосека!\n`;
+      msg += `  🔥🔥 СТРИК 5! Неплохо для гомосека!\n`;
     } else if (streak >= 3) {
-      msg += `  🔥 Стрик ${streak}. Потянуло на бонусы, пидрила!\n`;
+      msg += `  🔥 СТРИК 3! Потянуло на бонусы, пидрила!\n`;
     }
   }
 
