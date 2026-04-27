@@ -92,11 +92,13 @@ async function askAI(userMessage, userName) {
     });
     const data = await res.json();
     let reply = data.choices?.[0]?.message?.content || "Чё? Повтори, пидор, я не расслышал 🤷";
-    // Strip all links and domains
-    reply = reply.replace(/\[([^\]]*)\]\([^)]*\)/g, "");
-    reply = reply.replace(/https?:\/\/\S+/g, "");
-    reply = reply.replace(/\b\w+\.(com|ru|org|net|io|dev|ai)\b\S*/gi, "");
-    reply = reply.replace(/\s{2,}/g, " ");
+    // Aggressively strip ALL links, domains, markdown refs
+    reply = reply.replace(/\[[^\]]*\]\([^)]*\)/g, "");        // [text](url)
+    reply = reply.replace(/\[[^\]]*\]/g, "");                  // [leftover brackets]
+    reply = reply.replace(/https?:\/\/\S+/g, "");             // raw URLs
+    reply = reply.replace(/\b\S+\.\S{2,6}\/\S*/g, "");        // domain.com/path
+    reply = reply.replace(/\b\S+\.(com|ru|org|net|io|dev|ai|today|info|pro|cc)\b\S*/gi, ""); // bare domains
+    reply = reply.replace(/\s{2,}/g, " ").trim();
     return reply.trim();
   } catch (err) {
     console.error("AI error:", err);
