@@ -200,8 +200,8 @@ async function checkLeaderboard() {
   const uname = (id) => TG_USERNAMES[id] || users.find((u) => u.id === id)?.display_name || "Аноним";
   if (!lb || lb.length < 2) return;
 
-  // Yesterday's finished games (last 36h to catch US evening games)
-  const yesterday = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString();
+  // Yesterday's finished games (last 15h — games end max ~05:00 UTC, report at 06:00 UTC)
+  const yesterday = new Date(Date.now() - 15 * 60 * 60 * 1000).toISOString();
   const { data: recentGames } = await s.from("nba_games").select("*")
     .eq("status", "finished").gte("game_date", yesterday);
 
