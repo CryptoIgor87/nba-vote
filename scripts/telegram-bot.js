@@ -200,10 +200,18 @@ async function checkLeaderboard() {
   const uname = (id) => TG_USERNAMES[id] || users.find((u) => u.id === id)?.display_name || "Аноним";
   if (!lb || lb.length < 2) return;
 
-  // Yesterday's finished games (last 15h — games end max ~05:00 UTC, report at 06:00 UTC)
-  const yesterday = new Date(Date.now() - 15 * 60 * 60 * 1000).toISOString();
+  // Yesterday's games by Tomsk date (UTC+7). Report runs at 06:00 UTC = 13:00 Tomsk.
+  // "Yesterday Tomsk" = current UTC minus 7h for timezone, then minus 1 day
+  const nowTomsk = new Date(Date.now() + 7 * 60 * 60 * 1000);
+  const yesterdayTomsk = new Date(nowTomsk);
+  yesterdayTomsk.setDate(yesterdayTomsk.getDate() - 1);
+  const yDate = yesterdayTomsk.toISOString().split("T")[0];
+  // Games from yDate 00:00 UTC-7 (=17:00 UTC day before) to yDate+1 00:00 UTC-7
+  const dayStart = new Date(`${yDate}T00:00:00+07:00`).toISOString();
+  const dayEnd = new Date(new Date(`${yDate}T00:00:00+07:00`).getTime() + 24 * 60 * 60 * 1000).toISOString();
+  const yesterday = dayStart;
   const { data: recentGames } = await s.from("nba_games").select("*")
-    .eq("status", "finished").gte("game_date", yesterday);
+    .eq("status", "finished").gte("game_date", dayStart).lte("game_date", dayEnd);
 
   // Get predictions for recent games
   const { data: preds } = recentGames?.length
@@ -262,7 +270,8 @@ async function checkLeaderboard() {
   const { data: resolvedDQ } = await s.from("nba_daily_questions")
     .select("*, game:nba_games!nba_daily_questions_game_id_fkey(home_team_id, away_team_id)")
     .eq("status", "resolved")
-    .gte("created_at", yesterday);
+    .gte("created_at", dayStart)
+    .lte("created_at", dayEnd);
   if (resolvedDQ && resolvedDQ.length > 0) {
     const CATEGORY_NAMES = { points: "очки", threes: "трёшки", assists: "передачи", rebounds: "подборы", total: "тотал" };
     msg += "\n❓ <b>Ставки дня:</b>\n";
