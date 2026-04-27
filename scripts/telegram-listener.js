@@ -91,7 +91,11 @@ async function askAI(userMessage, userName) {
       }),
     });
     const data = await res.json();
-    return data.choices?.[0]?.message?.content || "Чё? Повтори, пидор, я не расслышал 🤷";
+    let reply = data.choices?.[0]?.message?.content || "Чё? Повтори, пидор, я не расслышал 🤷";
+    // Strip all links — markdown [text](url) and raw URLs
+    reply = reply.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
+    reply = reply.replace(/https?:\/\/\S+/g, "");
+    return reply.trim();
   } catch (err) {
     console.error("AI error:", err);
     return "Бля, мозги сломались. Попробуй позже, пидор 🤖💥";
