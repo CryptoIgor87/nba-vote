@@ -306,10 +306,16 @@ async function checkLeaderboard() {
 
   // Per-user roasts based on daily performance
   msg += "\n";
-  // Sort by pts desc to find actual best/worst
-  const sorted = [...top4Ids].sort((a, b) => (dailyStats[b]?.pts || 0) - (dailyStats[a]?.pts || 0));
-  const bestPts = dailyStats[sorted[0]]?.pts || 0;
-  const worstPts = dailyStats[sorted[sorted.length - 1]]?.pts || 0;
+  // Calculate total day points including streak bonuses
+  const getDayTotal = (uid) => {
+    const st = dailyStats[uid] || { pts: 0 };
+    const streak = streaks[uid] || 0;
+    const streakBonus = streak >= 7 ? 3 : streak >= 5 ? 2 : streak >= 3 ? 1 : 0;
+    return st.pts + streakBonus;
+  };
+  const sorted = [...top4Ids].sort((a, b) => getDayTotal(b) - getDayTotal(a));
+  const bestPts = getDayTotal(sorted[0]);
+  const worstPts = getDayTotal(sorted[sorted.length - 1]);
 
   // Pre-shuffle all roast variants for unique per-user texts
   const BEST_ROASTS = pickUnique([
@@ -349,13 +355,19 @@ async function checkLeaderboard() {
     `🔥🔥🔥 СТРИК 7! АБСОЛЮТНЫЙ ПИДОР-ЧЕМПИОН! Семь нахуй подряд!`,
   ], 4);
 
+  // Get streak bonuses earned today
+  const { data: todayBonuses } = await s.from("nba_bonuses").select("user_id, points").eq("bonus_type", "streak");
+
   let bestIdx = 0, worstIdx = 0, midIdx = 0, s3Idx = 0, s5Idx = 0, s7Idx = 0;
 
   for (const uid of top4Ids) {
     const st = dailyStats[uid] || { correct: 0, wrong: 0, total: 0, pts: 0 };
     const streak = streaks[uid] || 0;
     const name = uname(uid);
-    const score = `${st.correct}/${st.total} (+${st.pts})`;
+    // Add streak bonus to daily total
+    const streakBonus = streak >= 7 ? 3 : streak >= 5 ? 2 : streak >= 3 ? 1 : 0;
+    const totalDayPts = st.pts + streakBonus;
+    const score = `${st.correct}/${st.total} (+${totalDayPts})`;
 
     if (st.total === 0) {
       msg += `${name} — вообще не играл. Видимо хуи пинал весь день 🍆`;
@@ -363,9 +375,9 @@ async function checkLeaderboard() {
       msg += `${name} — ${score} ВСЕ ВЕРНО! Ебать красавчик, не ожидал от такого пидора 🔥`;
     } else if (st.correct === 0) {
       msg += `${name} — ${st.correct}/${st.total} всё мимо! Гнойный пидр, ни одного верного. Иди нахуй 💩`;
-    } else if (st.pts === bestPts && bestPts > worstPts) {
+    } else if (totalDayPts === bestPts && bestPts > worstPts) {
       msg += BEST_ROASTS[bestIdx++ % BEST_ROASTS.length](name, score);
-    } else if (st.pts === worstPts && bestPts > worstPts) {
+    } else if (totalDayPts === worstPts && bestPts > worstPts) {
       msg += WORST_ROASTS[worstIdx++ % WORST_ROASTS.length](name, score);
     } else {
       msg += MID_ROASTS[midIdx++ % MID_ROASTS.length](name, score);
