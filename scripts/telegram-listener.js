@@ -119,8 +119,7 @@ async function getLiveContext() {
 async function getLiveScores() {
   // Fetch today's live/finished games from ESPN
   try {
-    const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
-    const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${today}`);
+    const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard");
     const data = await res.json();
     if (!data?.events?.length) return "";
     let scores = "\nLIVE СЧЕТА МАТЧЕЙ СЕГОДНЯ (из ESPN, АКТУАЛЬНЫЕ):\n";
