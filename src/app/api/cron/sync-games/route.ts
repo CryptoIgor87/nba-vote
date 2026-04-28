@@ -22,10 +22,11 @@ export async function GET(req: NextRequest) {
     let synced = 0;
 
     for (const game of games) {
+      const rawStatus = game.status || "";
       const gameStatus =
-        game.status === "Final"
+        rawStatus === "Final" || rawStatus.startsWith("Final")
           ? "finished"
-          : game.status === "In Progress"
+          : rawStatus === "In Progress" || rawStatus.includes("Qtr") || rawStatus === "Halftime" || rawStatus.includes("OT")
           ? "in_progress"
           : "upcoming";
 
