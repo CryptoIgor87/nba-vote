@@ -609,12 +609,14 @@ async function generateEvents() {
           if (runStreak === threshold) {
             const evType = `streak_${threshold}_${streakDate}`;
             if (!hasEvent(user.id, evType)) {
-              await supabase.from("nba_events").insert({
+              const { error: evErr } = await supabase.from("nba_events").insert({
                 user_id: user.id, event_type: evType,
                 title: `${name} - стрик ${threshold} угаданных подряд!`,
                 icon: "flame",
                 created_at: new Date(p!.game_date).toISOString(),
               });
+              if (evErr) console.error("[events] streak insert error:", evErr, evType, user.id);
+              else console.log("[events] created streak event:", evType, "for", name);
             }
           }
         }
