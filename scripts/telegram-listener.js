@@ -56,6 +56,10 @@ const SYSTEM_PROMPT = `Ты — бот "Гей Предсказатель" в ч
 
 let lastUpdateId = 0;
 
+// Chat memory — last N messages
+const MEMORY_SIZE = 50;
+const chatHistory = [];
+
 async function getUpdates() {
   try {
     const res = await fetch(
@@ -122,6 +126,12 @@ async function askAI(userMessage, userName) {
         model: "perplexity/sonar-pro",
         messages: [
           { role: "system", content: SYSTEM_PROMPT + dateCtx + liveCtx },
+          // Chat history for context
+          ...chatHistory.slice(-20).map(m =>
+            m.role === "assistant"
+              ? { role: "assistant", content: m.text }
+              : { role: "user", content: `${m.name}: ${m.text}` }
+          ),
           { role: "user", content: `${userName} написал: ${userMessage}` },
         ],
         max_tokens: 200,
@@ -156,29 +166,38 @@ async function processUpdate(update) {
   const msg = update.message;
   if (!msg || !msg.text) return;
 
-  // Only respond in our chat or to direct mentions
   const chatId = msg.chat.id;
   const isOurChat = String(chatId) === String(CHAT_ID);
   const isDirectMessage = msg.chat.type === "private";
-  const mentionsBot = msg.text.includes("@") && msg.text.toLowerCase().includes("предсказатель");
-  const isReplyToBot = msg.reply_to_message?.from?.is_bot;
 
   if (!isOurChat && !isDirectMessage) return;
 
-  // In group chat, respond when:
+  const tgUsername = msg.from?.username ? `@${msg.from.username}` : null;
+  const userName = tgUsername || msg.from?.first_name || "пидор";
+
+  // Always save to memory (even if we don't respond)
+  chatHistory.push({ role: "user", name: userName, text: msg.text, ts: Date.now() });
+  if (chatHistory.length > MEMORY_SIZE) chatHistory.shift();
+
+  console.log(`[${new Date().toISOString()}] ${userName}: ${msg.text}`);
+
+  // Check if we should respond
   const isQuestion = msg.text.trim().endsWith("?");
   const hasBotKeyword = /бот|предсказатель|гей.?предс/i.test(msg.text);
+  const isReplyToBot = msg.reply_to_message?.from?.is_bot;
+  const mentionsBot = msg.text.includes("@") && msg.text.toLowerCase().includes("предсказатель");
 
-  if (isOurChat && !mentionsBot && !isReplyToBot && !isDirectMessage && !isQuestion && !hasBotKeyword) {
+  if (isOurChat && !mentionsBot && !isReplyToBot && !isQuestion && !hasBotKeyword) {
     return;
   }
 
-  const tgUsername = msg.from?.username ? `@${msg.from.username}` : null;
-  const userName = tgUsername || msg.from?.first_name || "пидор";
-  console.log(`[${new Date().toISOString()}] ${userName}: ${msg.text}`);
-
   const reply = await askAI(msg.text, userName);
   await sendReply(chatId, reply, msg.message_id);
+
+  // Save bot reply to memory too
+  chatHistory.push({ role: "assistant", name: "бот", text: reply, ts: Date.now() });
+  if (chatHistory.length > MEMORY_SIZE) chatHistory.shift();
+
   console.log(`[reply] ${reply}`);
 }
 
