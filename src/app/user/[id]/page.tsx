@@ -38,8 +38,8 @@ interface UserProfileData {
     predicted_home_wins: number;
     predicted_away_wins: number;
   }[];
-  seriesBonuses: { series_id: string; bonus_type: string; points: number }[];
-  bonuses: { bonus_type: string; description: string; points: number; context: string }[];
+  seriesBonuses: { series_id: string; bonus_type: string; points: number; created_at: string }[];
+  bonuses: { bonus_type: string; description: string; points: number; context: string; created_at: string }[];
   winnerPrediction: { team_id: number; points_earned: number } | null;
   dailyPicks: {
     id: string;
@@ -252,6 +252,7 @@ export default function UserPage() {
                       : undefined
                   }
                   points={b.points}
+                  date={b.created_at}
                 />
               );
             })}
@@ -268,6 +269,7 @@ export default function UserPage() {
                   icon={icon}
                   label={b.description}
                   points={b.points}
+                  date={b.created_at}
                 />
               );
             })}
@@ -612,11 +614,13 @@ function BonusRow({
   label,
   detail,
   points,
+  date,
 }: {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   label: string;
   detail?: string;
   points: number;
+  date?: string;
 }) {
   return (
     <div className="flex items-center gap-2 text-sm">
@@ -624,6 +628,7 @@ function BonusRow({
       <div className="flex-1 min-w-0">
         <span className="text-foreground">{label}</span>
         {detail && <span className="text-muted ml-1 text-xs">({detail})</span>}
+        {date && <span className="text-foreground-tertiary ml-1 text-[10px]">{new Date(date).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}</span>}
       </div>
       <span className="text-success font-bold shrink-0">+{points}</span>
     </div>
