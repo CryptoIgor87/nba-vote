@@ -30,20 +30,19 @@ export async function GET(req: NextRequest) {
           ? "in_progress"
           : "upcoming";
 
-      // Never downgrade from finished — API sometimes caches old status
-      if (existing?.round && gameStatus !== "finished") {
-        const { data: currentGame } = await supabase.from("nba_games").select("status").eq("id", game.id).single();
-        if (currentGame?.status === "finished") gameStatus = "finished";
-      }
-
       const gameDate = (game as unknown as { datetime?: string }).datetime || game.date;
 
-      // Check if game already exists to preserve its round
+      // Check if game already exists to preserve its round and status
       const { data: existing } = await supabase
         .from("nba_games")
-        .select("round")
+        .select("round, status")
         .eq("id", game.id)
         .single();
+
+      // Never downgrade from finished — API sometimes caches old status
+      if (existing?.status === "finished" && gameStatus !== "finished") {
+        gameStatus = "finished";
+      }
 
       // Guard against duplicates: the API occasionally returns a different id
       // for the same matchup+date (e.g. play-in games). If we find one, update
