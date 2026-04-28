@@ -235,8 +235,8 @@ async function processUpdate(update) {
   let reply;
   const isGaba = tgUsername?.toLowerCase() === "@gaba_762";
 
-  if (isGaba && Math.random() < 0.5) {
-    // 50% gaba gets a creative AI-generated fuck-off
+  if (isGaba && Math.random() < 0.2) {
+    // 20% gaba gets a creative AI-generated fuck-off
     reply = await askAI(msg.text, userName,
       `Пошли ${userName} нахуй. Сделай это КРЕАТИВНО, СМЕШНО и В ТЕМУ его сообщения. Обязательно подъеби его за Лейкерс, пиво или больные колени. Ответ должен быть осмысленным и привязанным к тому что он написал, а не шаблонным "иди нахуй". Максимум 2-3 предложения.`
     );
