@@ -23,12 +23,18 @@ export async function GET(req: NextRequest) {
 
     for (const game of games) {
       const rawStatus = game.status || "";
-      const gameStatus =
+      let gameStatus =
         rawStatus === "Final" || rawStatus.startsWith("Final")
           ? "finished"
           : rawStatus === "In Progress" || rawStatus.includes("Qtr") || rawStatus === "Halftime" || rawStatus.includes("OT")
           ? "in_progress"
           : "upcoming";
+
+      // Never downgrade from finished — API sometimes caches old status
+      if (existing?.round && gameStatus !== "finished") {
+        const { data: currentGame } = await supabase.from("nba_games").select("status").eq("id", game.id).single();
+        if (currentGame?.status === "finished") gameStatus = "finished";
+      }
 
       const gameDate = (game as unknown as { datetime?: string }).datetime || game.date;
 
