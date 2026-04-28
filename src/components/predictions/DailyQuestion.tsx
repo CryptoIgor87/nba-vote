@@ -48,12 +48,18 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
     question.player2_team_id === question.player3_team_id &&
     question.player3_team_id === question.player4_team_id;
 
-  const rawOptions = [
-    { name: question.player1_name, nba_id: question.player1_nba_id },
-    { name: question.player2_name, nba_id: question.player2_nba_id },
-    { name: question.player3_name, nba_id: question.player3_nba_id },
-    { name: question.player4_name, nba_id: question.player4_nba_id },
-  ].filter((o) => o.name != null && o.name !== "");
+  const isYesNo = question.category === "yesno";
+  const rawOptions = isYesNo
+    ? [
+        { name: question.player1_name, nba_id: question.player1_nba_id },
+        { name: question.player2_name, nba_id: question.player2_nba_id },
+      ]
+    : [
+        { name: question.player1_name, nba_id: question.player1_nba_id },
+        { name: question.player2_name, nba_id: question.player2_nba_id },
+        { name: question.player3_name, nba_id: question.player3_nba_id },
+        { name: question.player4_name, nba_id: question.player4_nba_id },
+      ].filter((o) => o.name != null && o.name !== "");
   const options = [
     ...rawOptions,
     ...(!allSameTeam && rawOptions.length >= 4 ? [{ name: "other" as const, nba_id: null as number | null }] : []),
