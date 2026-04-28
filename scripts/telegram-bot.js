@@ -131,25 +131,30 @@ async function checkMissedPredictions() {
 
   const dpickSet = new Set(dpicks?.map((p) => `${p.user_id}_${p.question_id}`) || []);
 
-  const messages = [];
+  // Collect missed items per user
+  const missedByUser = {};
 
   for (const uid of userIds) {
     const name = uname(uid);
-    // Missed game predictions
+    const missed = [];
     for (const game of games) {
       if (!predSet.has(`${uid}_${game.id}`)) {
-        const match = `${tmap.get(game.home_team_id)} vs ${tmap.get(game.away_team_id)}`;
-        messages.push(pick(MISSED_ROASTS)(name, match));
+        missed.push(`${tmap.get(game.home_team_id)} vs ${tmap.get(game.away_team_id)}`);
       }
     }
-    // Missed daily questions
     for (const dq of (dqs || [])) {
       if (!dpickSet.has(`${uid}_${dq.id}`)) {
         const game = games.find((g) => g.id === dq.game_id);
-        const match = game ? `вопрос дня ${tmap.get(game.home_team_id)}-${tmap.get(game.away_team_id)}` : "вопрос дня";
-        messages.push(pick(MISSED_ROASTS)(name, match));
+        missed.push(game ? `вопрос дня ${tmap.get(game.home_team_id)}-${tmap.get(game.away_team_id)}` : "вопрос дня");
       }
     }
+    if (missed.length > 0) missedByUser[uid] = { name, missed };
+  }
+
+  const messages = [];
+  for (const { name, missed } of Object.values(missedByUser)) {
+    const list = missed.map(m => `  - ${m}`).join("\n");
+    messages.push(pick(MISSED_ROASTS)(name, `${missed.length} ставок`) + `\n${list}`);
   }
 
   if (messages.length === 0) {
@@ -184,10 +189,8 @@ async function checkMissedPredictions() {
     ];
     await sendMessage(pick(ALL_DONE));
   } else {
-    // Group messages, max 3 per send
-    for (let i = 0; i < messages.length; i += 3) {
-      await sendMessage(messages.slice(i, i + 3).join("\n\n"));
-    }
+    // One message with all users
+    await sendMessage(messages.join("\n\n"));
   }
 }
 
