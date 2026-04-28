@@ -116,9 +116,33 @@ async function getLiveContext() {
   } catch { return ""; }
 }
 
+async function getLiveScores() {
+  // Fetch today's live/finished games from ESPN
+  try {
+    const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
+    const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=${today}`);
+    const data = await res.json();
+    if (!data?.events?.length) return "";
+    let scores = "\nLIVE СЧЕТА МАТЧЕЙ СЕГОДНЯ (из ESPN, АКТУАЛЬНЫЕ):\n";
+    for (const ev of data.events) {
+      const c = ev.competitions?.[0];
+      if (!c) continue;
+      const teams = c.competitors || [];
+      const home = teams.find(t => t.homeAway === "home");
+      const away = teams.find(t => t.homeAway === "away");
+      const status = ev.status?.type?.description || "";
+      const detail = ev.status?.type?.detail || ev.status?.displayClock || "";
+      const period = ev.status?.period || "";
+      scores += `${away?.team?.abbreviation} ${away?.score || 0} - ${home?.score || 0} ${home?.team?.abbreviation} | ${status}${status === "In Progress" ? ` (${period}Q ${detail})` : ""}\n`;
+    }
+    return scores;
+  } catch { return ""; }
+}
+
 async function askAI(userMessage, userName) {
   try {
     const liveCtx = await getLiveContext();
+    const liveScores = await getLiveScores();
     const now = new Date();
     const tomskDate = now.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric", weekday: "long", timeZone: "Asia/Tomsk" });
     const tomskTime = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tomsk" });
@@ -132,7 +156,7 @@ async function askAI(userMessage, userName) {
       body: JSON.stringify({
         model: "perplexity/sonar-pro",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT + dateCtx + liveCtx },
+          { role: "system", content: SYSTEM_PROMPT + dateCtx + liveCtx + liveScores },
           // Chat history for context
           ...chatHistory.slice(-20).map(m =>
             m.role === "assistant"
