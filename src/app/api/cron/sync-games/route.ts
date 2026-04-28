@@ -19,6 +19,15 @@ export async function GET(req: NextRequest) {
       formatDate(endDate)
     );
 
+    // Load finished series to skip games for completed matchups
+    const { data: finishedSeries } = await supabase
+      .from("nba_series")
+      .select("team_home_id, team_away_id")
+      .eq("status", "finished");
+    const finishedMatchups = new Set(
+      (finishedSeries || []).map((s) => [s.team_home_id, s.team_away_id].sort().join("-"))
+    );
+
     let synced = 0;
 
     for (const game of games) {
@@ -42,6 +51,14 @@ export async function GET(req: NextRequest) {
       // Never downgrade from finished — API sometimes caches old status
       if (existing?.status === "finished" && gameStatus !== "finished") {
         gameStatus = "finished";
+      }
+
+      // Skip new games for finished series (API keeps returning scheduled games)
+      if (!existing) {
+        const matchupKey = [game.home_team.id, game.visitor_team.id].sort().join("-");
+        if (finishedMatchups.has(matchupKey) && gameStatus !== "finished") {
+          continue;
+        }
       }
 
       // Guard against duplicates: the API occasionally returns a different id
