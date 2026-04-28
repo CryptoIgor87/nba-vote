@@ -227,12 +227,10 @@ async function processUpdate(update) {
   console.log(`[${new Date().toISOString()}] ${userName}: ${msg.text}`);
 
   // Check if we should respond
-  const isQuestion = msg.text.trim().endsWith("?");
-  const hasBotKeyword = /бот|предсказатель|гей.?предс|gaynba/i.test(msg.text);
   const isReplyToBot = msg.reply_to_message?.from?.is_bot;
-  const mentionsBot = msg.text.toLowerCase().includes("@gaynba_bot") || (msg.text.includes("@") && msg.text.toLowerCase().includes("предсказатель"));
+  const mentionsBot = msg.text.toLowerCase().includes("@gaynba_bot");
 
-  if (isOurChat && !mentionsBot && !isReplyToBot && !isQuestion && !hasBotKeyword) {
+  if (isOurChat && !mentionsBot && !isReplyToBot) {
     return;
   }
 
