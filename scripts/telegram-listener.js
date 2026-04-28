@@ -101,7 +101,16 @@ async function getLiveContext() {
     const { data: users } = await db.from("nba_users").select("id, display_name, name");
     const uname = (id) => users?.find(u => u.id === id)?.display_name || "?";
 
-    let ctx = "\nАКТУАЛЬНЫЕ СЧЕТА СЕРИЙ ПРЯМО СЕЙЧАС (первая команда ВЕДЁТ если её число больше):\n";
+    // Recent finished games from DB (last 2 days)
+    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: recentGames } = await db.from("nba_games").select("home_team_id, away_team_id, home_score, away_score, game_date, status")
+      .eq("status", "finished").gte("game_date", twoDaysAgo).order("game_date", { ascending: false });
+    let ctx = "\nПОСЛЕДНИЕ РЕЗУЛЬТАТЫ МАТЧЕЙ:\n";
+    recentGames?.forEach(g => {
+      const date = new Date(g.game_date).toLocaleDateString("ru-RU", { day: "numeric", month: "short", timeZone: "Asia/Tomsk" });
+      ctx += `${date}: ${tmap.get(g.home_team_id)} ${g.home_score}-${g.away_score} ${tmap.get(g.away_team_id)}\n`;
+    });
+    ctx += "\nАКТУАЛЬНЫЕ СЧЕТА СЕРИЙ ПРЯМО СЕЙЧАС (первая команда ВЕДЁТ если её число больше):\n";
     series?.forEach(sr => {
       const h = tmap.get(sr.team_home_id);
       const a = tmap.get(sr.team_away_id);
