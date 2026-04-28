@@ -11,6 +11,8 @@
 
 const { createClient } = require("@supabase/supabase-js");
 
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -141,7 +143,10 @@ async function getLiveScores() {
       const status = ev.status?.type?.description || "";
       const detail = ev.status?.type?.detail || ev.status?.displayClock || "";
       const period = ev.status?.period || "";
-      scores += `${away?.team?.abbreviation} ${away?.score || 0} - ${home?.score || 0} ${home?.team?.abbreviation} | ${status}${status === "In Progress" ? ` (${period}Q ${detail})` : ""}\n`;
+      const hScore = parseInt(home?.score) || 0;
+      const aScore = parseInt(away?.score) || 0;
+      const leader = hScore > aScore ? `${home?.team?.abbreviation} ведёт` : aScore > hScore ? `${away?.team?.abbreviation} ведёт` : "равный счёт";
+      scores += `${home?.team?.abbreviation}(дома) ${hScore} - ${aScore} ${away?.team?.abbreviation}(гости) | ${status}${status === "In Progress" ? ` ${period}Q ${detail}` : ""} | ${leader}\n`;
     }
     return scores;
   } catch { return ""; }
