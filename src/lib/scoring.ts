@@ -80,7 +80,7 @@ export async function recalculateScores() {
   await supabase.from("nba_series_bonuses").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("nba_bonuses").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
-  const allNewBonuses: { user_id: string; bonus_type: string; points: number; description: string; context?: string }[] = [];
+  const allNewBonuses: { user_id: string; bonus_type: string; points: number; description: string; context?: string; created_at?: string }[] = [];
 
   for (const series of finishedSeries) {
     if (!series.winner_id) continue;
@@ -89,6 +89,12 @@ export async function recalculateScores() {
       (g) => g.series_id === series.id
     );
     if (seriesGames.length === 0) continue;
+
+    // Date of the last game in the series (for bonus created_at)
+    const seriesEndDate = seriesGames
+      .map((g) => g.game_date)
+      .sort()
+      .pop()!;
 
     // Is this an upset? (away team won = lower seed upset)
     const isUpset = series.winner_id === series.team_away_id;
@@ -159,6 +165,7 @@ export async function recalculateScores() {
             points: pointsUpset,
             description: `Апсет: предсказал победу нижнего сида`,
             context: series.id,
+            created_at: seriesEndDate,
           });
         }
       }
@@ -174,6 +181,7 @@ export async function recalculateScores() {
           points: pointsSniper,
           description: `Снайпер: все ${seriesGames.length} матчей серии угаданы`,
           context: series.id,
+          created_at: seriesEndDate,
         });
       }
     }
@@ -225,29 +233,32 @@ export async function recalculateScores() {
 
     // Find all streaks and award bonus for each one that hits a threshold
     let currentStreak = 0;
-    const streaks: number[] = [];
+    let streakEndDate = "";
+    const streaks: { length: number; date: string }[] = [];
 
     for (const pred of allStreakItems) {
       if (pred!.correct) {
         currentStreak++;
+        streakEndDate = pred!.game_date;
       } else {
-        if (currentStreak >= 3) streaks.push(currentStreak);
+        if (currentStreak >= 3) streaks.push({ length: currentStreak, date: streakEndDate });
         currentStreak = 0;
+        streakEndDate = "";
       }
     }
     // Don't forget the trailing streak (still active)
-    if (currentStreak >= 3) streaks.push(currentStreak);
+    if (currentStreak >= 3) streaks.push({ length: currentStreak, date: streakEndDate });
 
     // Collect streak bonuses for bulk insert later
-    for (const streak of streaks) {
-      if (streak >= 3) {
-        allNewBonuses.push({ user_id: user.id, bonus_type: "streak", points: pointsStreak3, description: `Стрик 3 угаданных подряд` });
+    for (const s of streaks) {
+      if (s.length >= 3) {
+        allNewBonuses.push({ user_id: user.id, bonus_type: "streak", points: pointsStreak3, description: `Стрик 3 угаданных подряд`, created_at: s.date });
       }
-      if (streak >= 5) {
-        allNewBonuses.push({ user_id: user.id, bonus_type: "streak", points: pointsStreak5, description: `Стрик 5 угаданных подряд` });
+      if (s.length >= 5) {
+        allNewBonuses.push({ user_id: user.id, bonus_type: "streak", points: pointsStreak5, description: `Стрик 5 угаданных подряд`, created_at: s.date });
       }
-      if (streak >= 7) {
-        allNewBonuses.push({ user_id: user.id, bonus_type: "streak", points: pointsStreak7, description: `Стрик 7 угаданных подряд` });
+      if (s.length >= 7) {
+        allNewBonuses.push({ user_id: user.id, bonus_type: "streak", points: pointsStreak7, description: `Стрик 7 угаданных подряд`, created_at: s.date });
       }
     }
   }
