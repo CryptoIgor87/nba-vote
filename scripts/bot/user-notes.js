@@ -30,21 +30,25 @@ async function get(tgUsername) {
   return formatted;
 }
 
+function pick(arr, n) {
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, n);
+}
+
 function formatForPrompt(username, displayName, notes) {
+  // Pick random subset of traits to prevent fixation on one topic
   const parts = [];
   if (displayName) parts.push(displayName);
-  if (notes.personality) parts.push(notes.personality);
   if (notes.nba_team) parts.push(`Болеет за ${notes.nba_team}`);
-  if (notes.interests?.length) parts.push(`Интересы: ${notes.interests.join(", ")}`);
-  if (notes.humor_triggers?.length) parts.push(`Ведётся на: ${notes.humor_triggers.join(", ")}`);
-  if (notes.hates?.length) parts.push(`Бесит: ${notes.hates.join(", ")}`);
-  if (notes.running_jokes?.length) parts.push(`Внутренние шутки: ${notes.running_jokes.join(", ")}`);
-  if (notes.relationships) {
-    const rels = Object.entries(notes.relationships).map(([k, v]) => `${k}: ${v}`);
-    if (rels.length) parts.push(`Отношения: ${rels.join("; ")}`);
-  }
+
+  // Randomly pick 2-3 interests, 1-2 triggers, 1-2 hates
+  if (notes.interests?.length) parts.push(`Темы для подъёбок: ${pick(notes.interests, 3).join(", ")}`);
+  if (notes.humor_triggers?.length) parts.push(`Ведётся на: ${pick(notes.humor_triggers, 2).join(", ")}`);
+  if (notes.hates?.length) parts.push(`Бесит его: ${pick(notes.hates, 2).join(", ")}`);
+  if (notes.running_jokes?.length) parts.push(`Шутки: ${pick(notes.running_jokes, 2).join(", ")}`);
   if (notes.misc) parts.push(notes.misc);
-  return `${username}: ${parts.join(". ")}`;
+
+  return `${username} (${displayName}): ${parts.join(". ")}. Используй ОДНУ из этих тем, не все сразу.`;
 }
 
 async function getAllNotes() {

@@ -10,6 +10,8 @@ const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 async function ask(context, intent, extraInstruction) {
   const model = intent.needsWebSearch
     ? "perplexity/sonar-pro"
+    : intent.isCreativeRequest
+    ? "anthropic/claude-sonnet-4"
     : "anthropic/claude-3.5-haiku";
 
   const maxTokens = intent.isCreativeRequest ? 600 : 400;
