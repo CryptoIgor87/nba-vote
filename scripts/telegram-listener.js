@@ -193,6 +193,7 @@ async function askAI(userMessage, userName) {
     reply = reply.replace(/```[^`]*```/g, "");
     reply = reply.replace(/`([^`]+)`/g, "$1");
     reply = reply.replace(/#+\s/g, "");
+    reply = reply.replace(/[—–]/g, "-");
     reply = reply.replace(/\s{2,}/g, " ").trim();
     return reply.trim();
   } catch (err) {
