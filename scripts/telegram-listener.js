@@ -19,8 +19,9 @@ const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 // Init Supabase
-const db = process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY
-  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const db = SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY
+  ? createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
   : null;
 
 memory.init(db);

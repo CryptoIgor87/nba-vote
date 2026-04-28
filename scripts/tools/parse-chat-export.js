@@ -28,7 +28,8 @@ const DISPLAY_NAMES = {
 };
 
 const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
-const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const db = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 function parseHtmlFile(filePath) {
   const html = fs.readFileSync(filePath, "utf-8");
