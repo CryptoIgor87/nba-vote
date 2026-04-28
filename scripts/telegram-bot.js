@@ -486,8 +486,13 @@ async function checkNewDailyQuestions() {
         steals: "кто больше сделает перехватов",
         blocks: "кто больше сделает блоков",
       };
-      const catName = CATEGORY_NAMES[q.category] || q.category;
-      const desc = `${catName} ${match}`;
+      let desc;
+      if (q.category === "yesno") {
+        desc = q.player3_name || `вопрос дня ${match}`;
+      } else {
+        const catName = CATEGORY_NAMES[q.category] || q.category;
+        desc = `${catName} ${match}`;
+      }
       await sendMessage(pick(DAILY_ALERTS)(desc));
     }
   }
