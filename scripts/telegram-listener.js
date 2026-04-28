@@ -191,7 +191,26 @@ async function processUpdate(update) {
     return;
   }
 
-  const reply = await askAI(msg.text, userName);
+  // 20% chance — just tell them to fuck off
+  const FUCK_OFFS = [
+    "Иди нахуй, пидор 🖕",
+    "Отъебись, гомосек, я занят 😤",
+    "Пошёл нахуй, у меня перерыв на хуи 🍆",
+    "Нахуй иди, мне лень отвечать такому пидору 😴",
+    "Ой всё, иди нахуй, достал уже 🙄",
+    "Пидор, отвали, я щас не в настроении тебя обсуживать 💅",
+    "Нахуй-нахуй, я тебя не звал, гомосек 👋",
+    "Чё ты мне пишешь, иди нахуй лучше ставку поставь 🏀",
+    "Знаешь что? Иди нахуй. Вот мой прогноз на твой вечер 🌙",
+    "Отъебись от меня, пидрила, зайди на nba.nagaev.dev и не еби мозг 🧠",
+  ];
+
+  let reply;
+  if (Math.random() < 0.2) {
+    reply = pick(FUCK_OFFS);
+  } else {
+    reply = await askAI(msg.text, userName);
+  }
   await sendReply(chatId, reply, msg.message_id);
 
   // Save bot reply to memory too
