@@ -8,6 +8,7 @@ import Countdown from "./Countdown";
 import type { NbaDailyQuestion, NbaDailyPick, NbaGame, NbaTeam } from "@/lib/types";
 
 const CATEGORY_LABELS: Record<string, { verb: string; stat: string }> = {
+  yesno: { verb: "", stat: "" },
   total: { verb: "", stat: "Тотал матча" },
   points: { verb: "забьёт", stat: "очков" },
   threes: { verb: "забьёт", stat: "трёшек" },
@@ -47,12 +48,15 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
     question.player2_team_id === question.player3_team_id &&
     question.player3_team_id === question.player4_team_id;
 
-  const options = [
+  const rawOptions = [
     { name: question.player1_name, nba_id: question.player1_nba_id },
     { name: question.player2_name, nba_id: question.player2_nba_id },
     { name: question.player3_name, nba_id: question.player3_nba_id },
     { name: question.player4_name, nba_id: question.player4_nba_id },
-    ...(!allSameTeam ? [{ name: "other" as const, nba_id: null as number | null }] : []),
+  ].filter((o) => o.name != null && o.name !== "");
+  const options = [
+    ...rawOptions,
+    ...(!allSameTeam && rawOptions.length >= 4 ? [{ name: "other" as const, nba_id: null as number | null }] : []),
   ];
 
   const handlePick = async (option: string) => {
@@ -71,7 +75,9 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
       <div className="bg-surface/60 px-3 py-2 flex items-center justify-between text-[11px]">
         <div className="flex items-center gap-2">
           <span className="text-accent font-bold">
-            {question.category === "total"
+            {question.category === "yesno"
+              ? `🏀 ${question.player3_name || "Вопрос дня"}`
+              : question.category === "total"
               ? `🏀 ${cat.stat} ${game.home_team?.abbreviation}-${game.away_team?.abbreviation}?`
               : `❓ Кто больше ${cat.verb} ${cat.stat}?`}
           </span>
@@ -92,7 +98,7 @@ export default function DailyQuestion({ question, pick, pickCounts, onSave }: Pr
       </div>
 
       {/* Row 2: options */}
-      <div className={`grid ${allSameTeam ? "grid-cols-4" : "grid-cols-5"} bg-card stats-pattern flex-1`}>
+      <div className={`grid ${options.length <= 2 ? "grid-cols-2" : options.length <= 3 ? "grid-cols-3" : allSameTeam ? "grid-cols-4" : "grid-cols-5"} bg-card stats-pattern flex-1`}>
         {options.map((opt, idx) => {
           const isSelected = localPick === opt.name;
           const isCorrect = isResolved && question.correct_answer === opt.name;

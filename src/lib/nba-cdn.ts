@@ -59,6 +59,7 @@ interface NbaCdnScheduleDate {
 }
 
 const CATEGORY_TO_STAT: Record<DailyQuestionCategory, string> = {
+  yesno: "points",
   total: "points",
   points: "points",
   threes: "threePointersMade",
@@ -73,6 +74,7 @@ const CATEGORY_TO_STAT: Record<DailyQuestionCategory, string> = {
 // ESPN stat labels → index mapping
 const ESPN_LABELS = ['MIN', 'PTS', 'FG', '3PT', 'FT', 'REB', 'AST', 'TO', 'STL', 'BLK', 'OREB', 'DREB', 'PF', '+/-'];
 const CATEGORY_TO_ESPN_LABEL: Record<DailyQuestionCategory, string> = {
+  yesno: "PTS",
   total: "PTS",
   points: "PTS",
   threes: "3PT",

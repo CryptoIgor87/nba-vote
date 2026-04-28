@@ -118,7 +118,8 @@ export type DailyQuestionCategory =
   | "fouls"
   | "steals"
   | "blocks"
-  | "total";
+  | "total"
+  | "yesno";
 
 export interface NbaDailyQuestion {
   id: string;

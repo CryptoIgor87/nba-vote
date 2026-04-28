@@ -351,7 +351,18 @@ async function resolveDailyQuestions(pointsDailyQuestion: number) {
     let correctOptions: string[];
     let topValue: number;
 
-    if (q.category === "total") {
+    if (q.category === "yesno") {
+      // Yes/No question: player3_name = question text, player4_name = "threshold:100.5:team_field"
+      // player4_name stores threshold info, e.g. "100.5:home" or "100.5:away"
+      const meta = (q.player4_name || "").split(":");
+      const threshold = parseFloat(meta[0]) || 0;
+      const teamField = meta[1] || "home"; // "home" or "away"
+      const { data: gameData } = await supabase.from("nba_games").select("home_score, away_score").eq("id", q.game_id).single();
+      const score = teamField === "away" ? (gameData?.away_score || 0) : (gameData?.home_score || 0);
+      topValue = score;
+      console.log(`[daily-resolve] yesno: score=${score}, threshold=${threshold}, field=${teamField}`);
+      correctOptions = [score > threshold ? "Да" : "Нет"];
+    } else if (q.category === "total") {
       // Total = home_score + away_score from our DB
       const { data: gameData } = await supabase.from("nba_games").select("home_score, away_score").eq("id", q.game_id).single();
       const total = (gameData?.home_score || 0) + (gameData?.away_score || 0);
