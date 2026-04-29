@@ -85,6 +85,8 @@ interface UserProfileData {
     gamePoints: number;
     seriesBonusPoints: number;
     generalBonusPoints: number;
+    streakBonusPoints: number;
+    otherBonusPoints: number;
     winnerPoints: number;
     dailyQuestionPoints: number;
   };
@@ -209,7 +211,8 @@ export default function UserPage() {
         <div className="space-y-2 text-sm">
           <PointsRow label="Матчи (угаданные победители)" points={stats.gamePoints} />
           <PointsRow label="Бонусы за серии" points={stats.seriesBonusPoints} />
-          <PointsRow label="Бонусы (стрик, снайпер, апсет)" points={stats.generalBonusPoints} />
+          <PointsRow label="Бонусы за стрики" points={stats.streakBonusPoints} />
+          <PointsRow label="Бонусы (снайпер, апсет)" points={stats.otherBonusPoints} />
           <PointsRow label="Победитель турнира" points={stats.winnerPoints} />
           <PointsRow label="Вопросы дня" points={stats.dailyQuestionPoints || 0} />
           <div className="border-t border-border pt-2 flex justify-between font-bold">

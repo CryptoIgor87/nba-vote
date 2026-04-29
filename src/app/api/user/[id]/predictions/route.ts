@@ -185,6 +185,8 @@ export async function GET(
     gamePoints: predsForFinished.reduce((s, p) => s + (p.points_earned || 0), 0),
     seriesBonusPoints: seriesBonuses?.reduce((s, b) => s + b.points, 0) || 0,
     generalBonusPoints: bonuses?.reduce((s, b) => s + b.points, 0) || 0,
+    streakBonusPoints: bonuses?.filter(b => b.bonus_type === "streak").reduce((s, b) => s + b.points, 0) || 0,
+    otherBonusPoints: bonuses?.filter(b => b.bonus_type !== "streak").reduce((s, b) => s + b.points, 0) || 0,
     winnerPoints: winnerPrediction?.points_earned || 0,
     dailyQuestionPoints: dailyPoints,
   };
