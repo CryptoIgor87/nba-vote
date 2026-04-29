@@ -105,8 +105,7 @@ export async function GET(
   const { data: seriesBonuses } = await supabase
     .from("nba_series_bonuses")
     .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: true });
+    .eq("user_id", userId);
 
   // General bonuses (streaks, sniper, upset)
   const { data: bonuses } = await supabase
