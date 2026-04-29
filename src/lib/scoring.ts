@@ -99,55 +99,22 @@ export async function recalculateScores() {
     // Is this an upset? (away team won = lower seed upset)
     const isUpset = series.winner_id === series.team_away_id;
 
+    // Load series predictions (explicit 4-0, 4-1 etc.)
+    const { data: seriesPreds } = await supabase
+      .from("nba_series_predictions")
+      .select("user_id, predicted_winner_id, predicted_home_wins, predicted_away_wins")
+      .eq("series_id", series.id);
+
     for (const user of users) {
-      const userPredictions = allPredictions.filter(
-        (p) =>
-          p.user_id === user.id &&
-          seriesGames.some((g) => g.id === p.game_id)
-      );
+      // Use explicit series prediction for winner/exact bonus
+      const sp = seriesPreds?.find((p) => p.user_id === user.id);
+      if (!sp) continue;
 
-      if (userPredictions.length === 0) continue;
-
-      // Count predicted wins
-      let predictedHomeWins = 0;
-      let predictedAwayWins = 0;
-      let correctInSeries = 0;
-
-      for (const pred of userPredictions) {
-        const game = seriesGames.find((g) => g.id === pred.game_id);
-        if (!game) continue;
-
-        const actualWinner =
-          game.home_score > game.away_score
-            ? game.home_team_id
-            : game.away_team_id;
-        const predictedWinner =
-          pred.predicted_home_score > pred.predicted_away_score
-            ? game.home_team_id
-            : game.away_team_id;
-
-        if (predictedWinner === series.team_home_id) predictedHomeWins++;
-        else predictedAwayWins++;
-
-        if (actualWinner === predictedWinner) correctInSeries++;
-      }
-
-      const userPredictedWinner =
-        predictedHomeWins > predictedAwayWins
-          ? series.team_home_id
-          : predictedAwayWins > predictedHomeWins
-          ? series.team_away_id
-          : null;
-
-      if (userPredictedWinner === series.winner_id) {
-        // Check exact score
-        const actualScore = `${series.home_wins}-${series.away_wins}`;
-        const userScore =
-          series.winner_id === series.team_home_id
-            ? `${predictedHomeWins}-${predictedAwayWins}`
-            : `${predictedAwayWins}-${predictedHomeWins}`;
-
-        const isExact = actualScore === userScore;
+      if (sp.predicted_winner_id === series.winner_id) {
+        // Check exact score from series prediction
+        const isExact =
+          sp.predicted_home_wins === series.home_wins &&
+          sp.predicted_away_wins === series.away_wins;
 
         // Series winner/exact bonus
         await supabase.from("nba_series_bonuses").insert({
@@ -171,6 +138,17 @@ export async function recalculateScores() {
       }
 
       // Sniper bonus: guessed ALL games in the series correctly
+      const userGamePreds = allPredictions.filter(
+        (p) => p.user_id === user.id && seriesGames.some((g) => g.id === p.game_id)
+      );
+      let correctInSeries = 0;
+      for (const pred of userGamePreds) {
+        const game = seriesGames.find((g) => g.id === pred.game_id);
+        if (!game) continue;
+        const actualWinner = game.home_score > game.away_score ? game.home_team_id : game.away_team_id;
+        const predictedWinner = pred.predicted_home_score > pred.predicted_away_score ? game.home_team_id : game.away_team_id;
+        if (actualWinner === predictedWinner) correctInSeries++;
+      }
       if (
         correctInSeries === seriesGames.length &&
         seriesGames.length >= 4
